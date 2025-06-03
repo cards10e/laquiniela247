@@ -40,7 +40,7 @@ const updateUserSchema = z.object({
 });
 
 // GET /api/admin/dashboard - Admin dashboard overview
-router.get('/dashboard', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/dashboard', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   // Get overall statistics
   const totalUsers = await prisma.user.count();
   const activeUsers = await prisma.user.count({ where: { isActive: true } });
@@ -119,7 +119,7 @@ router.get('/dashboard', asyncHandler(async (req: AuthenticatedRequest, res) => 
 }));
 
 // GET /api/admin/users - Get all users with pagination
-router.get('/users', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/users', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
   const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
   const search = req.query.search as string;
@@ -163,7 +163,7 @@ router.get('/users', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // PUT /api/admin/users/:id - Update user
-router.put('/users/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.put('/users/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = parseInt(req.params.id);
   const validatedData = updateUserSchema.parse(req.body);
 
@@ -194,7 +194,7 @@ router.put('/users/:id', asyncHandler(async (req: AuthenticatedRequest, res) => 
 }));
 
 // GET /api/admin/games - Get all games with pagination
-router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
   const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
   const weekNumber = req.query.weekNumber ? parseInt(req.query.weekNumber as string) : undefined;
@@ -242,7 +242,7 @@ router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // POST /api/admin/games - Create new game
-router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const validatedData = createGameSchema.parse(req.body);
 
   // Verify teams exist
@@ -289,7 +289,7 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // PUT /api/admin/games/:id - Update game
-router.put('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.put('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const gameId = parseInt(req.params.id);
   const validatedData = updateGameSchema.parse(req.body);
 
@@ -335,14 +335,14 @@ router.put('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res) => 
 
   // If game is finished and has a result, update bet results
   if (updatedGame.status === 'FINISHED' && updatedGame.result) {
-    await prisma.bet.updateMany({
-      where: { gameId },
-      data: {
-        isCorrect: {
-          equals: updatedGame.result
-        }
+    const bets = await prisma.bet.findMany({ where: { gameId } });
+    for (const bet of bets) {
+      let isCorrect: boolean | null = null;
+      if (updatedGame.result) {
+        isCorrect = bet.prediction === updatedGame.result;
       }
-    });
+      await prisma.bet.update({ where: { id: bet.id }, data: { isCorrect } });
+    }
 
     // Trigger performance calculation for the week
     // This would typically be done in a background job
@@ -356,7 +356,7 @@ router.put('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res) => 
 }));
 
 // POST /api/admin/weeks - Create new week
-router.post('/weeks', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.post('/weeks', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const validatedData = createWeekSchema.parse(req.body);
 
   // Check if week already exists
@@ -386,7 +386,7 @@ router.post('/weeks', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // GET /api/admin/teams - Get all teams
-router.get('/teams', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/teams', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const teams = await prisma.team.findMany({
     include: {
       _count: {

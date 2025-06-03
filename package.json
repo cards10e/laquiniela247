@@ -36,5 +36,8 @@
   "workspaces": [
     "frontend",
     "backend"
-  ]
+  ],
+  "dependencies": {
+    "critters": "^0.0.23"
+  }
 }

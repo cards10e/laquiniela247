@@ -58,7 +58,7 @@ axios.interceptors.response.use(
       const refreshToken = Cookies.get('refresh_token');
       if (refreshToken) {
         try {
-          const response = await axios.post('/auth/refresh', { refreshToken });
+          const response = await axios.post('/api/auth/refresh', { refreshToken });
           const { token } = response.data;
           Cookies.set('auth_token', token, { expires: 7 });
           // Retry the original request
@@ -97,8 +97,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/auth/me');
-      setUser(response.data.user);
+      const response = await axios.get('/api/auth/me');
+      // Normalize role to lowercase
+      const normalizedUser = { ...response.data.user, role: response.data.user.role?.toLowerCase() };
+      setUser(normalizedUser);
     } catch (error) {
       console.error('Failed to fetch user:', error);
       Cookies.remove('auth_token');
@@ -110,17 +112,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string, remember = false) => {
     try {
-      const response = await axios.post('/auth/login', { email, password });
+      const response = await axios.post('/api/auth/login', { email, password });
       const { token, refreshToken, user } = response.data;
-
+      // Normalize role to lowercase
+      const normalizedUser = { ...user, role: user.role?.toLowerCase() };
       // Set cookies with appropriate expiration
       const expires = remember ? 30 : 7; // 30 days if remember, 7 days otherwise
       Cookies.set('auth_token', token, { expires });
       if (refreshToken) {
         Cookies.set('refresh_token', refreshToken, { expires: 30 });
       }
-
-      setUser(user);
+      setUser(normalizedUser);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -129,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await axios.post('/auth/register', {
+      const response = await axios.post('/api/auth/register', {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
@@ -167,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await axios.post('/auth/refresh', { refreshToken });
+      const response = await axios.post('/api/auth/refresh', { refreshToken });
       const { token } = response.data;
       Cookies.set('auth_token', token, { expires: 7 });
     } catch (error) {

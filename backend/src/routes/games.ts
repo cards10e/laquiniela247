@@ -2,7 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { prisma } from '../index';
 import { asyncHandler, createError } from '../middleware/errorHandler';
-import { optionalAuthMiddleware } from '../middleware/auth';
+import { optionalAuthMiddleware, AuthenticatedRequest } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ const getGamesSchema = z.object({
 });
 
 // GET /api/games - Get games with optional filters
-router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
+router.get('/', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const query = getGamesSchema.parse(req.query);
   
   const limit = query.limit ? parseInt(query.limit) : 20;
@@ -106,7 +106,7 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // GET /api/games/current-week - Get current week games
-router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req, res) => {
+router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   // Get current active week
   const currentWeek = await prisma.week.findFirst({
     where: {
@@ -184,7 +184,7 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req, res
 }));
 
 // GET /api/games/:id - Get specific game
-router.get('/:id', optionalAuthMiddleware, asyncHandler(async (req, res) => {
+router.get('/:id', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const gameId = parseInt(req.params.id);
   
   if (isNaN(gameId)) {
@@ -230,7 +230,7 @@ router.get('/:id', optionalAuthMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // GET /api/games/week/:weekNumber - Get games for specific week
-router.get('/week/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req, res) => {
+router.get('/week/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const weekNumber = parseInt(req.params.weekNumber);
   
   if (isNaN(weekNumber)) {
@@ -306,7 +306,7 @@ router.get('/week/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req,
 }));
 
 // GET /api/games/:id/stats - Get game betting statistics
-router.get('/:id/stats', asyncHandler(async (req, res) => {
+router.get('/:id/stats', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const gameId = parseInt(req.params.id);
   
   if (isNaN(gameId)) {

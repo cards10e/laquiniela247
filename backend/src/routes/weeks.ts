@@ -15,7 +15,7 @@ const getWeeksSchema = z.object({
 });
 
 // GET /api/weeks - Get weeks with optional filters
-router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
+router.get('/', optionalAuthMiddleware, asyncHandler(async (req: express.Request, res: express.Response) => {
   const query = getWeeksSchema.parse(req.query);
   
   const limit = query.limit ? parseInt(query.limit) : 20;
@@ -61,7 +61,7 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // GET /api/weeks/current - Get current active week
-router.get('/current', asyncHandler(async (req, res) => {
+router.get('/current', asyncHandler(async (req: express.Request, res: express.Response) => {
   const currentWeek = await prisma.week.findFirst({
     where: {
       status: {
@@ -114,7 +114,7 @@ router.get('/current', asyncHandler(async (req, res) => {
 }));
 
 // GET /api/weeks/:weekNumber - Get specific week
-router.get('/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req, res) => {
+router.get('/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req: express.Request, res: express.Response) => {
   const weekNumber = parseInt(req.params.weekNumber);
   
   if (isNaN(weekNumber)) {
@@ -167,7 +167,7 @@ router.get('/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req, res)
 }));
 
 // GET /api/weeks/:weekNumber/leaderboard - Get week leaderboard
-router.get('/:weekNumber/leaderboard', asyncHandler(async (req, res) => {
+router.get('/:weekNumber/leaderboard', asyncHandler(async (req: express.Request, res: express.Response) => {
   const weekNumber = parseInt(req.params.weekNumber);
   const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
   
@@ -224,7 +224,7 @@ router.get('/:weekNumber/leaderboard', asyncHandler(async (req, res) => {
 }));
 
 // GET /api/weeks/:weekNumber/stats - Get week statistics
-router.get('/:weekNumber/stats', asyncHandler(async (req, res) => {
+router.get('/:weekNumber/stats', asyncHandler(async (req: express.Request, res: express.Response) => {
   const weekNumber = parseInt(req.params.weekNumber);
   
   if (isNaN(weekNumber)) {

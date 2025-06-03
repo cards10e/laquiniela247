@@ -105,7 +105,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <img
-              src="/images/logotipo-la-quiniela-247-min-2-1-1.png"
+              src="/logotipo-la-quiniela-247-min-2-1-1.png"
               alt="La Quiniela 247"
               className="h-16 w-auto"
             />

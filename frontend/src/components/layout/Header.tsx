@@ -21,7 +21,9 @@ export function Header({ minimal = false }: HeaderProps) {
     { key: 'profile', href: '/profile', label: t('navigation.profile') },
   ];
 
-  if (user?.role === 'admin') {
+  const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
+
+  if (isAdmin) {
     navItems.unshift({
       key: 'admin',
       href: '/admin',
@@ -37,7 +39,7 @@ export function Header({ minimal = false }: HeaderProps) {
           <div className="flex-shrink-0">
             <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center">
               <img
-                src="/images/logotipo-la-quiniela-247-min-2-1-1.png"
+                src="/logotipo-la-quiniela-247-min-2-1-1.png"
                 alt="La Quiniela 247"
                 className="h-8 w-auto"
               />

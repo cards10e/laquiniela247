@@ -32,15 +32,16 @@ const resetPasswordSchema = z.object({
 
 // Helper function to generate JWT tokens
 const generateTokens = (userId: number) => {
+  const secret = process.env.JWT_SECRET!;
   const accessToken = jwt.sign(
     { userId },
-    process.env.JWT_SECRET!,
+    secret,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
 
   const refreshToken = jwt.sign(
     { userId, type: 'refresh' },
-    process.env.JWT_SECRET!,
+    secret,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d' }
   );
 
@@ -48,7 +49,7 @@ const generateTokens = (userId: number) => {
 };
 
 // POST /api/auth/register
-router.post('/register', asyncHandler(async (req, res) => {
+router.post('/register', asyncHandler(async (req: express.Request, res: express.Response) => {
   const validatedData = registerSchema.parse(req.body);
 
   // Check if user already exists
@@ -106,7 +107,7 @@ router.post('/register', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/login
-router.post('/login', asyncHandler(async (req, res) => {
+router.post('/login', asyncHandler(async (req: express.Request, res: express.Response) => {
   const validatedData = loginSchema.parse(req.body);
 
   // Find user with profile
@@ -155,7 +156,7 @@ router.post('/login', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/refresh
-router.post('/refresh', asyncHandler(async (req, res) => {
+router.post('/refresh', asyncHandler(async (req: express.Request, res: express.Response) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
@@ -194,7 +195,7 @@ router.post('/refresh', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', asyncHandler(async (req, res) => {
+router.post('/forgot-password', asyncHandler(async (req: express.Request, res: express.Response) => {
   const validatedData = forgotPasswordSchema.parse(req.body);
 
   const user = await prisma.user.findUnique({
@@ -227,7 +228,7 @@ router.post('/forgot-password', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/reset-password
-router.post('/reset-password', asyncHandler(async (req, res) => {
+router.post('/reset-password', asyncHandler(async (req: express.Request, res: express.Response) => {
   const validatedData = resetPasswordSchema.parse(req.body);
 
   try {

@@ -2,11 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
 
-export interface ApiError extends Error {
-  statusCode?: number;
-  isOperational?: boolean;
-}
-
 export const errorHandler = (
   error: ApiError | Error,
   req: Request,
@@ -64,8 +59,7 @@ export const errorHandler = (
   } else if (error instanceof Prisma.PrismaClientValidationError) {
     statusCode = 400;
     message = 'Invalid data provided.';
-  } else if ('statusCode' in error && error.statusCode) {
-    // Custom API errors
+  } else if (error instanceof ApiError) {
     statusCode = error.statusCode;
     message = error.message;
   } else if (error.name === 'JsonWebTokenError') {

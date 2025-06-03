@@ -20,7 +20,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         return;
       }
 
-      if (requireAdmin && user?.role !== 'admin') {
+      // Case-insensitive admin check
+      if (requireAdmin && (!user?.role || user.role.toLowerCase() !== 'admin')) {
         // Redirect to dashboard if not admin
         router.replace('/dashboard');
         return;
@@ -38,7 +39,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   }
 
   // Don't render children if not authenticated or not admin when required
-  if (!isAuthenticated || (requireAdmin && user?.role !== 'admin')) {
+  if (!isAuthenticated || (requireAdmin && (!user?.role || user.role.toLowerCase() !== 'admin'))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary-50 dark:bg-secondary-900">
         <div className="spinner"></div>

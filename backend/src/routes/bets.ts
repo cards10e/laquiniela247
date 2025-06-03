@@ -20,7 +20,7 @@ const getBetsSchema = z.object({
 });
 
 // POST /api/bets - Place a bet
-router.post('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const validatedData = placeBetSchema.parse(req.body);
   const userId = req.user!.id;
 
@@ -108,7 +108,7 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // GET /api/bets - Get user's bets
-router.get('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const query = getBetsSchema.parse(req.query);
   const userId = req.user!.id;
   
@@ -170,7 +170,7 @@ router.get('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // GET /api/bets/week/:weekNumber - Get user's bets for specific week
-router.get('/week/:weekNumber', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/week/:weekNumber', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const weekNumber = parseInt(req.params.weekNumber);
   const userId = req.user!.id;
   
@@ -230,7 +230,7 @@ router.get('/week/:weekNumber', asyncHandler(async (req: AuthenticatedRequest, r
 }));
 
 // GET /api/bets/:id - Get specific bet
-router.get('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const betId = parseInt(req.params.id);
   const userId = req.user!.id;
   
@@ -270,7 +270,7 @@ router.get('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // DELETE /api/bets/:id - Cancel a bet (only if game hasn't started)
-router.delete('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const betId = parseInt(req.params.id);
   const userId = req.user!.id;
   
@@ -319,7 +319,7 @@ router.delete('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // GET /api/bets/stats/summary - Get user's betting statistics summary
-router.get('/stats/summary', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/stats/summary', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = req.user!.id;
 
   // Get user profile with overall stats

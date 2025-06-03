@@ -122,7 +122,7 @@ body {
 
 /* Performance cards from dashboard */
 .performance-card {
-  @apply bg-secondary-50 dark:bg-secondary-800 border-radius-8 p-6 flex-1 min-w-200 text-center shadow-lq247 border border-secondary-200 dark:border-secondary-700 transition-all duration-300;
+  @apply bg-secondary-50 dark:bg-secondary-800 rounded-lg p-6 flex-1 min-w-[200px] text-center shadow-lq247 border border-secondary-200 dark:border-secondary-700 transition-all duration-300;
 }
 
 .performance-card:hover {
@@ -144,7 +144,7 @@ body {
 
 /* Match cards */
 .match-card {
-  @apply bg-white dark:bg-secondary-800 rounded-lg shadow-sm p-4 min-w-180 flex-1 flex flex-col items-center text-secondary-900 dark:text-secondary-100 border border-secondary-200 dark:border-secondary-700;
+  @apply bg-white dark:bg-secondary-800 rounded-lg shadow-sm p-4 min-w-[180px] flex-1 flex flex-col items-center text-secondary-900 dark:text-secondary-100 border border-secondary-200 dark:border-secondary-700;
 }
 
 .team-logo {

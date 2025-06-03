@@ -22,7 +22,7 @@ const changePasswordSchema = z.object({
 });
 
 // GET /api/users/profile - Get current user's profile
-router.get('/profile', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/profile', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = req.user!.id;
 
   const user = await prisma.user.findUnique({
@@ -64,7 +64,7 @@ router.get('/profile', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // PUT /api/users/profile - Update current user's profile
-router.put('/profile', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.put('/profile', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = req.user!.id;
   const validatedData = updateProfileSchema.parse(req.body);
 
@@ -144,7 +144,7 @@ router.put('/profile', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // POST /api/users/change-password - Change user's password
-router.post('/change-password', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.post('/change-password', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = req.user!.id;
   const validatedData = changePasswordSchema.parse(req.body);
 
@@ -180,7 +180,7 @@ router.post('/change-password', asyncHandler(async (req: AuthenticatedRequest, r
 }));
 
 // GET /api/users/stats - Get user's detailed statistics
-router.get('/stats', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/stats', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = req.user!.id;
 
   // Get user profile
@@ -275,7 +275,7 @@ router.get('/stats', asyncHandler(async (req: AuthenticatedRequest, res) => {
 }));
 
 // GET /api/users/dashboard - Get dashboard data
-router.get('/dashboard', asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/dashboard', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const userId = req.user!.id;
 
   // Get current week
@@ -306,7 +306,7 @@ router.get('/dashboard', asyncHandler(async (req: AuthenticatedRequest, res) => 
   });
 
   // Get current week bets
-  let currentWeekBets = [];
+  let currentWeekBets: any[] = [];
   let currentWeekPerformance = null;
   if (currentWeek) {
     currentWeekBets = await prisma.bet.findMany({

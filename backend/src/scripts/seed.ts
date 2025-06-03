@@ -30,11 +30,13 @@ async function main() {
   ];
 
   for (const team of teams) {
-    await prisma.team.upsert({
-      where: { shortName: team.shortName },
-      update: team,
-      create: team
-    });
+    // Try to find the team by shortName
+    const existingTeam = await prisma.team.findFirst({ where: { shortName: team.shortName } });
+    if (existingTeam) {
+      await prisma.team.update({ where: { id: existingTeam.id }, data: team });
+    } else {
+      await prisma.team.create({ data: team });
+    }
   }
 
   console.log(`✅ Created ${teams.length} teams`);
@@ -116,17 +118,19 @@ async function main() {
   ];
 
   for (const game of sampleGames) {
-    await prisma.game.upsert({
+    // Try to find the game by weekNumber, homeTeamId, and awayTeamId
+    const existingGame = await prisma.game.findFirst({
       where: {
-        weekNumber_homeTeamId_awayTeamId: {
-          weekNumber: game.weekNumber,
-          homeTeamId: game.homeTeamId,
-          awayTeamId: game.awayTeamId
-        }
-      },
-      update: game,
-      create: game
+        weekNumber: game.weekNumber,
+        homeTeamId: game.homeTeamId,
+        awayTeamId: game.awayTeamId
+      }
     });
+    if (existingGame) {
+      await prisma.game.update({ where: { id: existingGame.id }, data: game });
+    } else {
+      await prisma.game.create({ data: game });
+    }
   }
 
   console.log(`✅ Created ${sampleGames.length} games`);
@@ -242,15 +246,18 @@ async function main() {
   ];
 
   for (const weekData of previousWeeks) {
+    // Pad day with leading zero
+    const startDay = String(weekData.weekNumber - 10).padStart(2, '0');
+    const endDay = String(weekData.weekNumber - 9).padStart(2, '0');
     const week = await prisma.week.upsert({
       where: { weekNumber: weekData.weekNumber },
       update: {},
       create: {
         weekNumber: weekData.weekNumber,
         season: '2025',
-        startDate: new Date(`2025-01-${weekData.weekNumber - 10}T00:00:00Z`),
-        endDate: new Date(`2025-01-${weekData.weekNumber - 9}T23:59:59Z`),
-        bettingDeadline: new Date(`2025-01-${weekData.weekNumber - 9}T18:00:00Z`),
+        startDate: new Date(`2025-01-${startDay}T00:00:00Z`),
+        endDate: new Date(`2025-01-${endDay}T23:59:59Z`),
+        bettingDeadline: new Date(`2025-01-${endDay}T18:00:00Z`),
         status: 'FINISHED'
       }
     });

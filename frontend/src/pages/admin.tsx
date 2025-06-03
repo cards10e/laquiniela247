@@ -369,7 +369,7 @@ export default function AdminPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.role === 'admin' 
+                            user.role && user.role.toLowerCase() === 'admin'
                               ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400'
                               : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
                           }`}>
