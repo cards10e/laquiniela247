@@ -1,0 +1,669 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
+import { Layout } from '@/components/layout/Layout';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { toast } from 'react-hot-toast';
+import axios from 'axios';
+
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  totalBets: number;
+  totalWinnings: number;
+}
+
+interface Week {
+  id: number;
+  weekNumber: number;
+  status: 'open' | 'closed' | 'completed';
+  bettingDeadline: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface Game {
+  id: number;
+  weekId: number;
+  homeTeamName: string;
+  awayTeamName: string;
+  gameDate: string;
+  status: 'scheduled' | 'live' | 'completed';
+  homeScore?: number;
+  awayScore?: number;
+}
+
+interface AdminStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalBets: number;
+  totalRevenue: number;
+  currentWeekBets: number;
+}
+
+export default function AdminPage() {
+  const { user } = useAuth();
+  const { t } = useI18n();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(true);
+  
+  // Data states
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [weeks, setWeeks] = useState<Week[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
+  
+  // Form states
+  const [newWeek, setNewWeek] = useState({
+    weekNumber: '',
+    bettingDeadline: '',
+    startDate: '',
+    endDate: ''
+  });
+  const [newGame, setNewGame] = useState({
+    weekId: '',
+    homeTeamName: '',
+    awayTeamName: '',
+    gameDate: ''
+  });
+
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
+  const fetchAdminData = async () => {
+    try {
+      const [statsRes, usersRes, weeksRes, gamesRes] = await Promise.all([
+        axios.get('/admin/stats'),
+        axios.get('/admin/users'),
+        axios.get('/admin/weeks'),
+        axios.get('/admin/games')
+      ]);
+
+      setStats(statsRes.data);
+      setUsers(usersRes.data);
+      setWeeks(weeksRes.data);
+      setGames(gamesRes.data);
+    } catch (error) {
+      console.error('Failed to fetch admin data:', error);
+      // Set mock data for demo
+      setStats({
+        totalUsers: 1250,
+        activeUsers: 890,
+        totalBets: 5420,
+        totalRevenue: 125000,
+        currentWeekBets: 234
+      });
+      setUsers([
+        {
+          id: 1,
+          firstName: 'Demo',
+          lastName: 'User',
+          email: 'demo@laquiniela247.mx',
+          role: 'user',
+          isActive: true,
+          createdAt: '2023-01-15',
+          totalBets: 24,
+          totalWinnings: 2500
+        }
+      ]);
+      setWeeks([
+        {
+          id: 1,
+          weekNumber: 15,
+          status: 'open',
+          bettingDeadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ]);
+      setGames([
+        {
+          id: 1,
+          weekId: 1,
+          homeTeamName: 'América',
+          awayTeamName: 'Chivas',
+          gameDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          status: 'scheduled'
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateWeek = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post('/admin/weeks', {
+        weekNumber: parseInt(newWeek.weekNumber),
+        bettingDeadline: newWeek.bettingDeadline,
+        startDate: newWeek.startDate,
+        endDate: newWeek.endDate
+      });
+      
+      toast.success(t('admin.week_created'));
+      setNewWeek({ weekNumber: '', bettingDeadline: '', startDate: '', endDate: '' });
+      fetchAdminData();
+    } catch (error) {
+      console.error('Failed to create week:', error);
+      toast.error(t('admin.week_creation_failed'));
+    }
+  };
+
+  const handleCreateGame = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post('/admin/games', {
+        weekId: parseInt(newGame.weekId),
+        homeTeamName: newGame.homeTeamName,
+        awayTeamName: newGame.awayTeamName,
+        gameDate: newGame.gameDate
+      });
+      
+      toast.success(t('admin.game_created'));
+      setNewGame({ weekId: '', homeTeamName: '', awayTeamName: '', gameDate: '' });
+      fetchAdminData();
+    } catch (error) {
+      console.error('Failed to create game:', error);
+      toast.error(t('admin.game_creation_failed'));
+    }
+  };
+
+  const handleUpdateGameResult = async (gameId: number, homeScore: number, awayScore: number) => {
+    try {
+      await axios.put(`/admin/games/${gameId}/result`, {
+        homeScore,
+        awayScore,
+        status: 'completed'
+      });
+      
+      toast.success(t('admin.game_result_updated'));
+      fetchAdminData();
+    } catch (error) {
+      console.error('Failed to update game result:', error);
+      toast.error(t('admin.game_result_update_failed'));
+    }
+  };
+
+  const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
+    try {
+      await axios.put(`/admin/users/${userId}`, { isActive: !isActive });
+      toast.success(t('admin.user_status_updated'));
+      fetchAdminData();
+    } catch (error) {
+      console.error('Failed to update user status:', error);
+      toast.error(t('admin.user_status_update_failed'));
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(value);
+  };
+
+  if (loading) {
+    return (
+      <Layout title={t('navigation.admin_panel')}>
+        <ProtectedRoute requireAdmin>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="spinner"></div>
+          </div>
+        </ProtectedRoute>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout title={t('navigation.admin_panel')}>
+      <ProtectedRoute requireAdmin>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+              {t('navigation.admin_panel')}
+            </h1>
+            <p className="text-secondary-600 dark:text-secondary-400">
+              {t('admin.manage_platform')}
+            </p>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="mb-8">
+            <nav className="flex space-x-8 border-b border-secondary-200 dark:border-secondary-700">
+              {['overview', 'users', 'weeks', 'games'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab
+                      ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                      : 'border-transparent text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200'
+                  }`}
+                >
+                  {t(`admin.${tab}`)}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Overview Tab */}
+          {activeTab === 'overview' && stats && (
+            <div className="space-y-8">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="performance-card">
+                  <div className="performance-card-title">
+                    {t('admin.total_users')}
+                  </div>
+                  <div className="performance-card-value">
+                    {stats.totalUsers.toLocaleString()}
+                  </div>
+                </div>
+                
+                <div className="performance-card">
+                  <div className="performance-card-title">
+                    {t('admin.active_users')}
+                  </div>
+                  <div className="performance-card-value">
+                    {stats.activeUsers.toLocaleString()}
+                  </div>
+                </div>
+                
+                <div className="performance-card">
+                  <div className="performance-card-title">
+                    {t('admin.total_bets')}
+                  </div>
+                  <div className="performance-card-value">
+                    {stats.totalBets.toLocaleString()}
+                  </div>
+                </div>
+                
+                <div className="performance-card">
+                  <div className="performance-card-title">
+                    {t('admin.total_revenue')}
+                  </div>
+                  <div className="performance-card-value">
+                    {formatCurrency(stats.totalRevenue)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title">{t('admin.recent_activity')}</h2>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-secondary-600 dark:text-secondary-400">
+                      {t('admin.current_week_bets')}
+                    </span>
+                    <span className="font-semibold text-secondary-900 dark:text-secondary-100">
+                      {stats.currentWeekBets}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-secondary-600 dark:text-secondary-400">
+                      {t('admin.user_activity_rate')}
+                    </span>
+                    <span className="font-semibold text-secondary-900 dark:text-secondary-100">
+                      {((stats.activeUsers / stats.totalUsers) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title">{t('admin.user_management')}</h2>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-secondary-200 dark:divide-secondary-700">
+                  <thead className="bg-secondary-50 dark:bg-secondary-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                        {t('admin.user')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                        {t('admin.role')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                        {t('admin.total_bets')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                        {t('admin.total_winnings')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                        {t('admin.status')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                        {t('admin.actions')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-secondary-900 divide-y divide-secondary-200 dark:divide-secondary-700">
+                    {users.map((user) => (
+                      <tr key={user.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
+                              {user.firstName} {user.lastName}
+                            </div>
+                            <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                              {user.email}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.role === 'admin' 
+                              ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400'
+                              : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                          }`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900 dark:text-secondary-100">
+                          {user.totalBets}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900 dark:text-secondary-100">
+                          {formatCurrency(user.totalWinnings)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.isActive
+                              ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                              : 'bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400'
+                          }`}>
+                            {user.isActive ? t('admin.active') : t('admin.inactive')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handleToggleUserStatus(user.id, user.isActive)}
+                            className={`${
+                              user.isActive
+                                ? 'text-error-600 hover:text-error-900 dark:text-error-400 dark:hover:text-error-300'
+                                : 'text-success-600 hover:text-success-900 dark:text-success-400 dark:hover:text-success-300'
+                            }`}
+                          >
+                            {user.isActive ? t('admin.deactivate') : t('admin.activate')}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Weeks Tab */}
+          {activeTab === 'weeks' && (
+            <div className="space-y-8">
+              {/* Create Week Form */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title">{t('admin.create_week')}</h2>
+                </div>
+                
+                <form onSubmit={handleCreateWeek} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">
+                        {t('admin.week_number')}
+                      </label>
+                      <input
+                        type="number"
+                        value={newWeek.weekNumber}
+                        onChange={(e) => setNewWeek(prev => ({ ...prev, weekNumber: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="form-label">
+                        {t('admin.betting_deadline')}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={newWeek.bettingDeadline}
+                        onChange={(e) => setNewWeek(prev => ({ ...prev, bettingDeadline: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="form-label">
+                        {t('admin.start_date')}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={newWeek.startDate}
+                        onChange={(e) => setNewWeek(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="form-label">
+                        {t('admin.end_date')}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={newWeek.endDate}
+                        onChange={(e) => setNewWeek(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <button type="submit" className="btn-primary">
+                    {t('admin.create_week')}
+                  </button>
+                </form>
+              </div>
+
+              {/* Weeks List */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title">{t('admin.existing_weeks')}</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {weeks.map((week) => (
+                    <div key={week.id} className="flex items-center justify-between p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div>
+                        <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                          {t('dashboard.week')} {week.weekNumber}
+                        </h3>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          {new Date(week.startDate).toLocaleDateString()} - {new Date(week.endDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        week.status === 'open'
+                          ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                          : week.status === 'closed'
+                          ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                          : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                      }`}>
+                        {t(`admin.${week.status}`)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Games Tab */}
+          {activeTab === 'games' && (
+            <div className="space-y-8">
+              {/* Create Game Form */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title">{t('admin.create_game')}</h2>
+                </div>
+                
+                <form onSubmit={handleCreateGame} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">
+                        {t('admin.week')}
+                      </label>
+                      <select
+                        value={newGame.weekId}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, weekId: e.target.value }))}
+                        className="form-input"
+                        required
+                      >
+                        <option value="">{t('admin.select_week')}</option>
+                        {weeks.map((week) => (
+                          <option key={week.id} value={week.id}>
+                            {t('dashboard.week')} {week.weekNumber}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="form-label">
+                        {t('admin.game_date')}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={newGame.gameDate}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, gameDate: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="form-label">
+                        {t('admin.home_team')}
+                      </label>
+                      <input
+                        type="text"
+                        value={newGame.homeTeamName}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, homeTeamName: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="form-label">
+                        {t('admin.away_team')}
+                      </label>
+                      <input
+                        type="text"
+                        value={newGame.awayTeamName}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, awayTeamName: e.target.value }))}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <button type="submit" className="btn-primary">
+                    {t('admin.create_game')}
+                  </button>
+                </form>
+              </div>
+
+              {/* Games List */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title">{t('admin.existing_games')}</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {games.map((game) => (
+                    <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                            {game.homeTeamName} vs {game.awayTeamName}
+                          </h3>
+                          <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                            {new Date(game.gameDate).toLocaleString()}
+                          </p>
+                        </div>
+                        
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          game.status === 'completed'
+                            ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                            : game.status === 'live'
+                            ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                            : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                        }`}>
+                          {t(`admin.${game.status}`)}
+                        </span>
+                      </div>
+                      
+                      {game.status === 'scheduled' && (
+                        <div className="flex items-center space-x-4">
+                          <input
+                            type="number"
+                            placeholder={t('admin.home_score')}
+                            className="form-input w-20"
+                            id={`home-score-${game.id}`}
+                          />
+                          <span className="text-secondary-500 dark:text-secondary-400">-</span>
+                          <input
+                            type="number"
+                            placeholder={t('admin.away_score')}
+                            className="form-input w-20"
+                            id={`away-score-${game.id}`}
+                          />
+                          <button
+                            onClick={() => {
+                              const homeScore = parseInt((document.getElementById(`home-score-${game.id}`) as HTMLInputElement).value);
+                              const awayScore = parseInt((document.getElementById(`away-score-${game.id}`) as HTMLInputElement).value);
+                              if (!isNaN(homeScore) && !isNaN(awayScore)) {
+                                handleUpdateGameResult(game.id, homeScore, awayScore);
+                              }
+                            }}
+                            className="btn-primary"
+                          >
+                            {t('admin.update_result')}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {game.status === 'completed' && (
+                        <div className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+                          {t('admin.final_score')}: {game.homeScore} - {game.awayScore}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </ProtectedRoute>
+    </Layout>
+  );
+}

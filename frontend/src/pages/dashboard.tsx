@@ -1,0 +1,423 @@
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
+import { Layout } from '@/components/layout/Layout';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import axios from 'axios';
+
+interface UserProfile {
+  totalBets: number;
+  overallPercentage: number;
+  bestRankingPosition: number;
+  totalWinnings: number;
+  currentStreak: number;
+  bestWeek: number;
+}
+
+interface Week {
+  id: number;
+  weekNumber: number;
+  status: 'open' | 'closed' | 'completed';
+  bettingDeadline: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface Game {
+  id: number;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeTeamLogo?: string;
+  awayTeamLogo?: string;
+  gameDate: string;
+  status: 'scheduled' | 'live' | 'completed';
+  homeScore?: number;
+  awayScore?: number;
+}
+
+interface RecentActivity {
+  id: number;
+  weekNumber: number;
+  correctPredictions: number;
+  totalPredictions: number;
+  winnings: number;
+  date: string;
+}
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const { t } = useI18n();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
+  const [games, setGames] = useState<Game[]>([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [profileRes, weekRes, gamesRes, activityRes] = await Promise.all([
+        axios.get('/users/profile'),
+        axios.get('/weeks/current'),
+        axios.get('/games/current-week'),
+        axios.get('/bets/recent-activity')
+      ]);
+
+      setProfile(profileRes.data);
+      setCurrentWeek(weekRes.data);
+      setGames(gamesRes.data);
+      setRecentActivity(activityRes.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+      // Set mock data for demo
+      setProfile({
+        totalBets: 24,
+        overallPercentage: 66.7,
+        bestRankingPosition: 10,
+        totalWinnings: 2500,
+        currentStreak: 3,
+        bestWeek: 85
+      });
+      setCurrentWeek({
+        id: 1,
+        weekNumber: 15,
+        status: 'open',
+        bettingDeadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      setGames([
+        {
+          id: 1,
+          homeTeamName: 'América',
+          awayTeamName: 'Chivas',
+          gameDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          status: 'scheduled'
+        },
+        {
+          id: 2,
+          homeTeamName: 'Cruz Azul',
+          awayTeamName: 'Pumas',
+          gameDate: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
+          status: 'scheduled'
+        }
+      ]);
+      setRecentActivity([
+        {
+          id: 1,
+          weekNumber: 14,
+          correctPredictions: 8,
+          totalPredictions: 10,
+          winnings: 150,
+          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPercentage = (value: number) => {
+    return `${value.toFixed(1)}%`;
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(value);
+  };
+
+  const timeUntilDeadline = (deadline: string) => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diff = deadlineDate.getTime() - now.getTime();
+    
+    if (diff <= 0) return t('dashboard.betting_closed');
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
+  if (loading) {
+    return (
+      <Layout title={t('dashboard.title')}>
+        <ProtectedRoute>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="spinner"></div>
+          </div>
+        </ProtectedRoute>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout title={t('dashboard.title')}>
+      <ProtectedRoute>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Welcome Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+              {t('dashboard.welcome').replace('%s', user?.firstName || user?.displayName || '')}
+            </h1>
+          </div>
+
+          {/* Performance Overview */}
+          <div className="mb-8">
+            <h2 className="section-title">
+              {t('dashboard.performance_overview')}
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="performance-card">
+                <div className="performance-card-title">
+                  {t('dashboard.total_bets')}
+                </div>
+                <div className="performance-card-value">
+                  {profile?.totalBets || 0}
+                </div>
+              </div>
+              
+              <div className="performance-card">
+                <div className="performance-card-title">
+                  {t('dashboard.correct_percentage')}
+                </div>
+                <div className="performance-card-value">
+                  {formatPercentage(profile?.overallPercentage || 0)}
+                </div>
+              </div>
+              
+              <div className="performance-card">
+                <div className="performance-card-title">
+                  {t('dashboard.ranking_percentile')}
+                </div>
+                <div className="performance-card-value">
+                  {profile?.bestRankingPosition 
+                    ? `Top ${Math.min(100, Math.max(1, Math.round((profile.bestRankingPosition / 1000) * 100)))}%`
+                    : 'Top 1%'
+                  }
+                </div>
+              </div>
+              
+              <div className="performance-card">
+                <div className="performance-card-title">
+                  {t('dashboard.total_winnings')}
+                </div>
+                <div className="performance-card-value">
+                  {formatCurrency(profile?.totalWinnings || 0)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Week */}
+          {currentWeek && (
+            <div className="mb-8">
+              <h2 className="section-title">
+                {t('dashboard.current_week')}
+              </h2>
+              
+              <div className="bg-primary-600 text-white rounded-lg p-6 mb-6 shadow-lq247-accent">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">
+                      {t('dashboard.week')} {currentWeek.weekNumber}
+                    </h3>
+                    {currentWeek.status === 'open' && (
+                      <span className="inline-block bg-warning-600 text-secondary-900 px-3 py-1 rounded-full text-sm font-medium">
+                        {t('dashboard.open_for_betting')}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {currentWeek.bettingDeadline && currentWeek.status === 'open' && (
+                    <div className="bg-secondary-900 text-white px-4 py-2 rounded-lg">
+                      <div className="text-sm opacity-90">{t('dashboard.betting_closes_in')}</div>
+                      <div className="font-bold text-lg">
+                        {timeUntilDeadline(currentWeek.bettingDeadline)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {currentWeek.status === 'open' && (
+                  <Link
+                    href="/bet"
+                    className="inline-flex items-center px-6 py-3 bg-white text-primary-600 rounded-lg font-medium hover:bg-secondary-50 transition-colors"
+                  >
+                    {t('dashboard.place_bet')}
+                  </Link>
+                )}
+              </div>
+
+              {/* Games Preview */}
+              {games.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {games.slice(0, 6).map((game) => (
+                    <div key={game.id} className="match-card">
+                      <div className="flex items-center justify-between w-full mb-2">
+                        <div className="flex items-center space-x-2">
+                          {game.homeTeamLogo && (
+                            <img 
+                              src={game.homeTeamLogo} 
+                              alt={game.homeTeamName}
+                              className="team-logo"
+                            />
+                          )}
+                          <span className="text-sm font-medium">{game.homeTeamName}</span>
+                        </div>
+                        <span className="text-xs text-secondary-500 dark:text-secondary-400">vs</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium">{game.awayTeamName}</span>
+                          {game.awayTeamLogo && (
+                            <img 
+                              src={game.awayTeamLogo} 
+                              alt={game.awayTeamName}
+                              className="team-logo"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-secondary-500 dark:text-secondary-400">
+                        {new Date(game.gameDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div className="mb-8">
+            <h2 className="section-title">
+              {t('dashboard.quick_actions')}
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                href="/bet"
+                className="card hover:shadow-lg transition-shadow text-center"
+              >
+                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">🎯</div>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                  {t('dashboard.new_bet')}
+                </h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                  {t('dashboard.place_predictions')}
+                </p>
+              </Link>
+              
+              <Link
+                href="/history"
+                className="card hover:shadow-lg transition-shadow text-center"
+              >
+                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">📊</div>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                  {t('dashboard.view_history')}
+                </h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                  {t('dashboard.check_past_bets')}
+                </p>
+              </Link>
+              
+              <Link
+                href="/profile"
+                className="card hover:shadow-lg transition-shadow text-center"
+              >
+                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">⚙️</div>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                  {t('dashboard.profile_settings')}
+                </h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                  {t('dashboard.manage_account')}
+                </p>
+              </Link>
+              
+              <div className="card text-center">
+                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">🏆</div>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                  {t('dashboard.results')}
+                </h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                  {t('dashboard.view_results')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div>
+            <h2 className="section-title">
+              {t('dashboard.recent_activity')}
+            </h2>
+            
+            {recentActivity.length > 0 ? (
+              <div className="card">
+                <div className="space-y-4">
+                  {recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between py-3 border-b border-secondary-200 dark:border-secondary-700 last:border-b-0">
+                      <div>
+                        <h4 className="font-medium text-secondary-900 dark:text-secondary-100">
+                          {t('dashboard.week')} {activity.weekNumber}
+                        </h4>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          {activity.correctPredictions}/{activity.totalPredictions} {t('dashboard.correct')}
+                        </p>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                          {new Date(activity.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-success-600 dark:text-success-400">
+                          {formatCurrency(activity.winnings)}
+                        </div>
+                        <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                          {formatPercentage((activity.correctPredictions / activity.totalPredictions) * 100)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 text-center">
+                  <Link
+                    href="/history"
+                    className="btn-outline"
+                  >
+                    {t('dashboard.view_all_history')}
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="card text-center py-12">
+                <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">📊</div>
+                <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100 mb-2">
+                  {t('dashboard.no_recent_activity')}
+                </h3>
+                <p className="text-secondary-600 dark:text-secondary-400 mb-6">
+                  {t('dashboard.start_betting_message')}
+                </p>
+                <Link
+                  href="/bet"
+                  className="btn-primary"
+                >
+                  {t('dashboard.place_first_bet')}
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </ProtectedRoute>
+    </Layout>
+  );
+}

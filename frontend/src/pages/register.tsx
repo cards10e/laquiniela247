@@ -1,0 +1,335 @@
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
+import { Layout } from '@/components/layout/Layout';
+import { toast } from 'react-hot-toast';
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const { register, isAuthenticated } = useAuth();
+  const { t } = useI18n();
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    termsAccepted: false,
+    newsletter: false
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    router.replace('/dashboard');
+    return null;
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = t('auth.first_name_required');
+    }
+    
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = t('auth.last_name_required');
+    }
+    
+    if (!formData.email) {
+      newErrors.email = t('auth.email_required');
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = t('auth.email_invalid');
+    }
+    
+    if (!formData.password) {
+      newErrors.password = t('auth.password_required');
+    } else if (formData.password.length < 6) {
+      newErrors.password = t('auth.password_min_length');
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = t('auth.confirm_password_required');
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = t('auth.passwords_dont_match');
+    }
+    
+    if (!formData.termsAccepted) {
+      newErrors.termsAccepted = t('auth.terms_required');
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        termsAccepted: formData.termsAccepted,
+        newsletter: formData.newsletter
+      });
+      
+      toast.success(t('auth.registration_success'));
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      if (error.response?.data?.error) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error(t('auth.registration_error'));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Layout title={t('auth.register')} description={t('auth.register_description')} minimal>
+      <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img
+              src="/images/logotipo-la-quiniela-247-min-2-1-1.png"
+              alt="La Quiniela 247"
+              className="h-16 w-auto"
+            />
+          </div>
+
+          {/* Title */}
+          <h1 className="text-center text-3xl font-bold text-primary-600 dark:text-primary-400 mb-8">
+            {t('auth.register')}
+          </h1>
+        </div>
+
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white dark:bg-secondary-800 py-8 px-6 shadow-lg rounded-xl border border-secondary-200 dark:border-secondary-700">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Name Fields */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="firstName" className="form-label">
+                    {t('auth.first_name')} *
+                  </label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className={`form-input ${errors.firstName ? 'error' : ''}`}
+                    placeholder={t('auth.first_name_placeholder')}
+                  />
+                  {errors.firstName && (
+                    <p className="form-error">{errors.firstName}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="lastName" className="form-label">
+                    {t('auth.last_name')} *
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className={`form-input ${errors.lastName ? 'error' : ''}`}
+                    placeholder={t('auth.last_name_placeholder')}
+                  />
+                  {errors.lastName && (
+                    <p className="form-error">{errors.lastName}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="form-label">
+                  {t('auth.email')} *
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.email ? 'error' : ''}`}
+                  placeholder={t('auth.email_placeholder')}
+                />
+                {errors.email && (
+                  <p className="form-error">{errors.email}</p>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="form-label">
+                  {t('auth.password')} *
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.password ? 'error' : ''}`}
+                  placeholder={t('auth.password_placeholder')}
+                />
+                {errors.password && (
+                  <p className="form-error">{errors.password}</p>
+                )}
+                <p className="mt-1 text-sm text-secondary-500 dark:text-secondary-400">
+                  {t('auth.password_min_length_hint')}
+                </p>
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <label htmlFor="confirmPassword" className="form-label">
+                  {t('auth.confirm_password')} *
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+                  placeholder={t('auth.confirm_password_placeholder')}
+                />
+                {errors.confirmPassword && (
+                  <p className="form-error">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              {/* Terms Checkbox */}
+              <div>
+                <div className="flex items-center">
+                  <input
+                    id="termsAccepted"
+                    name="termsAccepted"
+                    type="checkbox"
+                    checked={formData.termsAccepted}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
+                  />
+                  <label htmlFor="termsAccepted" className="ml-2 block text-sm text-secondary-700 dark:text-secondary-300">
+                    {t('auth.terms_accepted')} *
+                  </label>
+                </div>
+                {errors.termsAccepted && (
+                  <p className="form-error">{errors.termsAccepted}</p>
+                )}
+              </div>
+
+              {/* Newsletter Checkbox */}
+              <div className="flex items-center">
+                <input
+                  id="newsletter"
+                  name="newsletter"
+                  type="checkbox"
+                  checked={formData.newsletter}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
+                />
+                <label htmlFor="newsletter" className="ml-2 block text-sm text-secondary-700 dark:text-secondary-300">
+                  {t('auth.newsletter')}
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`btn-primary w-full ${isSubmitting ? 'btn-disabled' : ''}`}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <div className="spinner-sm mr-2"></div>
+                    {t('common.loading')}
+                  </div>
+                ) : (
+                  t('auth.create_account')
+                )}
+              </button>
+
+              {/* Login Link */}
+              <div className="text-center">
+                <Link 
+                  href="/login"
+                  className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                >
+                  {t('auth.already_have_account')}
+                </Link>
+              </div>
+            </form>
+
+            {/* Demo Information */}
+            <div className="mt-8 pt-6 border-t border-secondary-200 dark:border-secondary-700">
+              <h3 className="text-center text-lg font-semibold text-primary-600 dark:text-primary-400 mb-4">
+                {t('common.demo_information')}
+              </h3>
+              <p className="text-center text-sm text-secondary-600 dark:text-secondary-400 mb-4">
+                {t('common.demo_environment_notice')}
+              </p>
+              <p className="text-center text-sm text-secondary-600 dark:text-secondary-400">
+                {t('common.demo_account_available')}: <br />
+                <strong>demo@laquiniela247.mx</strong> / <strong>demo123</strong>
+              </p>
+            </div>
+
+            {/* Back to Main Site */}
+            <div className="mt-6 text-center">
+              <Link 
+                href="/"
+                className="text-sm text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200 transition-colors"
+              >
+                ← {t('navigation.back_to_main')}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
