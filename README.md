@@ -135,6 +135,7 @@ The application will be available at:
 - ✅ **Analytics Dashboard**: Platform statistics and user performance
 - ✅ **Transaction Management**: Handle payments and winnings
 - ✅ **System Logs**: Monitor application activity and errors
+- ✅ **Team Dropdowns & Localization**: Home and Away Team selection in the admin Create Game form now uses dropdowns populated from the backend, with fully localized placeholders (Spanish/English) for a seamless admin experience.
 
 ### Technical Features
 - ✅ **Progressive Web App**: Offline capabilities and app-like experience
@@ -252,4 +253,6 @@ MIT License - see LICENSE file for details.
 - Demo reset flow: reset DB, seed teams/users, and seed demo data for a reliable demo state.
 - Debug logging and diagnostics added for API and frontend data flow issues.
 - Frontend now robustly handles backend data types and missing fields.
-- All fixes are now merged into main; see CHANGELOG for details.
+- Single Bets UI: Demo user can always place single bets for all games, with correct prediction selection and bet placement workflow.
+- Backend/frontend userBet logic improved for demo reliability and correct bet state display.
+- All changes are now in main; see CHANGELOG for details.

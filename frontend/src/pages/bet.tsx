@@ -186,8 +186,15 @@ export default function BetPage() {
 
   // Type guard for userBet
   function isUserBet(bet: any): bet is { prediction: string; isCorrect: boolean | null } {
-    return bet && typeof bet === 'object' && typeof bet.prediction === 'string';
+    return (
+      bet &&
+      typeof bet === 'object' &&
+      typeof bet.prediction === 'string' &&
+      bet.prediction.trim() !== ''
+    );
   }
+
+  const isDemoUser = user?.email === 'demo@laquiniela247.mx';
 
   // --- Single Bet Submission ---
   const handleSingleBet = async (gameId: number) => {
@@ -366,12 +373,43 @@ export default function BetPage() {
                             </div>
                           </div>
                           {/* Prediction Buttons or User Bet Info */}
-                          {hasUserBet ? (
+                          {isDemoUser || !hasUserBet ? (
+                            <div className="grid grid-cols-3 gap-2 mb-2">
+                              <button
+                                onClick={() => handlePredictionChange(game.id, 'home')}
+                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'home' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                              >
+                                {t('betting.home_team')}
+                                <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
+                              </button>
+                              <button
+                                onClick={() => handlePredictionChange(game.id, 'draw')}
+                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'draw' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                              >
+                                {t('betting.draw')}
+                              </button>
+                              <button
+                                onClick={() => handlePredictionChange(game.id, 'away')}
+                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'away' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                              >
+                                {t('betting.away_team')}
+                                <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
+                              </button>
+                            </div>
+                          ) : (
                             <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
                                 <span className="ml-2">
-                                  {t('betting.your_prediction')}: <b>{t('betting.' + (game.userBet?.prediction?.toLowerCase?.() || ''))}</b>
+                                  {t('betting.your_prediction')}: <b>{
+                                    (() => {
+                                      const pred = (game.userBet?.prediction || '').toLowerCase();
+                                      if (pred === 'home') return t('betting.home_team');
+                                      if (pred === 'away') return t('betting.away_team');
+                                      if (pred === 'draw') return t('betting.draw');
+                                      return game.userBet?.prediction;
+                                    })()
+                                  }</b>
                                 </span>
                               </div>
                               {game.userBet?.isCorrect !== null && game.userBet?.isCorrect !== undefined && (
@@ -380,35 +418,9 @@ export default function BetPage() {
                                 </span>
                               )}
                             </div>
-                          ) : (
-                            <div className="grid grid-cols-3 gap-2 mb-2">
-                              <button
-                                onClick={() => handlePredictionChange(game.id, 'home')}
-                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'home' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
-                                disabled={!!hasUserBet}
-                              >
-                                {t('betting.home_team')}
-                                <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
-                              </button>
-                              <button
-                                onClick={() => handlePredictionChange(game.id, 'draw')}
-                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'draw' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
-                                disabled={!!hasUserBet}
-                              >
-                                {t('betting.draw')}
-                              </button>
-                              <button
-                                onClick={() => handlePredictionChange(game.id, 'away')}
-                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'away' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
-                                disabled={!!hasUserBet}
-                              >
-                                {t('betting.away_team')}
-                                <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
-                              </button>
-                            </div>
                           )}
                           {/* Bet Amount and Place Bet */}
-                          {!hasUserBet && (
+                          {(isDemoUser || !hasUserBet) && (
                             <div className="flex items-center gap-3 mt-2">
                               <input
                                 type="number"

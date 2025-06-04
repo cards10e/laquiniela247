@@ -46,6 +46,13 @@ interface AdminStats {
   currentWeekBets: number;
 }
 
+interface Team {
+  id: number;
+  name: string;
+  shortName: string;
+  logoUrl?: string;
+}
+
 export default function AdminPage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -57,6 +64,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [games, setGames] = useState<Game[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   
   // Form states
   const [newWeek, setNewWeek] = useState({
@@ -67,13 +75,14 @@ export default function AdminPage() {
   });
   const [newGame, setNewGame] = useState({
     weekId: '',
-    homeTeamName: '',
-    awayTeamName: '',
+    homeTeamId: '',
+    awayTeamId: '',
     gameDate: ''
   });
 
   useEffect(() => {
     fetchAdminData();
+    fetchTeams();
   }, []);
 
   const fetchAdminData = async () => {
@@ -137,6 +146,15 @@ export default function AdminPage() {
     }
   };
 
+  const fetchTeams = async () => {
+    try {
+      const res = await axios.get('/api/admin/teams');
+      setTeams(res.data.teams || []);
+    } catch (error) {
+      setTeams([]);
+    }
+  };
+
   const handleCreateWeek = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -161,13 +179,13 @@ export default function AdminPage() {
     try {
       await axios.post('/api/admin/games', {
         weekId: parseInt(newGame.weekId),
-        homeTeamName: newGame.homeTeamName,
-        awayTeamName: newGame.awayTeamName,
-        gameDate: newGame.gameDate
+        homeTeamId: parseInt(newGame.homeTeamId),
+        awayTeamId: parseInt(newGame.awayTeamId),
+        matchDate: newGame.gameDate
       });
       
       toast.success(t('admin.game_created'));
-      setNewGame({ weekId: '', homeTeamName: '', awayTeamName: '', gameDate: '' });
+      setNewGame({ weekId: '', homeTeamId: '', awayTeamId: '', gameDate: '' });
       fetchAdminData();
     } catch (error) {
       console.error('Failed to create game:', error);
@@ -562,26 +580,38 @@ export default function AdminPage() {
                       <label className="form-label">
                         {t('admin.home_team')}
                       </label>
-                      <input
-                        type="text"
-                        value={newGame.homeTeamName}
-                        onChange={(e) => setNewGame(prev => ({ ...prev, homeTeamName: e.target.value }))}
+                      <select
+                        value={newGame.homeTeamId}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, homeTeamId: e.target.value }))}
                         className="form-input"
                         required
-                      />
+                      >
+                        <option value="">{t('admin.select_team')}</option>
+                        {teams.map((team) => (
+                          <option key={team.id} value={team.id}>
+                            {team.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     
                     <div>
                       <label className="form-label">
                         {t('admin.away_team')}
                       </label>
-                      <input
-                        type="text"
-                        value={newGame.awayTeamName}
-                        onChange={(e) => setNewGame(prev => ({ ...prev, awayTeamName: e.target.value }))}
+                      <select
+                        value={newGame.awayTeamId}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, awayTeamId: e.target.value }))}
                         className="form-input"
                         required
-                      />
+                      >
+                        <option value="">{t('admin.select_team')}</option>
+                        {teams.map((team) => (
+                          <option key={team.id} value={team.id}>
+                            {team.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   

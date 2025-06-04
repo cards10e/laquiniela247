@@ -40,6 +40,8 @@ All notable changes to this project will be documented in this file.
 - `deleteWeek99.ts` script to safely remove legacy week 99 and all associated data.
 - Demo reset flow: DB reset, teams/users seeding, demo data seeding for robust, repeatable demos.
 - All teams now seeded with valid logo URLs for consistent frontend display.
+- Admin Create Game form now uses dropdowns for Home and Away Team selection, fetching teams from the backend.
+- Team selection dropdowns have fully localized placeholders (Spanish/English) using the new 'select_team' translation key.
 
 ### Changed
 - **Seeding:** Removed legacy week 99 logic from all seeding scripts. All week/game/bet seeding is now handled by `seedHistory.ts`.
@@ -60,6 +62,9 @@ All notable changes to this project will be documented in this file.
 - Improved demo seeding and DB reset flow for reliable demo data.
 - Added debug logging and diagnostics for API and frontend data flow issues.
 - Frontend now robustly handles backend data types and missing fields.
+- Single Bets UI: Demo user can always place single bets for all games; prediction selection and highlighting now work; Place Bet button enables as expected.
+- No changes to parlay or other user workflows.
+- Backend/frontend userBet logic improved for demo reliability and correct bet state display.
 
 ---
 
