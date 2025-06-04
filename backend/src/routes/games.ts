@@ -89,10 +89,13 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRe
       return acc;
     }, {} as Record<number, any>);
 
-    gamesWithUserBets = games.map(game => ({
-      ...game,
-      userBet: betsByGameId[game.id] || null
-    }));
+    gamesWithUserBets = games.map(game => {
+      const bet = betsByGameId[game.id];
+      return {
+        ...game,
+        userBet: bet && bet.prediction ? bet : null
+      };
+    });
   }
 
   res.json({
@@ -175,10 +178,13 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       acc[bet.gameId] = bet;
       return acc;
     }, {} as Record<number, any>);
-    gamesWithUserBets = games.map(game => ({
-      ...game,
-      userBet: betsByGameId[game.id] || null
-    }));
+    gamesWithUserBets = games.map(game => {
+      const bet = betsByGameId[game.id];
+      return {
+        ...game,
+        userBet: bet && bet.prediction ? bet : null
+      };
+    });
   }
   res.json({
     week: currentWeek,
@@ -296,10 +302,13 @@ router.get('/week/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req:
       return acc;
     }, {} as Record<number, any>);
 
-    gamesWithUserBets = games.map(game => ({
-      ...game,
-      userBet: betsByGameId[game.id] || null
-    }));
+    gamesWithUserBets = games.map(game => {
+      const bet = betsByGameId[game.id];
+      return {
+        ...game,
+        userBet: bet && bet.prediction ? bet : null
+      };
+    });
   }
 
   res.json({
