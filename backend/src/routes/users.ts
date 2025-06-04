@@ -58,7 +58,15 @@ router.get('/profile', asyncHandler(async (req: AuthenticatedRequest, res: expre
       emailVerified: user.emailVerified,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
-      profile: user.profile
+      profile: user.profile ? {
+        ...user.profile,
+        totalBets: Number(user.profile.totalBets),
+        totalCorrect: Number(user.profile.totalCorrect),
+        overallPercentage: Number(user.profile.overallPercentage),
+        totalWinnings: Number(user.profile.totalWinnings),
+        bestWeekPercentage: Number(user.profile.bestWeekPercentage),
+        bestRankingPosition: Number(user.profile.bestRankingPosition)
+      } : null
     }
   });
 }));

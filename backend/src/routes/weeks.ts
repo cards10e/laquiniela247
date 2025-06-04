@@ -63,6 +63,7 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: express.Request
 // GET /api/weeks/current - Get current active week
 router.get('/current', asyncHandler(async (req: express.Request, res: express.Response) => {
   const now = new Date();
+  console.log('[DEBUG] /api/weeks/current called at', now.toISOString());
   const currentWeek = await prisma.week.findFirst({
     where: {
       status: 'OPEN',
@@ -105,11 +106,16 @@ router.get('/current', asyncHandler(async (req: express.Request, res: express.Re
       { weekNumber: 'desc' }
     ]
   });
-
   if (!currentWeek) {
+    console.log('[DEBUG] No active week found');
     throw createError('No active week found', 404);
   }
-
+  console.log('[DEBUG] Found week:', {
+    weekNumber: currentWeek.weekNumber,
+    status: currentWeek.status,
+    bettingDeadline: currentWeek.bettingDeadline,
+    gamesCount: currentWeek.games.length
+  });
   res.json({
     week: currentWeek,
     canBet: currentWeek.status === 'OPEN' && new Date() < currentWeek.bettingDeadline

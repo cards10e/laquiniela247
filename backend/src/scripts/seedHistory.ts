@@ -1,9 +1,8 @@
-// This script seeds 4-5 weeks of historical and current data for the following users ONLY:
-// - Demo User: demo@laquiniela247.mx / demo123
-// - Admin User: admin@laquiniela247.mx / admin123
-// It will NOT create users, only seed data for these emails if they exist.
+// DEMO MODE: This script always seeds the current week as weekNumber 99 (highest), status 'OPEN', with a future bettingDeadline and all games in the future and 'SCHEDULED'.
+// 4-5 previous weeks are seeded as 'FINISHED' with sequentially lower week numbers, games, bets, and userPerformance for demo/admin only.
+// Do NOT change the demo week number logic or delete/overwrite data for other users. This guarantees the demo always works, regardless of date.
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, $Enums } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -24,24 +23,28 @@ async function main() {
   const teams = await prisma.team.findMany();
   if (teams.length < 2) throw new Error('Not enough teams in DB.');
 
-  // Calculate weeks (4 previous + current)
-  const now = new Date();
+  // DEMO: Always use weekNumber 99 as the current (OPEN) week
+  const demoCurrentWeekNumber = 99;
   const weeksToSeed = 5;
-  const weekLengthMs = 7 * 24 * 60 * 60 * 1000;
-  const startOfCurrentWeek = new Date(now);
-  startOfCurrentWeek.setHours(0, 0, 0, 0);
-  startOfCurrentWeek.setDate(startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()); // Sunday as start
-
+  // Seed previous weeks (finished) and current week (open)
   for (let w = 0; w < weeksToSeed; w++) {
-    const weekStart = new Date(startOfCurrentWeek.getTime() - (weeksToSeed - w - 1) * weekLengthMs);
-    const weekEnd = new Date(weekStart.getTime() + weekLengthMs - 1);
-    const bettingDeadline = new Date(weekStart.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days after week start
-    const weekNumber = getISOWeekNumber(weekStart);
-    const status = w === weeksToSeed - 1 ? 'OPEN' : 'FINISHED';
+    const weekNumber = demoCurrentWeekNumber - (weeksToSeed - w - 1);
+    let now = new Date();
+    let weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1) - 7 * (weeksToSeed - w - 1)); // Monday
+    weekStart.setHours(0, 0, 0, 0);
+    let weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000 + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000); // Sunday 23:59:59
+    let bettingDeadline = new Date(weekStart.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days after week start
+    let status = w === weeksToSeed - 1 ? $Enums.WeekStatus.OPEN : $Enums.WeekStatus.FINISHED;
+    if (status === $Enums.WeekStatus.OPEN) {
+      weekStart = new Date(now.getTime() + 1 * 60 * 60 * 1000); // 1 hour from now
+      weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000 + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000);
+      bettingDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+    }
     // Upsert week
     const week = await prisma.week.upsert({
       where: { weekNumber },
-      update: { startDate: weekStart, endDate: weekEnd, bettingDeadline, status },
+      update: { startDate: weekStart, endDate: weekEnd, bettingDeadline, status, season: String(weekStart.getFullYear()) },
       create: {
         weekNumber,
         season: String(weekStart.getFullYear()),
@@ -52,44 +55,49 @@ async function main() {
       },
     });
     console.log(`✅ Week ${weekNumber} (${status}) seeded.`);
-
-    // Remove existing games for this week
-    await prisma.game.deleteMany({ where: { weekNumber } });
-    // Create 6 games
+    // Upsert (update or create) 6 games for this week
     const games = [];
     for (let i = 0; i < 6; i++) {
       const homeTeam = teams[i % teams.length];
       const awayTeam = teams[(i + 1) % teams.length];
-      const matchDate = new Date(weekStart.getTime() + (i + 1) * 24 * 60 * 60 * 1000);
-      const game = await prisma.game.create({
-        data: {
+      let matchDate = new Date(weekStart.getTime() + (i + 1) * 24 * 60 * 60 * 1000);
+      if (status === $Enums.WeekStatus.OPEN) {
+        matchDate = new Date(Date.now() + (i + 2) * 60 * 60 * 1000); // 2, 3, 4... hours from now
+      }
+      let game = await prisma.game.findFirst({
+        where: {
           weekNumber,
           homeTeamId: homeTeam.id,
-          awayTeamId: awayTeam.id,
-          matchDate,
-          status: status === 'OPEN' ? 'SCHEDULED' : 'FINISHED',
-        },
+          awayTeamId: awayTeam.id
+        }
       });
+      if (game) {
+        game = await prisma.game.update({
+          where: { id: game.id },
+          data: {
+            matchDate,
+            status: status === $Enums.WeekStatus.OPEN ? 'SCHEDULED' : 'FINISHED',
+          }
+        });
+      } else {
+        game = await prisma.game.create({
+          data: {
+            weekNumber,
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            matchDate,
+            status: status === $Enums.WeekStatus.OPEN ? 'SCHEDULED' : 'FINISHED',
+          }
+        });
+      }
       games.push(game);
     }
-    console.log(`  - Created 6 games for week ${weekNumber}`);
-
-    // Remove existing bets and userPerformance for this week for demo/admin
+    console.log(`  - Upserted 6 games for week ${weekNumber}`);
+    // Remove existing bets and userPerformance for this week for demo/admin only
     for (const user of users) {
-      await prisma.bet.deleteMany({
-        where: {
-          userId: user.id,
-          weekId: week.id,
-        },
-      });
-      await prisma.userPerformance.deleteMany({
-        where: {
-          userId: user.id,
-          weekId: week.id,
-        },
-      });
+      await prisma.bet.deleteMany({ where: { userId: user.id, weekId: week.id } });
+      await prisma.userPerformance.deleteMany({ where: { userId: user.id, weekId: week.id } });
     }
-
     // Create bets and userPerformance for each user
     for (const user of users) {
       let correct = 0;
@@ -118,13 +126,12 @@ async function main() {
           rankingPosition: Math.floor(Math.random() * 20) + 1,
           percentile: (correct / games.length) * 100,
           winnings: correct * 200,
-          status: status === 'OPEN' ? 'PENDING' : 'CALCULATED',
+          status: status === $Enums.WeekStatus.OPEN ? 'PENDING' : 'CALCULATED',
         },
       });
       console.log(`    - Bets and performance for ${user.email} (week ${weekNumber}) seeded.`);
     }
   }
-
   // Update user profiles
   for (const user of users) {
     const totalBets = await prisma.bet.count({ where: { userId: user.id } });
@@ -143,15 +150,17 @@ async function main() {
     });
     console.log(`✅ Updated profile for ${user.email}`);
   }
-
   console.log('🎉 Historical/current seeding complete!');
 }
 
-// Helper: ISO week number (simple version, Sunday as start)
+// Helper: ISO week number (Monday as start, matches backend expectations)
 function getISOWeekNumber(date: Date) {
-  const start = new Date(date.getFullYear(), 0, 1);
-  const diff = (date.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-  return Math.floor(diff / 7) + 1;
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return weekNum;
 }
 
 main()

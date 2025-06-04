@@ -107,8 +107,8 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRe
 
 // GET /api/games/current-week - Get current week games
 router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
-  // Get current active week
   const now = new Date();
+  console.log('[DEBUG] /api/games/current-week called at', now.toISOString());
   const currentWeek = await prisma.week.findFirst({
     where: {
       status: 'OPEN',
@@ -121,11 +121,15 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       { weekNumber: 'desc' }
     ]
   });
-
   if (!currentWeek) {
+    console.log('[DEBUG] No active betting week found');
     throw createError('No active betting week found', 404);
   }
-
+  console.log('[DEBUG] Found week:', {
+    weekNumber: currentWeek.weekNumber,
+    status: currentWeek.status,
+    bettingDeadline: currentWeek.bettingDeadline
+  });
   const games = await prisma.game.findMany({
     where: {
       weekNumber: currentWeek.weekNumber
@@ -157,18 +161,16 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       matchDate: 'asc'
     }
   });
-
+  console.log('[DEBUG] Found games:', games.length);
   // If user is authenticated, include their bets
   let gamesWithUserBets = games;
   if (req.user) {
-    console.log('[Backend Debug] req.user:', req.user);
     const userBets = await prisma.bet.findMany({
       where: {
         userId: req.user.id,
         weekId: currentWeek.id
       }
     });
-    console.log('[Backend Debug] userBets:', userBets);
     const betsByGameId = userBets.reduce((acc, bet) => {
       acc[bet.gameId] = bet;
       return acc;
@@ -177,9 +179,7 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       ...game,
       userBet: betsByGameId[game.id] || null
     }));
-    console.log('[Backend Debug] gamesWithUserBets:', gamesWithUserBets);
   }
-
   res.json({
     week: currentWeek,
     games: gamesWithUserBets,

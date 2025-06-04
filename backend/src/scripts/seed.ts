@@ -6,40 +6,58 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seeding...');
 
-  // Create Liga MX teams
+  // Create Liga MX teams with valid logo URLs for all
   console.log('📊 Creating teams...');
+  const logoMap: Record<string, string> = {
+    'NEC': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/NECAXA.png',
+    'QRO': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/QUERETARO-2.png',
+    'MAZ': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/MAZATLAN.png',
+    'ATL': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/ATLAS-1.png',
+    'AME': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/AMERICA.png',
+    'CHI': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/CHIVAS.png',
+    'CAZ': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/CRUZAZUL.png',
+    'PUM': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/PUMAS.png',
+    'TIG': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/TIGRES.png',
+    'MTY': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/MONTERREY.png',
+    'SAN': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/SANTOS.png',
+    'LEO': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/LEON.png',
+    'PAC': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/PACHUCA.png',
+    'TOL': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/TOLUCA.png',
+    'PUE': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/PUEBLA.png',
+    'JUA': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/JUAREZ.png',
+    'TIJ': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/TIJUANA.png',
+    'ASL': 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/SANLUIS.png',
+  };
   const teams = [
-    { name: 'Club Necaxa', shortName: 'NEC', logoUrl: 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/NECAXA.png' },
-    { name: 'Querétaro FC', shortName: 'QRO', logoUrl: 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/QUERETARO-2.png' },
-    { name: 'Mazatlán FC', shortName: 'MAZ', logoUrl: 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/MAZATLAN.png' },
-    { name: 'Atlas FC', shortName: 'ATL', logoUrl: 'https://www.laquiniela247.mx/wp-content/uploads/2025/04/ATLAS-1.png' },
-    { name: 'Club América', shortName: 'AME', logoUrl: '' },
-    { name: 'Chivas Guadalajara', shortName: 'CHI', logoUrl: '' },
-    { name: 'Cruz Azul', shortName: 'CAZ', logoUrl: '' },
-    { name: 'Pumas UNAM', shortName: 'PUM', logoUrl: '' },
-    { name: 'Tigres UANL', shortName: 'TIG', logoUrl: '' },
-    { name: 'Monterrey', shortName: 'MTY', logoUrl: '' },
-    { name: 'Santos Laguna', shortName: 'SAN', logoUrl: '' },
-    { name: 'León FC', shortName: 'LEO', logoUrl: '' },
-    { name: 'Pachuca', shortName: 'PAC', logoUrl: '' },
-    { name: 'Toluca FC', shortName: 'TOL', logoUrl: '' },
-    { name: 'Puebla FC', shortName: 'PUE', logoUrl: '' },
-    { name: 'FC Juárez', shortName: 'JUA', logoUrl: '' },
-    { name: 'Tijuana', shortName: 'TIJ', logoUrl: '' },
-    { name: 'Atlético San Luis', shortName: 'ASL', logoUrl: '' }
+    { name: 'Club Necaxa', shortName: 'NEC' },
+    { name: 'Querétaro FC', shortName: 'QRO' },
+    { name: 'Mazatlán FC', shortName: 'MAZ' },
+    { name: 'Atlas FC', shortName: 'ATL' },
+    { name: 'Club América', shortName: 'AME' },
+    { name: 'Chivas Guadalajara', shortName: 'CHI' },
+    { name: 'Cruz Azul', shortName: 'CAZ' },
+    { name: 'Pumas UNAM', shortName: 'PUM' },
+    { name: 'Tigres UANL', shortName: 'TIG' },
+    { name: 'Monterrey', shortName: 'MTY' },
+    { name: 'Santos Laguna', shortName: 'SAN' },
+    { name: 'León FC', shortName: 'LEO' },
+    { name: 'Pachuca', shortName: 'PAC' },
+    { name: 'Toluca FC', shortName: 'TOL' },
+    { name: 'Puebla FC', shortName: 'PUE' },
+    { name: 'FC Juárez', shortName: 'JUA' },
+    { name: 'Tijuana', shortName: 'TIJ' },
+    { name: 'Atlético San Luis', shortName: 'ASL' },
   ];
-
   for (const team of teams) {
-    // Try to find the team by shortName
+    const logoUrl = logoMap[team.shortName] || '';
     const existingTeam = await prisma.team.findFirst({ where: { shortName: team.shortName } });
     if (existingTeam) {
-      await prisma.team.update({ where: { id: existingTeam.id }, data: team });
+      await prisma.team.update({ where: { id: existingTeam.id }, data: { ...team, logoUrl } });
     } else {
-      await prisma.team.create({ data: team });
+      await prisma.team.create({ data: { ...team, logoUrl } });
     }
   }
-
-  console.log(`✅ Created ${teams.length} teams`);
+  console.log(`✅ Created ${teams.length} teams with valid logo URLs`);
 
   // DO NOT CREATE WEEK 99 OR ANY WEEKS/GAMES/BETS HERE.
   // All week/game/bet seeding is now handled by seedHistory.ts.
