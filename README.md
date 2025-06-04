@@ -97,6 +97,25 @@ The application will be available at:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:3001
 
+## Demo Reset Flow (Recommended for Dev/Demo)
+
+**To guarantee a clean, working demo every time:**
+
+1. Reset the database (dev/demo only):
+   ```bash
+   npx prisma migrate reset --force
+   ```
+2. Seed teams and users:
+   ```bash
+   npx ts-node backend/src/scripts/seed.ts
+   ```
+3. Seed demo weeks, games, bets, and user performance:
+   ```bash
+   npx ts-node backend/src/scripts/seedHistory.ts
+   ```
+
+**WARNING:** Never run this in production! This will erase all data and is for local/dev/demo use only.
+
 ## Features
 
 ### User Features
@@ -224,3 +243,13 @@ MIT License - see LICENSE file for details.
 **Version**: 1.0.0  
 **Migration Date**: January 2025  
 **WordPress Plugin Version**: 1.0.1
+
+## Recent Fixes & Improvements
+
+- Dashboard and /bet pages now display correct data for demo/admin users after status normalization and numeric field parsing fixes.
+- Backend /api/users/profile endpoint now always returns numeric fields as numbers.
+- TypeScript errors fixed by removing non-existent fields from backend response.
+- Demo reset flow: reset DB, seed teams/users, and seed demo data for a reliable demo state.
+- Debug logging and diagnostics added for API and frontend data flow issues.
+- Frontend now robustly handles backend data types and missing fields.
+- All fixes are now merged into main; see CHANGELOG for details.

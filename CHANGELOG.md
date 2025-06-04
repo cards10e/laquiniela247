@@ -38,6 +38,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - New `seedHistory.ts` script for robust, date-driven seeding of weeks, games, bets, and user performance for demo and admin users.
 - `deleteWeek99.ts` script to safely remove legacy week 99 and all associated data.
+- Demo reset flow: DB reset, teams/users seeding, demo data seeding for robust, repeatable demos.
+- All teams now seeded with valid logo URLs for consistent frontend display.
 
 ### Changed
 - **Seeding:** Removed legacy week 99 logic from all seeding scripts. All week/game/bet seeding is now handled by `seedHistory.ts`.
@@ -51,6 +53,13 @@ All notable changes to this project will be documented in this file.
 - Resolved issue where dashboard and `/bet` page showed no data due to backend returning legacy week 99.
 - Fixed Prisma validation errors in backend logs by correcting `orderBy` usage.
 - Cleaned up `seed.ts` to only create teams and users, preventing legacy week creation.
+- Dashboard and /bet pages now display correct data for demo/admin users.
+- Status field normalized in frontend to handle backend casing.
+- All numeric profile fields are now numbers in backend API responses.
+- Removed non-existent fields from backend profile response to fix TypeScript errors.
+- Improved demo seeding and DB reset flow for reliable demo data.
+- Added debug logging and diagnostics for API and frontend data flow issues.
+- Frontend now robustly handles backend data types and missing fields.
 
 ---
 

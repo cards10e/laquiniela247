@@ -84,7 +84,10 @@ export default function BetPage() {
         };
       }).filter(Boolean);
       console.log('[Bet Debug] Mapped games array:', mappedGames);
-      setCurrentWeek(weekRes.data.week);
+      setCurrentWeek({
+        ...weekRes.data.week,
+        status: (weekRes.data.week.status || '').toLowerCase()
+      });
       setGames(mappedGames);
       // Log final games state after mapping
       setTimeout(() => {
@@ -200,7 +203,7 @@ export default function BetPage() {
     }
     setSingleSubmitting((prev) => ({ ...prev, [gameId]: true }));
     try {
-      await axios.post('/api/bets', { gameId, prediction, amount });
+      await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
       toast.success(t('betting.bet_placed'));
       // Optionally reset prediction/amount for this game
       setPredictions((prev) => {
@@ -235,7 +238,7 @@ export default function BetPage() {
         weekNumber: currentWeek?.weekNumber,
         bets: Object.entries(predictions).map(([gameId, prediction]) => ({
           gameId: parseInt(gameId),
-          prediction: prediction as PredictionType
+          prediction: (prediction as string).toUpperCase()
         })),
         amount: betAmount
       };

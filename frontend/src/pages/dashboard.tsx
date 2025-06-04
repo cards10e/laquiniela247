@@ -127,8 +127,20 @@ export default function DashboardPage() {
         };
       }).filter(Boolean);
       console.log('[Dashboard Debug] Mapped recent activity:', mappedRecentActivity);
-      setProfile(profileRes.data.user);
-      setCurrentWeek(weekRes.data.week);
+      // Parse numeric fields as numbers for robustness
+      setProfile({
+        ...profileRes.data.user.profile,
+        totalBets: Number(profileRes.data.user.profile.totalBets),
+        overallPercentage: Number(profileRes.data.user.profile.overallPercentage),
+        totalWinnings: Number(profileRes.data.user.profile.totalWinnings),
+        bestRankingPosition: Number(profileRes.data.user.profile.bestRankingPosition),
+        currentStreak: Number(profileRes.data.user.profile.currentStreak || 0),
+        bestWeek: Number(profileRes.data.user.profile.bestWeek || 0)
+      });
+      setCurrentWeek({
+        ...weekRes.data.week,
+        status: (weekRes.data.week.status || '').toLowerCase()
+      });
       setGames(mappedGames);
       setRecentActivity(mappedRecentActivity);
       // Log final recent activity state after mapping
