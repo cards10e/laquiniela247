@@ -108,15 +108,18 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRe
 // GET /api/games/current-week - Get current week games
 router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   // Get current active week
+  const now = new Date();
   const currentWeek = await prisma.week.findFirst({
     where: {
-      status: {
-        in: ['OPEN', 'UPCOMING']
+      status: 'OPEN',
+      bettingDeadline: {
+        gt: now
       }
     },
-    orderBy: {
-      weekNumber: 'desc'
-    }
+    orderBy: [
+      { startDate: 'desc' },
+      { weekNumber: 'desc' }
+    ]
   });
 
   if (!currentWeek) {
@@ -158,22 +161,23 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
   // If user is authenticated, include their bets
   let gamesWithUserBets = games;
   if (req.user) {
+    console.log('[Backend Debug] req.user:', req.user);
     const userBets = await prisma.bet.findMany({
       where: {
         userId: req.user.id,
         weekId: currentWeek.id
       }
     });
-
+    console.log('[Backend Debug] userBets:', userBets);
     const betsByGameId = userBets.reduce((acc, bet) => {
       acc[bet.gameId] = bet;
       return acc;
     }, {} as Record<number, any>);
-
     gamesWithUserBets = games.map(game => ({
       ...game,
       userBet: betsByGameId[game.id] || null
     }));
+    console.log('[Backend Debug] gamesWithUserBets:', gamesWithUserBets);
   }
 
   res.json({

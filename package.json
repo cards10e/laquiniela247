@@ -31,7 +31,8 @@
   "author": "La Quiniela 247",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.2"
   },
   "workspaces": [
     "frontend",

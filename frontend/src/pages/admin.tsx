@@ -79,10 +79,10 @@ export default function AdminPage() {
   const fetchAdminData = async () => {
     try {
       const [statsRes, usersRes, weeksRes, gamesRes] = await Promise.all([
-        axios.get('/admin/stats'),
-        axios.get('/admin/users'),
-        axios.get('/admin/weeks'),
-        axios.get('/admin/games')
+        axios.get('/api/admin/stats'),
+        axios.get('/api/admin/users'),
+        axios.get('/api/admin/weeks'),
+        axios.get('/api/admin/games')
       ]);
 
       setStats(statsRes.data);
@@ -140,7 +140,7 @@ export default function AdminPage() {
   const handleCreateWeek = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/admin/weeks', {
+      await axios.post('/api/admin/weeks', {
         weekNumber: parseInt(newWeek.weekNumber),
         bettingDeadline: newWeek.bettingDeadline,
         startDate: newWeek.startDate,
@@ -159,7 +159,7 @@ export default function AdminPage() {
   const handleCreateGame = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/admin/games', {
+      await axios.post('/api/admin/games', {
         weekId: parseInt(newGame.weekId),
         homeTeamName: newGame.homeTeamName,
         awayTeamName: newGame.awayTeamName,
@@ -177,7 +177,7 @@ export default function AdminPage() {
 
   const handleUpdateGameResult = async (gameId: number, homeScore: number, awayScore: number) => {
     try {
-      await axios.put(`/admin/games/${gameId}/result`, {
+      await axios.put(`/api/admin/games/${gameId}/result`, {
         homeScore,
         awayScore,
         status: 'completed'
@@ -193,7 +193,7 @@ export default function AdminPage() {
 
   const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
     try {
-      await axios.put(`/admin/users/${userId}`, { isActive: !isActive });
+      await axios.put(`/api/admin/users/${userId}`, { isActive: !isActive });
       toast.success(t('admin.user_status_updated'));
       fetchAdminData();
     } catch (error) {

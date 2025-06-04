@@ -35,4 +35,24 @@ All notable changes to this project will be documented in this file.
 ---
 
 ## [Unreleased]
+### Added
+- New `seedHistory.ts` script for robust, date-driven seeding of weeks, games, bets, and user performance for demo and admin users.
+- `deleteWeek99.ts` script to safely remove legacy week 99 and all associated data.
+
+### Changed
+- **Seeding:** Removed legacy week 99 logic from all seeding scripts. All week/game/bet seeding is now handled by `seedHistory.ts`.
+- **Backend:**
+  - `/api/weeks/current` and `/api/games/current-week` endpoints now select the current week based on `status: 'OPEN'` and a future `bettingDeadline`, ordered by `startDate` and `weekNumber` (Prisma array syntax).
+  - Fixed Prisma `orderBy` usage to use array syntax, resolving console errors.
+- **Frontend:**
+  - Dashboard and `/bet` page now reliably display seeded data for the correct week and users.
+
+### Fixed
+- Resolved issue where dashboard and `/bet` page showed no data due to backend returning legacy week 99.
+- Fixed Prisma validation errors in backend logs by correcting `orderBy` usage.
+- Cleaned up `seed.ts` to only create teams and users, preventing legacy week creation.
+
+---
+
+## [Unreleased]
 - Ongoing improvements and minor bug fixes. 

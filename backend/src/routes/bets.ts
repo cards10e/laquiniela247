@@ -19,17 +19,27 @@ const getBetsSchema = z.object({
   offset: z.string().optional()
 });
 
+// Validation schema for multi-bet (parlay)
+const multiBetSchema = z.object({
+  weekNumber: z.number().int().positive(),
+  bets: z.array(z.object({
+    gameId: z.number().int().positive(),
+    prediction: z.enum(['HOME', 'DRAW', 'AWAY'])
+  })),
+  amount: z.number().min(10).max(1000)
+});
+
 // POST /api/bets - Place a bet
 router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const validatedData = placeBetSchema.parse(req.body);
   const userId = req.user!.id;
+  // Optionally accept amount from frontend, fallback to 50
+  const amount = typeof req.body.amount === 'number' ? req.body.amount : 50;
 
   // Get game with week information
   const game = await prisma.game.findUnique({
     where: { id: validatedData.gameId },
-    include: {
-      week: true
-    }
+    include: { week: true }
   });
 
   if (!game) {
@@ -60,7 +70,7 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
   });
 
   if (existingBet) {
-    // Update existing bet
+    // Update existing bet (no transaction)
     const updatedBet = await prisma.bet.update({
       where: { id: existingBet.id },
       data: {
@@ -82,27 +92,40 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
       bet: updatedBet
     });
   } else {
-    // Create new bet
-    const newBet = await prisma.bet.create({
-      data: {
-        userId,
-        weekId: game.week.id,
-        gameId: validatedData.gameId,
-        prediction: validatedData.prediction
-      },
-      include: {
-        game: {
-          include: {
-            homeTeam: { select: { name: true, shortName: true } },
-            awayTeam: { select: { name: true, shortName: true } }
+    // Create new bet and transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const newBet = await tx.bet.create({
+        data: {
+          userId,
+          weekId: game.week.id,
+          gameId: validatedData.gameId,
+          prediction: validatedData.prediction
+        },
+        include: {
+          game: {
+            include: {
+              homeTeam: { select: { name: true, shortName: true } },
+              awayTeam: { select: { name: true, shortName: true } }
+            }
           }
         }
-      }
+      });
+      const transaction = await tx.transaction.create({
+        data: {
+          userId,
+          weekId: game.week.id,
+          type: 'ENTRY_FEE',
+          amount,
+          status: 'COMPLETED'
+        }
+      });
+      return { newBet, transaction };
     });
 
     res.status(201).json({
       message: 'Bet placed successfully',
-      bet: newBet
+      bet: result.newBet,
+      transaction: result.transaction
     });
   }
 }));
@@ -387,6 +410,68 @@ router.get('/stats/summary', asyncHandler(async (req: AuthenticatedRequest, res:
       canStillBet: currentWeek?.status === 'OPEN' && currentWeek && new Date() < currentWeek.bettingDeadline
     },
     recentPerformance
+  });
+}));
+
+// POST /api/bets/multi - Place all bets for a week (parlay)
+router.post('/multi', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  const { weekNumber, bets, amount } = multiBetSchema.parse(req.body);
+  const userId = req.user!.id;
+
+  // Get week and all games for the week
+  const week = await prisma.week.findUnique({
+    where: { weekNumber },
+    include: { games: true }
+  });
+  if (!week) throw createError('Week not found', 404);
+  if (week.status !== 'OPEN') throw createError('Betting is not open for this week', 400);
+  if (new Date() > week.bettingDeadline) throw createError('Betting deadline has passed', 400);
+
+  // Require all games for the week to be included
+  const weekGameIds = week.games.map(g => g.id).sort();
+  const betGameIds = bets.map(b => b.gameId).sort();
+  if (JSON.stringify(weekGameIds) !== JSON.stringify(betGameIds)) {
+    throw createError('All games for the week must be included in the bet', 400);
+  }
+
+  // Check if user already placed a parlay for this week (all bets for all games)
+  const existingBets = await prisma.bet.findMany({
+    where: { userId, weekId: week.id }
+  });
+  if (existingBets.length === week.games.length) {
+    throw createError('You have already placed all bets for this week', 409);
+  }
+
+  // Place all bets and create transaction in a single transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // Create bets
+    const createdBets = await Promise.all(bets.map(bet =>
+      tx.bet.create({
+        data: {
+          userId,
+          weekId: week.id,
+          gameId: bet.gameId,
+          prediction: bet.prediction
+        }
+      })
+    ));
+    // Create transaction record
+    const transaction = await tx.transaction.create({
+      data: {
+        userId,
+        type: 'ENTRY_FEE',
+        amount,
+        status: 'COMPLETED', // mock for now
+        weekId: week.id
+      }
+    });
+    return { createdBets, transaction };
+  });
+
+  res.status(201).json({
+    message: 'Parlay placed successfully',
+    bets: result.createdBets,
+    transaction: result.transaction
   });
 }));
 

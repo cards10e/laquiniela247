@@ -44,7 +44,7 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await axios.get('/users/profile');
+      const response = await axios.get('/api/users/profile');
       setProfile(response.data);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -74,7 +74,7 @@ export default function ProfilePage() {
   const handleProfileUpdate = async (updatedData: Partial<UserProfile>) => {
     setSaving(true);
     try {
-      await axios.put('/users/profile', updatedData);
+      await axios.put('/api/users/profile', updatedData);
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       toast.success(t('profile.changes_saved'));
     } catch (error) {
@@ -112,7 +112,7 @@ export default function ProfilePage() {
     
     setSaving(true);
     try {
-      await axios.put('/users/change-password', {
+      await axios.put('/api/users/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });

@@ -34,6 +34,7 @@ interface Game {
   status: 'scheduled' | 'live' | 'completed';
   homeScore?: number;
   awayScore?: number;
+  userBet?: string;
 }
 
 interface RecentActivity {
@@ -60,17 +61,80 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const [profileRes, weekRes, gamesRes, activityRes] = await Promise.all([
-        axios.get('/users/profile'),
-        axios.get('/weeks/current'),
-        axios.get('/games/current-week'),
-        axios.get('/bets/recent-activity')
+      const [profileRes, weekRes, gamesRes, statsRes] = await Promise.all([
+        axios.get('/api/users/profile'),
+        axios.get('/api/weeks/current'),
+        axios.get('/api/games/current-week'),
+        axios.get('/api/users/stats')
       ]);
-
-      setProfile(profileRes.data);
-      setCurrentWeek(weekRes.data);
-      setGames(gamesRes.data);
-      setRecentActivity(activityRes.data);
+      console.log('[Dashboard Debug] /api/users/profile response:', profileRes.data);
+      console.log('[Dashboard Debug] /api/weeks/current response:', weekRes.data);
+      console.log('[Dashboard Debug] /api/games/current-week response:', gamesRes.data);
+      console.log('[Dashboard Debug] /api/users/stats response:', statsRes.data);
+      // Debug: log raw games array
+      console.log('[Dashboard Debug] Raw games array:', gamesRes.data.games);
+      // Map backend games to frontend shape with defensive checks
+      const mappedGames = (gamesRes.data.games || []).map((game: any) => {
+        if (!game.homeTeam || !game.awayTeam) {
+          console.warn('[Dashboard Debug] Skipping game with missing team:', game);
+          return null;
+        }
+        return {
+          id: game.id,
+          homeTeamName: game.homeTeam?.name || '',
+          awayTeamName: game.awayTeam?.name || '',
+          homeTeamLogo: game.homeTeam?.logoUrl || '',
+          awayTeamLogo: game.awayTeam?.logoUrl || '',
+          gameDate: game.matchDate || '',
+          status: (game.status || '').toLowerCase(),
+          homeScore: game.homeScore,
+          awayScore: game.awayScore,
+          userBet: game.userBet
+        };
+      }).filter(Boolean);
+      console.log('[Dashboard Debug] Mapped games array:', mappedGames);
+      // Debug: log raw recent activity array
+      console.log('[Dashboard Debug] Raw recent activity:', statsRes.data.recentActivity?.recentBets);
+      // Map recent activity with defensive checks (accept weekId or weekNumber, handle raw bet objects)
+      const mappedRecentActivity = (statsRes.data.recentActivity?.recentBets || []).map((activity: any) => {
+        // If this is a raw bet object, map to expected shape
+        if (activity && activity.prediction && activity.game) {
+          return {
+            id: activity.id,
+            weekNumber: activity.weekNumber ?? activity.weekId ?? activity.week?.weekNumber,
+            correctPredictions: activity.isCorrect === true ? 1 : 0,
+            totalPredictions: 1,
+            winnings: activity.isCorrect === true ? 200 : 0,
+            date: activity.date || activity.createdAt || '',
+            homeTeamName: activity.game.homeTeam?.name,
+            awayTeamName: activity.game.awayTeam?.name,
+            prediction: activity.prediction,
+            isCorrect: activity.isCorrect
+          };
+        }
+        // Fallback to previous mapping
+        if (!activity || (activity.weekNumber == null && activity.weekId == null)) {
+          console.warn('[Dashboard Debug] Skipping invalid activity:', activity);
+          return null;
+        }
+        return {
+          id: activity.id,
+          weekNumber: activity.weekNumber ?? activity.weekId,
+          correctPredictions: Number(activity.correctPredictions) || 0,
+          totalPredictions: Number(activity.totalPredictions) || 0,
+          winnings: Number(activity.winnings) || 0,
+          date: activity.date || activity.createdAt || ''
+        };
+      }).filter(Boolean);
+      console.log('[Dashboard Debug] Mapped recent activity:', mappedRecentActivity);
+      setProfile(profileRes.data.user);
+      setCurrentWeek(weekRes.data.week);
+      setGames(mappedGames);
+      setRecentActivity(mappedRecentActivity);
+      // Log final recent activity state after mapping
+      setTimeout(() => {
+        console.log('[Final Recent Activity]', mappedRecentActivity);
+      }, 1000);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       // Set mock data for demo
@@ -159,6 +223,10 @@ export default function DashboardPage() {
       </Layout>
     );
   }
+
+  // Render-time debug logs
+  console.log('[Render] recentActivity:', recentActivity);
+  console.log('[Render] games:', games);
 
   return (
     <Layout title={t('dashboard.title')}>
@@ -260,40 +328,43 @@ export default function DashboardPage() {
               </div>
 
               {/* Games Preview */}
-              {games.length > 0 && (
+              {Array.isArray(games) && games.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {games.slice(0, 6).map((game) => (
-                    <div key={game.id} className="match-card">
-                      <div className="flex items-center justify-between w-full mb-2">
-                        <div className="flex items-center space-x-2">
-                          {game.homeTeamLogo && (
-                            <img 
-                              src={game.homeTeamLogo} 
-                              alt={game.homeTeamName}
-                              className="team-logo"
-                            />
-                          )}
-                          <span className="text-sm font-medium">{game.homeTeamName}</span>
+                  {games.slice(0, 6).map((game) => {
+                    console.log('[Render] game:', game);
+                    return (
+                      <div key={game.id} className="match-card">
+                        <div className="flex items-center justify-between w-full mb-2">
+                          <div className="flex items-center space-x-2">
+                            {game.homeTeamLogo && (
+                              <img 
+                                src={game.homeTeamLogo} 
+                                alt={game.homeTeamName}
+                                className="team-logo"
+                              />
+                            )}
+                            <span className="text-sm font-medium">{game.homeTeamName}</span>
+                          </div>
+                          <span className="text-xs text-secondary-500 dark:text-secondary-400">vs</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium">{game.awayTeamName}</span>
+                            {game.awayTeamLogo && (
+                              <img 
+                                src={game.awayTeamLogo} 
+                                alt={game.awayTeamName}
+                                className="team-logo"
+                              />
+                            )}
+                          </div>
                         </div>
-                        <span className="text-xs text-secondary-500 dark:text-secondary-400">vs</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium">{game.awayTeamName}</span>
-                          {game.awayTeamLogo && (
-                            <img 
-                              src={game.awayTeamLogo} 
-                              alt={game.awayTeamName}
-                              className="team-logo"
-                            />
-                          )}
+                        <div className="text-xs text-secondary-500 dark:text-secondary-400">
+                          {new Date(game.gameDate).toLocaleDateString()}
                         </div>
                       </div>
-                      <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                        {new Date(game.gameDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -360,35 +431,37 @@ export default function DashboardPage() {
             <h2 className="section-title">
               {t('dashboard.recent_activity')}
             </h2>
-            
-            {recentActivity.length > 0 ? (
+            {/* Defensive check for recentActivity */}
+            {Array.isArray(recentActivity) && recentActivity.length > 0 ? (
               <div className="card">
                 <div className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between py-3 border-b border-secondary-200 dark:border-secondary-700 last:border-b-0">
-                      <div>
-                        <h4 className="font-medium text-secondary-900 dark:text-secondary-100">
-                          {t('dashboard.week')} {activity.weekNumber}
-                        </h4>
-                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                          {activity.correctPredictions}/{activity.totalPredictions} {t('dashboard.correct')}
-                        </p>
-                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                          {new Date(activity.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-success-600 dark:text-success-400">
-                          {formatCurrency(activity.winnings)}
+                  {recentActivity.map((activity) => {
+                    console.log('[Render] activity:', activity);
+                    return (
+                      <div key={activity.id} className="flex items-center justify-between py-3 border-b border-secondary-200 dark:border-secondary-700 last:border-b-0">
+                        <div>
+                          <h4 className="font-medium text-secondary-900 dark:text-secondary-100">
+                            {t('dashboard.week')} {activity.weekNumber}
+                          </h4>
+                          <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                            {activity.correctPredictions}/{activity.totalPredictions} {t('dashboard.correct')}
+                          </p>
+                          <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                            {new Date(activity.date).toLocaleDateString()}
+                          </p>
                         </div>
-                        <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                          {formatPercentage((activity.correctPredictions / activity.totalPredictions) * 100)}
+                        <div className="text-right">
+                          <div className="font-semibold text-success-600 dark:text-success-400">
+                            {formatCurrency(activity.winnings)}
+                          </div>
+                          <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                            {formatPercentage((activity.correctPredictions / activity.totalPredictions) * 100)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-                
                 <div className="mt-6 text-center">
                   <Link
                     href="/history"

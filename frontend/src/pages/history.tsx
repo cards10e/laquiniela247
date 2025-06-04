@@ -45,7 +45,7 @@ export default function HistoryPage() {
 
   const fetchBettingHistory = async () => {
     try {
-      const response = await axios.get('/bets/history');
+      const response = await axios.get('/api/bets/history');
       setBets(response.data);
     } catch (error) {
       console.error('Failed to fetch betting history:', error);

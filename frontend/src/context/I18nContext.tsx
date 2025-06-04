@@ -132,7 +132,9 @@ const translations = {
       minimum_bet_amount: "Minimum bet amount is $10",
       betting_closed: "Betting Closed",
       betting_closed_message: "Betting for this week has been closed. Please check back next week.",
-      deadline_passed: "Deadline has passed"
+      deadline_passed: "Deadline has passed",
+      single_bets: "Single Bets",
+      weekly_parlay: "Weekly Parlay"
     },
     profile: {
       title: "Profile",
@@ -381,7 +383,9 @@ const translations = {
       minimum_bet_amount: "La cantidad mínima de apuesta es $10",
       betting_closed: "Apuestas Cerradas",
       betting_closed_message: "Las apuestas para esta jornada han sido cerradas. Por favor regresa la próxima semana.",
-      deadline_passed: "La fecha límite ha pasado"
+      deadline_passed: "La fecha límite ha pasado",
+      single_bets: "Apuestas Simples",
+      weekly_parlay: "Parlay Semanal"
     },
     profile: {
       title: "Perfil",

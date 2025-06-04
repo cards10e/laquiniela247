@@ -62,10 +62,12 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: express.Request
 
 // GET /api/weeks/current - Get current active week
 router.get('/current', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const now = new Date();
   const currentWeek = await prisma.week.findFirst({
     where: {
-      status: {
-        in: ['OPEN', 'UPCOMING']
+      status: 'OPEN',
+      bettingDeadline: {
+        gt: now
       }
     },
     include: {
@@ -98,9 +100,10 @@ router.get('/current', asyncHandler(async (req: express.Request, res: express.Re
         }
       }
     },
-    orderBy: {
-      weekNumber: 'desc'
-    }
+    orderBy: [
+      { startDate: 'desc' },
+      { weekNumber: 'desc' }
+    ]
   });
 
   if (!currentWeek) {

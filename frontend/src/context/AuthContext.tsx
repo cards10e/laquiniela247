@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+console.log('[Auth Debug] AuthContext.tsx loaded');
+
 interface User {
   id: number;
   email: string;
@@ -40,14 +42,21 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
 // Configure axios defaults
 axios.defaults.baseURL = API_BASE_URL;
 
-// Add request interceptor to include auth token
+console.log('[Auth Debug] Registering axios request interceptor');
 axios.interceptors.request.use((config) => {
   const token = Cookies.get('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Debug logging
+  if (typeof window !== 'undefined') {
+    console.log('[Auth Debug] auth_token cookie:', token);
+    console.log('[Auth Debug] Request URL:', config.url);
+    console.log('[Auth Debug] Request Headers:', config.headers);
+  }
   return config;
 });
+console.log('[Auth Debug] Axios request interceptor registered');
 
 // Add response interceptor to handle token refresh
 axios.interceptors.response.use(
@@ -97,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await axios.get('/api/users/profile');
       // Normalize role to lowercase
       const normalizedUser = { ...response.data.user, role: response.data.user.role?.toLowerCase() };
       setUser(normalizedUser);
@@ -105,6 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Failed to fetch user:', error);
       Cookies.remove('auth_token');
       Cookies.remove('refresh_token');
+      if (typeof window !== 'undefined') {
+        console.log('[Auth Debug] Removed auth_token and refresh_token due to failed fetchUser. Redirecting to /login in 3 seconds...');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      }
     } finally {
       setLoading(false);
     }
@@ -113,7 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, remember = false) => {
     try {
       const response = await axios.post('/api/auth/login', { email, password });
-      const { token, refreshToken, user } = response.data;
+      const { tokens, user } = response.data;
+      const token = tokens.accessToken;
+      const refreshToken = tokens.refreshToken;
       // Normalize role to lowercase
       const normalizedUser = { ...user, role: user.role?.toLowerCase() };
       // Set cookies with appropriate expiration

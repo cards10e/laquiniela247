@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Place Bet - Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { background: #f7f8fa; font-family: 'Inter', sans-serif; margin: 0; }
+    .container { max-width: 900px; margin: 40px auto; }
+    .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 24px; }
+    .tab-btn { padding: 12px 32px; border: none; background: #fff; border-bottom: 3px solid transparent; font-weight: 600; color: #888; cursor: pointer; transition: color 0.2s, border-bottom 0.2s; }
+    .tab-btn.active { color: #222; border-bottom: 3px solid #0070f3; }
+    .week-banner { background: #e10600; color: #fff; border-radius: 12px; padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .week-label { font-size: 1.2rem; font-weight: 700; }
+    .open-badge { background: #ffe600; color: #222; border-radius: 8px; padding: 4px 12px; font-size: 0.95rem; font-weight: 600; margin-left: 10px; }
+    .deadline { background: #0a1931; color: #fff; border-radius: 8px; padding: 8px 18px; font-size: 1rem; font-weight: 500; }
+    .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 18px; }
+    .main-content { display: flex; gap: 32px; }
+    .game-list { flex: 2; }
+    .game-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px #eee; padding: 20px 24px; margin-bottom: 18px; }
+    .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .game-title { font-weight: 600; }
+    .game-date { font-size: 0.95rem; color: #888; }
+    .prediction-btns { display: flex; gap: 12px; margin-bottom: 10px; }
+    .prediction-btn { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #eee; background: #f5f5f5; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .prediction-btn:hover { background: #e6f0ff; }
+    .bet-actions { display: flex; align-items: center; gap: 10px; }
+    .bet-amount { width: 120px; padding: 6px 10px; border-radius: 5px; border: 1px solid #ddd; }
+    .place-bet-btn { padding: 8px 18px; background: #0070f3; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .bet-slip { flex: 1; background: #fafbfc; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px #eee; }
+    .bet-slip-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; }
+    .bet-slip-empty { color: #888; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active">Single Bets</button>
+      <button class="tab-btn">Weekly Parlay</button>
+    </div>
+
+    <!-- Week Info Banner -->
+    <div class="week-banner">
+      <div>
+        <span class="week-label">Week 15</span>
+        <span class="open-badge">Open for betting</span>
+      </div>
+      <div class="deadline">Betting closes in: 1d 23h 42m</div>
+    </div>
+
+    <!-- Tab Content: Single Bets -->
+    <div>
+      <div class="section-title">Select Your Predictions (Single Bets)</div>
+      <div class="main-content">
+        <!-- Game List -->
+        <div class="game-list">
+          <!-- Example Game Card -->
+          <div class="game-card">
+            <div class="game-header">
+              <div class="game-title">Club América vs Chivas Guadalajara</div>
+              <div class="game-date">6/4/2025 02:58 PM</div>
+            </div>
+            <div class="prediction-btns">
+              <button class="prediction-btn">Home</button>
+              <button class="prediction-btn">Draw</button>
+              <button class="prediction-btn">Away</button>
+            </div>
+            <div class="bet-actions">
+              <input class="bet-amount" type="number" min="10" max="1000" placeholder="Bet Amount">
+              <button class="place-bet-btn">Place Bet</button>
+            </div>
+          </div>
+          <!-- Repeat for each game... -->
+        </div>
+        <!-- Bet Slip (optional) -->
+        <div class="bet-slip">
+          <div class="bet-slip-title">Bet Slip</div>
+          <div class="bet-slip-empty">Your single bets will appear here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Weekly Parlay (hidden by default, shown when tab is active) -->
+    <!--
+    <div>
+      <div class="section-title">Select Your Predictions (Weekly Parlay)</div>
+      ... (your current UI for all picks at once, with a single "Confirm All Picks" button) ...
+    </div>
+    -->
+  </div>
+</body>
+</html> 

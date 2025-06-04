@@ -176,8 +176,11 @@ npm run build
 # Reset database
 npm run migrate:db
 
-# Seed with demo data
+# Seed with demo data (teams and users only)
 npm run seed:db
+
+# Seed demo and historic data for dashboard and /bet (weeks, games, bets, user performance)
+npx ts-node backend/src/scripts/seedHistory.ts
 ```
 
 ## Demo Credentials
@@ -197,6 +200,13 @@ This standalone version maintains 100% functional parity with the WordPress plug
 - ✅ UI/UX design preserved
 - ✅ Mobile responsiveness improved
 - ✅ Performance optimized
+
+---
+
+**Seeding Note:**
+- All week/game/bet seeding is now handled by `backend/src/scripts/seedHistory.ts`.
+- Legacy week 99 logic has been removed to ensure robust, date-driven demo data.
+- Backend now dynamically selects the current week for all endpoints, and Prisma orderBy usage is fixed for reliability.
 
 ## Support
 
