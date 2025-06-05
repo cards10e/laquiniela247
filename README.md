@@ -136,6 +136,7 @@ The application will be available at:
 - ✅ **Transaction Management**: Handle payments and winnings
 - ✅ **System Logs**: Monitor application activity and errors
 - ✅ **Team Dropdowns & Localization**: Home and Away Team selection in the admin Create Game form now uses dropdowns populated from the backend, with fully localized placeholders (Spanish/English) for a seamless admin experience.
+- ✅ **Admin Panel Improvements**: Status labels for games are now always translated and displayed correctly (e.g., Programado, En Vivo, Completado), both mock and real games are shown together in the 'Existing Games' section, with robust merging and normalization, and the 'Weeks' tab is temporarily hidden in the admin panel for demo clarity.
 
 ### Technical Features
 - ✅ **Progressive Web App**: Offline capabilities and app-like experience
@@ -256,3 +257,18 @@ MIT License - see LICENSE file for details.
 - Single Bets UI: Demo user can always place single bets for all games, with correct prediction selection and bet placement workflow.
 - Backend/frontend userBet logic improved for demo reliability and correct bet state display.
 - All changes are now in main; see CHANGELOG for details.
+
+## API Endpoints
+
+- **Create a week (admin only):**
+  - `POST /api/admin/weeks`
+- **Fetch weeks (all users):**
+  - `GET /api/weeks`
+
+> Note: There is no GET /api/admin/weeks route. The admin panel should use GET /api/weeks to fetch weeks.
+
+## v0.95 Release Notes
+- Admin panel: Localized fallback for game status translation (Scheduled/Programado, etc.)
+- Robust merging and display of mock and real games in 'Existing Games'
+- Temporarily hid the 'Weeks' tab for demo clarity
+- See CHANGELOG for full details

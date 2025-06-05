@@ -65,6 +65,19 @@ All notable changes to this project will be documented in this file.
 - Single Bets UI: Demo user can always place single bets for all games; prediction selection and highlighting now work; Place Bet button enables as expected.
 - No changes to parlay or other user workflows.
 - Backend/frontend userBet logic improved for demo reliability and correct bet state display.
+- Admin panel: Changed all frontend GET requests for weeks from `/api/admin/weeks` to `/api/weeks` to match backend routes. This fixes a bug where game creation would fail due to 404 errors when fetching weeks.
+- Admin panel: Normalized game status translation for existing games, ensuring correct display of status labels (e.g., Programado, En Vivo, Completado).
+- Admin panel: Improved merging and display of mock and real games in the 'Existing Games' section.
+- Admin panel: Temporarily hid the 'Weeks' tab for a cleaner UI.
+
+---
+
+## [v0.95] - 2024-06-05
+### Fixed
+- Admin panel: Added localized fallback for game status translation, ensuring correct display in all languages.
+- Admin panel: Normalized and merged mock/real games for robust display in 'Existing Games'.
+- Admin panel: Temporarily hid the 'Weeks' tab for a cleaner demo UI.
+- Documentation: Updated README and CHANGELOG for all recent UI/UX improvements.
 
 ---
 
