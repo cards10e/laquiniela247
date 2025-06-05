@@ -224,13 +224,13 @@ export default function BetPage() {
         // Refresh games to show the new bet
         await fetchBettingData();
       } else {
-        await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
-        toast.success(t('betting.bet_placed'));
-        setPredictions((prev) => {
-          const { [gameId]: _, ...rest } = prev;
-          return rest;
-        });
-        setSingleBetAmounts((prev) => ({ ...prev, [gameId]: 50 }));
+      await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
+      toast.success(t('betting.bet_placed'));
+      setPredictions((prev) => {
+        const { [gameId]: _, ...rest } = prev;
+        return rest;
+      });
+      setSingleBetAmounts((prev) => ({ ...prev, [gameId]: 50 }));
       }
     } catch (error: any) {
       if (error.response?.data?.error) {
@@ -265,18 +265,18 @@ export default function BetPage() {
         // Refresh games to show the new bets
         await fetchBettingData();
       } else {
-        const betData = {
-          weekNumber: currentWeek?.weekNumber,
-          bets: Object.entries(predictions).map(([gameId, prediction]) => ({
-            gameId: parseInt(gameId),
-            prediction: (prediction as string).toUpperCase()
-          })),
-          amount: betAmount
-        };
-        await axios.post('/api/bets/multi', betData);
-        toast.success(t('betting.bet_placed'));
-        setPredictions({});
-        setBetAmount(50);
+      const betData = {
+        weekNumber: currentWeek?.weekNumber,
+        bets: Object.entries(predictions).map(([gameId, prediction]) => ({
+          gameId: parseInt(gameId),
+          prediction: (prediction as string).toUpperCase()
+        })),
+        amount: betAmount
+      };
+      await axios.post('/api/bets/multi', betData);
+      toast.success(t('betting.bet_placed'));
+      setPredictions({});
+      setBetAmount(50);
       }
     } catch (error: any) {
       if (error.response?.data?.error) {

@@ -12,7 +12,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <I18nProvider>
         <AuthProvider>
           <DemoProvider>
-            <Component {...pageProps} />
+          <Component {...pageProps} />
           </DemoProvider>
           <Toaster
             position="top-right"
