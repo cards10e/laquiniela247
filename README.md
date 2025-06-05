@@ -266,3 +266,9 @@ MIT License - see LICENSE file for details.
   - `GET /api/weeks`
 
 > Note: There is no GET /api/admin/weeks route. The admin panel should use GET /api/weeks to fetch weeks.
+
+## v0.95 Release Notes
+- Admin panel: Localized fallback for game status translation (Scheduled/Programado, etc.)
+- Robust merging and display of mock and real games in 'Existing Games'
+- Temporarily hid the 'Weeks' tab for demo clarity
+- See CHANGELOG for full details

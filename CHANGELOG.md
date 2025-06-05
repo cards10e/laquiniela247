@@ -72,5 +72,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v0.95] - 2024-06-05
+### Fixed
+- Admin panel: Added localized fallback for game status translation, ensuring correct display in all languages.
+- Admin panel: Normalized and merged mock/real games for robust display in 'Existing Games'.
+- Admin panel: Temporarily hid the 'Weeks' tab for a cleaner demo UI.
+- Documentation: Updated README and CHANGELOG for all recent UI/UX improvements.
+
+---
+
 ## [Unreleased]
 - Ongoing improvements and minor bug fixes. 

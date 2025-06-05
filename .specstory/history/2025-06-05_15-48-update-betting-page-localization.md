@@ -8551,6 +8551,127 @@ _**Assistant**_
 
 ---
 
+```bash
+git add . && git commit -m "docs: update CHANGELOG and README for admin panel UI/UX fixes (status translation, game merging, hide weeks tab)"
+```
+
+```
+< (status translation, game merging, hide weeks tab)"
+[feature/demo-endless-betting ea8ab6d] docs: update CHANGELOG and README for admin panel UI/UX fixes (status
+ translation, game merging, hide weeks tab)
+ 6 files changed, 3912 insertions(+), 110 deletions(-)
+ create mode 100644 backend/src/scripts/deleteFutureGames.ts
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git push
+```
+
+```
+batman@saturn laquiniela247 % git push
+Enumerating objects: 32, done.
+Counting objects: 100% (32/32), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (17/17), done.
+Writing objects: 100% (17/17), 29.04 KiB | 4.15 MiB/s, done.
+Total 17 (delta 11), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (11/11), completed with 11 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   3f74f5b..ea8ab6d  feature/demo-endless-betting -> feature/demo-endless-betting
+batman@saturn laquiniela247 %
+```
+
+---
+
+Your changelog and README have been updated to reflect the recent admin panel UI/UX fixes (status translation, robust merging of games, and hiding the Weeks tab). All changes have been committed and pushed to your current feature branch.
+
+You are now ready to proceed with further debugging or improvements.  
+Let me know if you want to continue investigating the status label translation issue or need help with anything else!
+
+---
+
+_**User**_
+
+We can add a fallback in the UI: if the translation returns the key itself, display a default label (e.g., "Scheduled"). --- will this be localized to english and spanish?
+
+---
+
+_**Assistant**_
+
+Great question! If you add a fallback in the UI that checks if the translation function returns the key itself (e.g., `admin.scheduled`), and then displays a default label, you need to make sure that default label is also localized.
+
+### How to Make the Fallback Localized
+
+Instead of hardcoding `"Scheduled"` as the fallback, you should use the translation function to get the localized version for both English and Spanish.
+
+#### Example Implementation
+
+```js
+const statusKey = `admin.${game.status.toLowerCase()}`;
+const translatedStatus = t(statusKey);
+const fallbackStatus = t('admin.scheduled'); // This will be "Scheduled" in English, "Programado" in Spanish
+
+<span>
+  {translatedStatus === statusKey ? fallbackStatus : translatedStatus}
+</span>
+```
+
+- If the translation is missing, it will show the localized fallback.
+- If the translation exists, it will show the correct localized label.
+
+---
+
+**This approach ensures the fallback is always localized to the current language.**
+
+Would you like me to apply this exact change for you?
+
+---
+
+_**User**_
+
+yes pls
+
+---
+
+_**Assistant**_
+
+```diff
+                                : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                            }`}>
+-                             {t(`admin.${game.status.toLowerCase()}`)}
++                             {(() => {
++                               const statusKey = `admin.${game.status.toLowerCase()}`;
++                               const translatedStatus = t(statusKey);
++                               const fallbackStatus = t('admin.scheduled');
++                               return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
++                             })()}
+                            </span>
+                            <button
+```
+
+---
+
+A localized fallback for the game status label is now in place:
+
+- If the translation for the status is missing, the UI will display the localized fallback (`t('admin.scheduled')`), which is "Scheduled" in English and "Programado" in Spanish.
+- If the translation exists, it will display the correct localized label.
+
+This ensures your admin panel always shows a user-friendly, localized status label for all games.  
+Let me know if you see the expected results or need further tweaks!
+
+---
+
+_**User**_
+
+pls update our changelog and readme using semantic versioning call this release v.95, merge all of these changes into main and delete this branch, upon confirmation of the merge, switch to the main branch
+
+---
+
+_**Assistant**_
+
 
 
 ---

@@ -684,7 +684,12 @@ export default function AdminPage() {
                               ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
                               : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
                           }`}>
-                            {t(`admin.${game.status.toLowerCase()}`)}
+                            {(() => {
+                              const statusKey = `admin.${game.status.toLowerCase()}`;
+                              const translatedStatus = t(statusKey);
+                              const fallbackStatus = t('admin.scheduled');
+                              return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
+                            })()}
                           </span>
                           <button
                             className="btn-danger btn-xs ml-2"
