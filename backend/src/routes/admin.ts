@@ -12,6 +12,7 @@ router.use(adminMiddleware);
 // Validation schemas
 const createGameSchema = z.object({
   weekNumber: z.number().int().positive(),
+  season: z.string().min(1),
   homeTeamId: z.number().int().positive(),
   awayTeamId: z.number().int().positive(),
   matchDate: z.string().datetime()
@@ -244,6 +245,13 @@ router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res: express
 // POST /api/admin/games - Create new game
 router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const validatedData = createGameSchema.parse(req.body);
+  console.log('[DEBUG] Game creation request:', {
+    weekNumber: validatedData.weekNumber,
+    season: validatedData.season,
+    homeTeamId: validatedData.homeTeamId,
+    awayTeamId: validatedData.awayTeamId,
+    matchDate: validatedData.matchDate
+  });
 
   // Verify teams exist
   const [homeTeam, awayTeam] = await Promise.all([
@@ -260,12 +268,24 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
   }
 
   // Verify week exists
+  console.log('[DEBUG] Attempting week lookup with:', {
+    weekNumber: validatedData.weekNumber,
+    season: validatedData.season
+  });
+  
   const week = await prisma.week.findUnique({
-    where: { weekNumber: validatedData.weekNumber }
+    where: { 
+      weekNumber_season: { 
+        weekNumber: validatedData.weekNumber, 
+        season: validatedData.season 
+      } 
+    }
   });
 
+  console.log('[DEBUG] Week lookup result:', week);
+
   if (!week) {
-    throw createError('Week not found', 404);
+    throw createError('Week not found. Please create the week first.', 404);
   }
 
   const game = await prisma.game.create({
@@ -355,16 +375,36 @@ router.put('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res: exp
   });
 }));
 
+// DELETE /api/admin/games/:id - Delete a game and its bets
+router.delete('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  const gameId = parseInt(req.params.id);
+  if (isNaN(gameId)) {
+    throw createError('Invalid game ID', 400);
+  }
+  // Delete bets associated with the game first
+  await prisma.bet.deleteMany({ where: { gameId } });
+  // Delete the game
+  await prisma.game.delete({ where: { id: gameId } });
+  res.json({ message: 'Game deleted successfully' });
+}));
+
 // POST /api/admin/weeks - Create new week
 router.post('/weeks', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  console.log('[DEBUG] /api/admin/weeks called with:', req.body);
   const validatedData = createWeekSchema.parse(req.body);
 
   // Check if week already exists
   const existingWeek = await prisma.week.findUnique({
-    where: { weekNumber: validatedData.weekNumber }
+    where: { 
+      weekNumber_season: { 
+        weekNumber: validatedData.weekNumber, 
+        season: validatedData.season 
+      } 
+    }
   });
 
   if (existingWeek) {
+    console.log('[DEBUG] Week already exists:', existingWeek);
     throw createError('Week already exists', 409);
   }
 
@@ -378,6 +418,7 @@ router.post('/weeks', asyncHandler(async (req: AuthenticatedRequest, res: expres
       status: 'UPCOMING'
     }
   });
+  console.log('[DEBUG] Created new week:', week);
 
   res.status(201).json({
     message: 'Week created successfully',

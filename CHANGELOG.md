@@ -65,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - Single Bets UI: Demo user can always place single bets for all games; prediction selection and highlighting now work; Place Bet button enables as expected.
 - No changes to parlay or other user workflows.
 - Backend/frontend userBet logic improved for demo reliability and correct bet state display.
+- Admin panel: Changed all frontend GET requests for weeks from `/api/admin/weeks` to `/api/weeks` to match backend routes. This fixes a bug where game creation would fail due to 404 errors when fetching weeks.
 
 ---
 

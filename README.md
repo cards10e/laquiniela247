@@ -256,3 +256,12 @@ MIT License - see LICENSE file for details.
 - Single Bets UI: Demo user can always place single bets for all games, with correct prediction selection and bet placement workflow.
 - Backend/frontend userBet logic improved for demo reliability and correct bet state display.
 - All changes are now in main; see CHANGELOG for details.
+
+## API Endpoints
+
+- **Create a week (admin only):**
+  - `POST /api/admin/weeks`
+- **Fetch weeks (all users):**
+  - `GET /api/weeks`
+
+> Note: There is no GET /api/admin/weeks route. The admin panel should use GET /api/weeks to fetch weeks.

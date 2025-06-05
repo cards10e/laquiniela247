@@ -134,10 +134,13 @@ const translations = {
       betting_closed_message: "Betting for this week has been closed. Please check back next week.",
       deadline_passed: "Deadline has passed",
       single_bets: "Single Bets",
-      weekly_parlay: "Weekly Parlay"
+      weekly_parlay: "La Quiniela"
     },
     profile: {
       title: "Profile",
+      demo_settings: "Demo Settings",
+      endless_betting: "Endless Betting Mode",
+      endless_betting_description: "Enable this to place unlimited bets on games (demo user only)",
       manage_account_settings: "Manage your account settings and preferences",
       personal_info: "Personal Information",
       account_security: "Account Security",
@@ -386,10 +389,13 @@ const translations = {
       betting_closed_message: "Las apuestas para esta jornada han sido cerradas. Por favor regresa la próxima semana.",
       deadline_passed: "La fecha límite ha pasado",
       single_bets: "Apuestas Simples",
-      weekly_parlay: "Parlay Semanal"
+      weekly_parlay: "La Quiniela"
     },
     profile: {
       title: "Perfil",
+      demo_settings: "Configuración de Demo",
+      endless_betting: "Modo de Apuestas Infinitas",
+      endless_betting_description: "Activa esto para realizar apuestas ilimitadas en los juegos (solo usuario demo)",
       manage_account_settings: "Administra la configuración y preferencias de tu cuenta",
       personal_info: "Información Personal",
       account_security: "Seguridad de la Cuenta",

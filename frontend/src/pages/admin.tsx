@@ -5,6 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { addDays, startOfWeek, format, isAfter, isBefore } from 'date-fns';
 
 interface User {
   id: number;
@@ -158,18 +159,19 @@ export default function AdminPage() {
   const handleCreateWeek = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/api/admin/weeks', {
+      console.log('[DEBUG] Sending week creation request:', newWeek);
+      const res = await axios.post('/api/admin/weeks', {
         weekNumber: parseInt(newWeek.weekNumber),
         bettingDeadline: newWeek.bettingDeadline,
         startDate: newWeek.startDate,
         endDate: newWeek.endDate
       });
-      
+      console.log('[DEBUG] Week creation response:', res.data);
       toast.success(t('admin.week_created'));
       setNewWeek({ weekNumber: '', bettingDeadline: '', startDate: '', endDate: '' });
       fetchAdminData();
     } catch (error) {
-      console.error('Failed to create week:', error);
+      console.error('[DEBUG] Failed to create week:', error);
       toast.error(t('admin.week_creation_failed'));
     }
   };
@@ -177,18 +179,55 @@ export default function AdminPage() {
   const handleCreateGame = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('/api/admin/games', {
-        weekId: parseInt(newGame.weekId),
+      // Find the selected week in allWeeks
+      const selectedWeek = allWeeks.find(w => w.id === newGame.weekId);
+      if (!selectedWeek) throw new Error('Selected week not found');
+      // Check if week exists in backend
+      let backendWeek = weeks.find(w => w.weekNumber === selectedWeek.weekNumber);
+      if (!backendWeek) {
+        console.log('[DEBUG] Sending week creation request for game:', selectedWeek);
+        const weekRes = await axios.post('/api/admin/weeks', {
+          weekNumber: selectedWeek.weekNumber,
+          season: '2025',
+          startDate: selectedWeek.startDate,
+          endDate: selectedWeek.endDate,
+          bettingDeadline: new Date(new Date(selectedWeek.startDate).getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+        });
+        console.log('[DEBUG] Week creation response for game:', weekRes.data);
+        // Robustly fetch weeks directly from backend until the new week appears
+        let tries = 0;
+        while (tries < 5) {
+          const res = await axios.get('/api/admin/weeks');
+          const freshWeeks = res.data;
+          backendWeek = freshWeeks.find((w: any) => w.weekNumber === selectedWeek.weekNumber);
+          if (backendWeek) break;
+          await new Promise(res => setTimeout(res, 300));
+          tries++;
+        }
+      }
+      if (!backendWeek) throw new Error('Failed to create or find week');
+      // Create the game
+      const matchDateISO = new Date(newGame.gameDate).toISOString();
+      console.log('[DEBUG] Sending game creation request:', {
+        weekNumber: selectedWeek.weekNumber,
+        season: '2025',
         homeTeamId: parseInt(newGame.homeTeamId),
         awayTeamId: parseInt(newGame.awayTeamId),
-        matchDate: newGame.gameDate
+        matchDate: matchDateISO
       });
-      
+      const gameRes = await axios.post('/api/admin/games', {
+        weekNumber: selectedWeek.weekNumber,
+        season: '2025',
+        homeTeamId: parseInt(newGame.homeTeamId),
+        awayTeamId: parseInt(newGame.awayTeamId),
+        matchDate: matchDateISO
+      });
+      console.log('[DEBUG] Game creation response:', gameRes.data);
       toast.success(t('admin.game_created'));
       setNewGame({ weekId: '', homeTeamId: '', awayTeamId: '', gameDate: '' });
       fetchAdminData();
     } catch (error) {
-      console.error('Failed to create game:', error);
+      console.error('[DEBUG] Failed to create game:', error);
       toast.error(t('admin.game_creation_failed'));
     }
   };
@@ -225,6 +264,55 @@ export default function AdminPage() {
       style: 'currency',
       currency: 'MXN'
     }).format(value);
+  };
+
+  // Generate weeks for the next two months
+  const today = new Date();
+  const weeksSet = new Set<number>();
+  const generatedWeeks: { id: string; weekNumber: number; startDate: string; endDate: string }[] = [];
+  for (let i = 0; i < 9; i++) { // 9 weeks covers ~2 months
+    const weekStart = addDays(startOfWeek(today, { weekStartsOn: 1 }), i * 7);
+    const weekEnd = addDays(weekStart, 6);
+    const weekNumber = Number(format(weekStart, 'w'));
+    generatedWeeks.push({
+      id: `gen-${weekNumber}`,
+      weekNumber,
+      startDate: weekStart.toISOString(),
+      endDate: weekEnd.toISOString()
+    });
+    weeksSet.add(weekNumber);
+  }
+  // Merge backend weeks (avoid duplicates)
+  const allWeeks = [
+    ...generatedWeeks,
+    ...weeks.filter(w => !weeksSet.has(w.weekNumber)).map(w => ({
+      id: String(w.id),
+      weekNumber: w.weekNumber,
+      startDate: w.startDate,
+      endDate: w.endDate
+    }))
+  ];
+  allWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
+
+  // Only show weeks whose endDate is today or in the future
+  const now = new Date();
+  const validWeeks = allWeeks.filter(week => new Date(week.endDate) >= now);
+
+  // Find the selected week object for date range restriction
+  const selectedWeekObj = validWeeks.find(w => w.id === newGame.weekId);
+  const minGameDate = selectedWeekObj ? selectedWeekObj.startDate.slice(0, 16) : undefined;
+  const maxGameDate = selectedWeekObj ? selectedWeekObj.endDate.slice(0, 16) : undefined;
+
+  // Delete game handler
+  const handleDeleteGame = async (gameId: number) => {
+    if (!window.confirm('Are you sure you want to delete this game?')) return;
+    try {
+      await axios.delete(`/api/admin/games/${gameId}`);
+      toast.success('Game deleted');
+      fetchAdminData();
+    } catch (error) {
+      toast.error('Failed to delete game');
+    }
   };
 
   if (loading) {
@@ -541,7 +629,6 @@ export default function AdminPage() {
                 <div className="card-header">
                   <h2 className="card-title">{t('admin.create_game')}</h2>
                 </div>
-                
                 <form onSubmit={handleCreateGame} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -550,19 +637,18 @@ export default function AdminPage() {
                       </label>
                       <select
                         value={newGame.weekId}
-                        onChange={(e) => setNewGame(prev => ({ ...prev, weekId: e.target.value }))}
+                        onChange={(e) => setNewGame(prev => ({ ...prev, weekId: e.target.value, gameDate: '' }))}
                         className="form-input"
                         required
                       >
                         <option value="">{t('admin.select_week')}</option>
-                        {weeks.map((week) => (
+                        {validWeeks.map((week) => (
                           <option key={week.id} value={week.id}>
-                            {t('dashboard.week')} {week.weekNumber}
+                            {t('dashboard.week')} {week.weekNumber} ({format(new Date(week.startDate), 'MMM d')} - {format(new Date(week.endDate), 'MMM d')})
                           </option>
                         ))}
                       </select>
                     </div>
-                    
                     <div>
                       <label className="form-label">
                         {t('admin.game_date')}
@@ -573,9 +659,10 @@ export default function AdminPage() {
                         onChange={(e) => setNewGame(prev => ({ ...prev, gameDate: e.target.value }))}
                         className="form-input"
                         required
+                        min={minGameDate}
+                        max={maxGameDate}
                       />
                     </div>
-                    
                     <div>
                       <label className="form-label">
                         {t('admin.home_team')}
@@ -587,14 +674,11 @@ export default function AdminPage() {
                         required
                       >
                         <option value="">{t('admin.select_team')}</option>
-                        {teams.map((team) => (
-                          <option key={team.id} value={team.id}>
-                            {team.name}
-                          </option>
+                        {teams.filter(team => team.id.toString() !== newGame.awayTeamId).map((team) => (
+                          <option key={team.id} value={team.id}>{team.name}</option>
                         ))}
                       </select>
                     </div>
-                    
                     <div>
                       <label className="form-label">
                         {t('admin.away_team')}
@@ -606,15 +690,12 @@ export default function AdminPage() {
                         required
                       >
                         <option value="">{t('admin.select_team')}</option>
-                        {teams.map((team) => (
-                          <option key={team.id} value={team.id}>
-                            {team.name}
-                          </option>
+                        {teams.filter(team => team.id.toString() !== newGame.homeTeamId).map((team) => (
+                          <option key={team.id} value={team.id}>{team.name}</option>
                         ))}
                       </select>
                     </div>
                   </div>
-                  
                   <button type="submit" className="btn-primary">
                     {t('admin.create_game')}
                   </button>
@@ -626,7 +707,6 @@ export default function AdminPage() {
                 <div className="card-header">
                   <h2 className="card-title">{t('admin.existing_games')}</h2>
                 </div>
-                
                 <div className="space-y-4">
                   {games.map((game) => (
                     <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
@@ -639,16 +719,23 @@ export default function AdminPage() {
                             {new Date(game.gameDate).toLocaleString()}
                           </p>
                         </div>
-                        
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          game.status === 'completed'
-                            ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
-                            : game.status === 'live'
-                            ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
-                            : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                        }`}>
-                          {t(`admin.${game.status}`)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            game.status === 'completed'
+                              ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                              : game.status === 'live'
+                              ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                              : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                          }`}>
+                            {t(`admin.${game.status}`)}
+                          </span>
+                          <button
+                            className="btn-danger btn-xs ml-2"
+                            onClick={() => handleDeleteGame(game.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                       
                       {game.status === 'scheduled' && (

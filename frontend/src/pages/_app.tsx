@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/context/AuthContext';
 import { I18nProvider } from '@/context/I18nContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { DemoProvider } from '@/context/DemoContext';
 import '@/styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -10,7 +11,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <ThemeProvider>
       <I18nProvider>
         <AuthProvider>
-          <Component {...pageProps} />
+          <DemoProvider>
+            <Component {...pageProps} />
+          </DemoProvider>
           <Toaster
             position="top-right"
             toastOptions={{
