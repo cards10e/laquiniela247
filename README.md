@@ -136,6 +136,7 @@ The application will be available at:
 - ✅ **Transaction Management**: Handle payments and winnings
 - ✅ **System Logs**: Monitor application activity and errors
 - ✅ **Team Dropdowns & Localization**: Home and Away Team selection in the admin Create Game form now uses dropdowns populated from the backend, with fully localized placeholders (Spanish/English) for a seamless admin experience.
+- ✅ **Admin Panel Improvements**: Status labels for games are now always translated and displayed correctly (e.g., Programado, En Vivo, Completado), both mock and real games are shown together in the 'Existing Games' section, with robust merging and normalization, and the 'Weeks' tab is temporarily hidden in the admin panel for demo clarity.
 
 ### Technical Features
 - ✅ **Progressive Web App**: Offline capabilities and app-like experience

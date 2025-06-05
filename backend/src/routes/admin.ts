@@ -273,7 +273,7 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     season: validatedData.season
   });
   
-  const week = await prisma.week.findUnique({
+  let week = await prisma.week.findUnique({
     where: { 
       weekNumber_season: { 
         weekNumber: validatedData.weekNumber, 
@@ -285,7 +285,27 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
   console.log('[DEBUG] Week lookup result:', week);
 
   if (!week) {
-    throw createError('Week not found. Please create the week first.', 404);
+    console.log('[DEBUG] Week not found, creating it automatically');
+    // Create the week automatically
+    const matchDate = new Date(validatedData.matchDate);
+    const startDate = new Date(matchDate);
+    startDate.setDate(startDate.getDate() - 1); // Start date is 1 day before match
+    const endDate = new Date(matchDate);
+    endDate.setDate(endDate.getDate() + 1); // End date is 1 day after match
+    const bettingDeadline = new Date(matchDate);
+    bettingDeadline.setHours(bettingDeadline.getHours() - 2); // Betting deadline is 2 hours before match
+
+    week = await prisma.week.create({
+      data: {
+        weekNumber: validatedData.weekNumber,
+        season: validatedData.season,
+        startDate,
+        endDate,
+        bettingDeadline,
+        status: 'UPCOMING'
+      }
+    });
+    console.log('[DEBUG] Created new week:', week);
   }
 
   const game = await prisma.game.create({
