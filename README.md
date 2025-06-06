@@ -98,7 +98,7 @@ La Quiniela 247 is a modern, secure, and user-friendly online betting platform s
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 18+ 
 - MySQL 8+
 - Nginx
 - PM2
@@ -119,11 +119,87 @@ La Quiniela 247 is a modern, secure, and user-friendly online betting platform s
 4. Run database migrations
 5. Start the development servers
 
-### Deployment
-Use the provided `deploy.sh` script for automated deployment:
-```bash
-./deploy.sh
+### Production Deployment (Live Server)
+
+1. **Ensure your server has:**
+   - Node.js 18+
+   - MySQL 8+
+   - Nginx
+   - PM2
+
+2. **Run the deployment script:**
+   ```bash
+   ./deploy.sh
+   ```
+
+3. **Nginx Configuration:**
+   - The script will attempt to write the correct config. If it fails (e.g., heredoc issues), manually edit `/etc/nginx/sites-available/default`:
+     ```
+     server {
+         server_name laquiniela247demo.live;
+
+         location /api/ {
+             proxy_pass http://localhost:3001;
+             proxy_http_version 1.1;
+             proxy_set_header Upgrade $http_upgrade;
+             proxy_set_header Connection "upgrade";
+             proxy_set_header Host $host;
+             proxy_cache_bypass $http_upgrade;
+         }
+
+         location / {
+             proxy_pass http://localhost:3000;
+             proxy_http_version 1.1;
+             proxy_set_header Upgrade $http_upgrade;
+             proxy_set_header Connection "upgrade";
+             proxy_set_header Host $host;
+             proxy_cache_bypass $http_upgrade;
+         }
+
+         listen [::]:443 ssl ipv6only=on; # managed by Certbot
+         listen 443 ssl; # managed by Certbot
+         ssl_certificate /etc/letsencrypt/live/laquiniela247demo.live/fullchain.pem; # managed by Certbot
+         ssl_certificate_key /etc/letsencrypt/live/laquiniela247demo.live/privkey.pem; # managed by Certbot
+         include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+         ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+     }
+     server {
+         if ($host = laquiniela247demo.live) {
+             return 301 https://$host$request_uri;
+         } # managed by Certbot
+
+         listen 80;
+         listen [::]:80;
+         server_name laquiniela247demo.live;
+         return 404; # managed by Certbot
+     }
+     ```
+   - Test and reload Nginx:
+     ```bash
+     sudo nginx -t
+     sudo systemctl reload nginx
+     ```
+
+4. **PM2 Process Management:**
+   - Both frontend and backend must be running under PM2:
+     ```bash
+     pm2 start npm --name laquiniela-frontend -- start --cwd /var/www/laquiniela/frontend
+     pm2 start --name laquiniela-backend --interpreter $(which tsx) /var/www/laquiniela/backend/src/index.ts
+     ```
+
+5. **Health Check:**
+   - The backend health endpoint is `/health` (not `/api/health`).
+
+6. **Troubleshooting:**
+   - If you see "Route not found" at `/`, your Nginx config is likely still proxying everything to the backend.
+   - Use `nano` or `vim` to edit Nginx config if heredoc/printf fails.
+
+**Note:**
+After changing environment variables (such as `.env.local`), always run:
 ```
+pm2 restart laquiniela-frontend --update-env
+```
+This ensures the running process picks up the new environment variables.
 
 ## 📊 Database
 

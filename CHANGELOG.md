@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Database migration scripts and demo data seeding.
 - Automated deployment script with SSH key caching and improved error handling.
 - SSL certificate management with automatic verification and retry mechanism.
+- Documented that after updating environment variables (e.g., .env.local), you should run `pm2 restart laquiniela-frontend --update-env` to ensure the new environment is loaded by the running process.
 
 ### Changed
 - Improved UI/UX and mobile responsiveness compared to WordPress version.
@@ -86,6 +87,18 @@ All notable changes to this project will be documented in this file.
 - Admin panel: Normalized and merged mock/real games for robust display in 'Existing Games'.
 - Admin panel: Temporarily hid the 'Weeks' tab for a cleaner demo UI.
 - Documentation: Updated README and CHANGELOG for all recent UI/UX improvements.
+
+---
+
+## [Unreleased] - Deployment & Live Server Fixes
+
+### Changed
+- Nginx config now proxies `/api` to backend (port 3001) and all other requests to frontend (Next.js SSR, port 3000).
+- PM2 process management improved: always starts both frontend and backend, checks for process existence, and uses correct process names.
+- Deployment script now ensures frontend is built and started in SSR mode.
+- Added health check endpoint verification after deploy.
+- Documentation updated to clarify SSR deployment and Nginx config.
+- Added instructions for manual Nginx editing if heredoc fails.
 
 ---
 

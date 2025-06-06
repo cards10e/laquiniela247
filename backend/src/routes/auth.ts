@@ -268,4 +268,41 @@ router.post('/logout', (req, res) => {
   });
 });
 
+// GET /api/auth/status
+router.get('/status', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.json({ authenticated: false });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        profile: true
+      }
+    });
+
+    if (!user || !user.isActive) {
+      return res.json({ authenticated: false });
+    }
+
+    res.json({
+      authenticated: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        profile: user.profile
+      }
+    });
+  } catch (error) {
+    res.json({ authenticated: false });
+  }
+}));
+
 export default router;
