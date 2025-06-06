@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2025-01-XX
+## [1.0.0] - 2024-03-19
 ### Added
 - Initial standalone release migrated from WordPress plugin (v1.0.1).
 - Next.js 14 frontend with React 18, TypeScript, Tailwind CSS, and full SSR/SSG support.
@@ -16,21 +16,29 @@ All notable changes to this project will be documented in this file.
 - Progressive Web App (PWA) features and real-time updates.
 - Security: HTTPS, CSRF, input validation, rate limiting, and more.
 - Database migration scripts and demo data seeding.
+- Automated deployment script with SSH key caching and improved error handling.
+- SSL certificate management with automatic verification and retry mechanism.
 
 ### Changed
 - Improved UI/UX and mobile responsiveness compared to WordPress version.
 - Optimized performance, SEO, and accessibility (WCAG 2.1 AA).
 - Updated URL structure to match legacy WordPress plugin for seamless migration.
+- Enhanced deployment process with better error handling and service verification.
+- Improved database seeding and migration process.
+- Updated documentation with comprehensive feature list and technical details.
 
 ### Fixed
 - Authentication API requests now use the correct `/api` prefix, resolving login issues for both admin and non-admin users.
 - Admin navigation link now appears for all admin role variants (case-insensitive check).
 - ProtectedRoute and admin checks are now case-insensitive, preventing access issues due to role casing.
 - Minor bug fixes and improvements to error handling and user feedback.
+- SSL certificate installation and verification process.
+- SSH key caching to reduce authentication prompts during deployment.
 
 ### Migration Notes
 - All user data, bets, and history migrated from WordPress.
 - 100% functional parity with previous plugin version.
+- Improved deployment process with automated scripts and verification steps.
 
 ---
 

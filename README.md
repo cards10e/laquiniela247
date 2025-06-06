@@ -1,274 +1,155 @@
-# La Quiniela 247 - Standalone Website
+# La Quiniela 247 - Online Betting Platform for Liga MX
 
-## Overview
+La Quiniela 247 is a modern, secure, and user-friendly online betting platform specifically designed for Liga MX matches in Mexico. Built with Next.js 14, Express.js, and MySQL, it offers a complete betting experience with real-time updates and mobile-first design.
 
-This is the standalone version of La Quiniela 247, migrated from WordPress to a modern web application stack. The application provides a complete betting platform for Liga MX football matches with user authentication, betting system, and comprehensive statistics tracking.
+## 🌟 Features
 
-## Technology Stack
+### For Users
+- **Betting System**
+  - Place bets on Liga MX matches
+  - Single bets and parlays
+  - Real-time odds and results
+  - Historical performance tracking
+  - Weekly betting deadlines
 
-### Frontend
-- **Framework**: Next.js 14 with React 18
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: React Context + Hooks
-- **Authentication**: JWT with secure cookies
-- **Internationalization**: Spanish (default) and English
+- **User Experience**
+  - User-friendly dashboard
+  - Personal statistics and history
+  - Performance analytics
+  - Dark mode support
+  - Mobile-first responsive design
+  - Progressive Web App (PWA)
 
-### Backend
-- **Runtime**: Node.js 18+
-- **Framework**: Express.js
-- **Language**: TypeScript
-- **Database**: MySQL with Prisma ORM
-- **Authentication**: JWT + bcrypt
-- **Validation**: Zod
-- **Security**: CORS, Helmet, Rate Limiting
+- **Security & Authentication**
+  - Secure user registration
+  - Email verification
+  - Password reset functionality
+  - JWT authentication
+  - HTTPS encryption
+  - CSRF protection
 
-### Database
-- **Primary**: MySQL 8.0+
-- **ORM**: Prisma
-- **Caching**: Redis (optional)
+### For Administrators
+- **Admin Dashboard**
+  - User management
+  - Game scheduling
+  - Week management
+  - Analytics and reporting
+  - Real-time monitoring
 
-## Project Structure
+- **Content Management**
+  - Match scheduling
+  - Result updates
+  - Team management
+  - Week configuration
+  - Betting deadlines
 
-```
-laquiniela247/
-├── frontend/              # Next.js React application
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Next.js pages
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── context/       # React context providers
-│   │   ├── utils/         # Utility functions
-│   │   └── styles/        # Global styles and Tailwind config
-│   ├── public/            # Static assets
-│   └── package.json
-├── backend/               # Express.js API server
-│   ├── src/
-│   │   ├── controllers/   # Route controllers
-│   │   ├── middleware/    # Express middleware
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   ├── services/      # Business logic
-│   │   └── utils/         # Utility functions
-│   ├── prisma/            # Database schema and migrations
-│   └── package.json
-├── database/              # Database setup and migrations
-├── docs/                  # Documentation
-├── docker-compose.yml     # Development environment
-└── package.json           # Root package configuration
-```
+## 🛠 Technical Stack
 
-## Quick Start
+- **Frontend**
+  - Next.js 14
+  - React 18
+  - TypeScript
+  - Tailwind CSS
+  - Server-Side Rendering (SSR)
+  - Static Site Generation (SSG)
+
+- **Backend**
+  - Express.js
+  - TypeScript
+  - Prisma ORM
+  - MySQL Database
+  - JWT Authentication
+  - Zod Validation
+
+- **Infrastructure**
+  - Nginx Web Server
+  - PM2 Process Manager
+  - SSL/TLS Encryption
+  - Automated Deployment
+  - Database Migrations
+
+## 🌐 Internationalization
+
+- Full Spanish and English support
+- Localized content and UI
+- Region-specific betting rules
+- Currency handling
+
+## 🔒 Security Features
+
+- HTTPS encryption
+- CSRF protection
+- Input validation
+- Rate limiting
+- Secure password handling
+- JWT token management
+- SQL injection prevention
+- XSS protection
+
+## 📱 Mobile Experience
+
+- Responsive design
+- Touch-optimized interface
+- Offline capabilities
+- Push notifications
+- Fast loading times
+- Native-like experience
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
-- MySQL 8.0+
-- npm or yarn
+- Node.js 18+
+- MySQL 8+
+- Nginx
+- PM2
 
 ### Installation
-
-1. **Install all dependencies:**
-```bash
-npm run install:all
-```
-
-2. **Setup environment variables:**
-```bash
-# Backend environment
-cp backend/.env.example backend/.env
-# Edit backend/.env with your database credentials
-
-# Frontend environment  
-cp frontend/.env.example frontend/.env.local
-# Edit frontend/.env.local with API URL
-```
-
-3. **Setup database:**
-```bash
-npm run setup
-```
-
-4. **Start development servers:**
-```bash
-npm run dev
-```
-
-The application will be available at:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-
-## Demo Reset Flow (Recommended for Dev/Demo)
-
-**To guarantee a clean, working demo every time:**
-
-1. Reset the database (dev/demo only):
+1. Clone the repository
+2. Install dependencies:
    ```bash
-   npx prisma migrate reset --force
+   # Frontend
+   cd frontend
+   npm install
+   
+   # Backend
+   cd ../backend
+   npm install
    ```
-2. Seed teams and users:
-   ```bash
-   npx ts-node backend/src/scripts/seed.ts
-   ```
-3. Seed demo weeks, games, bets, and user performance:
-   ```bash
-   npx ts-node backend/src/scripts/seedHistory.ts
-   ```
+3. Set up environment variables
+4. Run database migrations
+5. Start the development servers
 
-**WARNING:** Never run this in production! This will erase all data and is for local/dev/demo use only.
-
-## Features
-
-### User Features
-- ✅ **Authentication**: Registration, login, password reset with email verification
-- ✅ **Dashboard**: Personal statistics, performance tracking, and weekly summaries
-- ✅ **Betting System**: Place predictions on Liga MX matches with real-time odds
-- ✅ **History**: View past bets, results, and performance analytics
-- ✅ **Profile Management**: Update account settings, preferences, and personal info
-- ✅ **Internationalization**: Full Spanish and English language support
-- ✅ **Dark Mode**: Toggle between light and dark themes
-- ✅ **Responsive Design**: Mobile-first approach with hamburger navigation
-
-### Admin Features
-- ✅ **User Management**: View, edit, and manage user accounts
-- ✅ **Game Management**: Create, update, and manage Liga MX matches
-- ✅ **Week Management**: Setup betting weeks and deadlines
-- ✅ **Analytics Dashboard**: Platform statistics and user performance
-- ✅ **Transaction Management**: Handle payments and winnings
-- ✅ **System Logs**: Monitor application activity and errors
-- ✅ **Team Dropdowns & Localization**: Home and Away Team selection in the admin Create Game form now uses dropdowns populated from the backend, with fully localized placeholders (Spanish/English) for a seamless admin experience.
-- ✅ **Admin Panel Improvements**: Status labels for games are now always translated and displayed correctly (e.g., Programado, En Vivo, Completado), both mock and real games are shown together in the 'Existing Games' section, with robust merging and normalization, and the 'Weeks' tab is temporarily hidden in the admin panel for demo clarity.
-
-### Technical Features
-- ✅ **Progressive Web App**: Offline capabilities and app-like experience
-- ✅ **Real-time Updates**: Live match updates and betting status
-- ✅ **Security**: HTTPS, CSRF protection, input validation, SQL injection prevention
-- ✅ **Performance**: Optimized loading, caching, and asset compression
-- ✅ **SEO Optimized**: Server-side rendering with Next.js
-- ✅ **Accessibility**: WCAG 2.1 AA compliance
-
-## Database Schema
-
-The application uses 7 main tables migrated from WordPress:
-
-### Core Tables
-- **`teams`** - Liga MX team information (18 teams)
-- **`games`** - Match fixtures, results, and status
-- **`weeks`** - Betting periods and deadlines
-- **`bets`** - User predictions and results
-
-### User Management
-- **`user_profiles`** - Extended user information and statistics
-- **`user_performance`** - Weekly performance tracking
-- **`transactions`** - Payment and winnings history
-
-## URL Structure
-
-All existing URLs are preserved from the WordPress version:
-
-```
-/                    → Login page (entry point)
-/register           → User registration
-/dashboard          → User dashboard
-/bet                → Betting interface
-/profile            → User profile management
-/history            → Betting history
-/results            → Game results
-/admin-panel        → Admin dashboard (admin only)
-/payment            → Payment management
-/live-betting       → Real-time betting
-/password-reset     → Password recovery
-/email-verification → Email verification
-```
-
-## Development
-
-### Running Tests
+### Deployment
+Use the provided `deploy.sh` script for automated deployment:
 ```bash
-npm run test
+./deploy.sh
 ```
 
-### Building for Production
-```bash
-npm run build
-```
+## 📊 Database
 
-### Database Operations
-```bash
-# Reset database
-npm run migrate:db
+The platform uses MySQL with Prisma ORM for data management. Key features include:
+- Automated migrations
+- Data seeding
+- Backup and restore
+- Performance optimization
+- Data integrity checks
 
-# Seed with demo data (teams and users only)
-npm run seed:db
+## 🔄 Development Workflow
 
-# Seed demo and historic data for dashboard and /bet (weeks, games, bets, user performance)
-npx ts-node backend/src/scripts/seedHistory.ts
-```
+1. Feature development
+2. Code review
+3. Testing
+4. Staging deployment
+5. Production deployment
 
-## Demo Credentials
+## 📝 License
 
-For testing purposes:
-- **Email**: demo@laquiniela247.mx
-- **Password**: demo123
+Proprietary - All rights reserved
 
-## Migration Notes
+## 🤝 Support
 
-This standalone version maintains 100% functional parity with the WordPress plugin version:
-
-- ✅ All existing user data migrated
-- ✅ Complete betting system preserved
-- ✅ Admin functionality maintained
-- ✅ URL structure unchanged
-- ✅ UI/UX design preserved
-- ✅ Mobile responsiveness improved
-- ✅ Performance optimized
+For support, please contact the development team or refer to the documentation.
 
 ---
 
-**Seeding Note:**
-- All week/game/bet seeding is now handled by `backend/src/scripts/seedHistory.ts`.
-- Legacy week 99 logic has been removed to ensure robust, date-driven demo data.
-- Backend now dynamically selects the current week for all endpoints, and Prisma orderBy usage is fixed for reliability.
-
-## Support
-
-For technical support or questions:
-- **Documentation**: See `/docs` directory
-- **Issues**: Create GitHub issues for bugs
-- **Development**: See `CONTRIBUTING.md`
-
-## License
-
-MIT License - see LICENSE file for details.
-
----
-
-**Version**: 1.0.0  
-**Migration Date**: January 2025  
-**WordPress Plugin Version**: 1.0.1
-
-## Recent Fixes & Improvements
-
-- Dashboard and /bet pages now display correct data for demo/admin users after status normalization and numeric field parsing fixes.
-- Backend /api/users/profile endpoint now always returns numeric fields as numbers.
-- TypeScript errors fixed by removing non-existent fields from backend response.
-- Demo reset flow: reset DB, seed teams/users, and seed demo data for a reliable demo state.
-- Debug logging and diagnostics added for API and frontend data flow issues.
-- Frontend now robustly handles backend data types and missing fields.
-- Single Bets UI: Demo user can always place single bets for all games, with correct prediction selection and bet placement workflow.
-- Backend/frontend userBet logic improved for demo reliability and correct bet state display.
-- All changes are now in main; see CHANGELOG for details.
-
-## API Endpoints
-
-- **Create a week (admin only):**
-  - `POST /api/admin/weeks`
-- **Fetch weeks (all users):**
-  - `GET /api/weeks`
-
-> Note: There is no GET /api/admin/weeks route. The admin panel should use GET /api/weeks to fetch weeks.
-
-## v0.95 Release Notes
-- Admin panel: Localized fallback for game status translation (Scheduled/Programado, etc.)
-- Robust merging and display of mock and real games in 'Existing Games'
-- Temporarily hid the 'Weeks' tab for demo clarity
-- See CHANGELOG for full details
+© 2024 La Quiniela 247. All rights reserved.
