@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, isAuthenticated, loading, user } = useAuth();
   const { t } = useI18n();
   
   const [formData, setFormData] = useState({
@@ -22,10 +22,14 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      const redirectTo = (router.query.redirect as string) || '/dashboard';
-      router.replace(redirectTo);
+      if (user && user.role && user.role.toLowerCase() === 'admin') {
+        router.replace('/admin');
+      } else {
+        const redirectTo = (router.query.redirect as string) || '/dashboard';
+        router.replace(redirectTo);
+      }
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -69,12 +73,14 @@ export default function LoginPage() {
     setIsSubmitting(true);
     
     try {
-      await login(formData.email, formData.password, formData.remember);
-      
+      const user = await login(formData.email, formData.password, formData.remember);
       toast.success(t('auth.login_success'));
-      
-      const redirectTo = (router.query.redirect as string) || '/dashboard';
-      router.push(redirectTo);
+      if (user.role && user.role.toLowerCase() === 'admin') {
+        router.push('/admin');
+      } else {
+        const redirectTo = (router.query.redirect as string) || '/dashboard';
+        router.push(redirectTo);
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       

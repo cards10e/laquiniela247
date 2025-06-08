@@ -14,7 +14,7 @@ export function Header({ minimal = false }: HeaderProps) {
   const { t } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = [
+  let navItems = [
     { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
     { key: 'games', href: '/bet', label: t('navigation.games') },
     { key: 'history', href: '/history', label: t('navigation.history') },
@@ -24,11 +24,11 @@ export function Header({ minimal = false }: HeaderProps) {
   const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
 
   if (isAdmin) {
-    navItems.unshift({
-      key: 'admin',
-      href: '/admin',
-      label: t('navigation.admin_panel')
-    });
+    navItems = [
+      { key: 'admin', href: '/admin', label: t('navigation.admin_panel') },
+      { key: 'games', href: '/bet', label: t('navigation.games') },
+      { key: 'profile', href: '/profile', label: t('navigation.profile') },
+    ];
   }
 
   return (
