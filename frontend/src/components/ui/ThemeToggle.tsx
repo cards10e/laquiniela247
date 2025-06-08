@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { useI18n } from '@/context/I18nContext';
 
-export function ThemeToggle() {
+export function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, setTheme, effectiveTheme } = useTheme();
   const { t } = useI18n();
 
@@ -27,7 +27,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={cycleTheme}
-      className="flex items-center px-3 py-2 text-sm font-medium text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-800"
+      className={`flex items-center px-3 py-2 text-sm font-medium transition-colors rounded-md hover:text-primary-600 dark:hover:text-primary-400 ${className}`}
       aria-label={t('themes.toggle_theme')}
       title={getThemeLabel()}
     >

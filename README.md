@@ -18,6 +18,14 @@ A modern web application for managing and participating in sports predictions.
 - Navigation and login logic are now fully role-aware and minimal for admins, with no impact on regular user workflows.
 - All changes are documented and committed to a feature branch (not merged to main).
 
+## June 2025: UI Consistency & Admin Revenue Currency Update
+
+- Header navigation links, user info, logout, and toggle buttons now use consistent color classes: light grey in light mode, white in dark mode.
+- Navigation links font weight is now medium (500) for a unified look.
+- Toggle buttons (language/theme) accept a className prop and inherit color from the header for robust, rebuild-proof styling.
+- All header hover states use the brand red for both nav links and toggles.
+- Admin panel: 'Ingresos Totales' (Total Revenue) is now always green and uses the correct currency and locale based on the selected language (MXN for Spanish, USD for English), with robust formatting and forced color using Tailwind's important modifier.
+
 ## Development Setup
 
 ### Prerequisites

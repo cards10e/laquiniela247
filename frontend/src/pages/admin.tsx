@@ -57,12 +57,13 @@ interface Team {
 
 export default function AdminPage() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   
   // Data states
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [currentWeek, setCurrentWeek] = useState<any>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [games, setGames] = useState<Game[]>([]);
@@ -110,6 +111,7 @@ export default function AdminPage() {
       ]);
 
       setStats(statsRes.data.overview || statsRes.data);
+      setCurrentWeek(statsRes.data.currentWeek || null);
       setUsers(usersRes.data.users || []);
       setWeeks(Array.isArray(weeksRes.data) ? weeksRes.data : weeksRes.data.weeks);
       
@@ -250,10 +252,14 @@ export default function AdminPage() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-MX', {
+  const formatCurrency = (value: number, lang: string) => {
+    const isSpanish = lang === 'es';
+    return new Intl.NumberFormat(isSpanish ? 'es-MX' : 'en-US', {
       style: 'currency',
-      currency: 'MXN'
+      currency: isSpanish ? 'MXN' : 'USD',
+      currencyDisplay: 'symbol',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value);
   };
 
@@ -328,25 +334,31 @@ export default function AdminPage() {
               <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
                 {t('navigation.admin_panel')}
               </h1>
-              <p className="text-secondary-600 dark:text-secondary-400">
-                {t('admin.manage_platform')}
-              </p>
             </div>
+
+            {/* Performance Overview Section Title */}
+            {activeTab === 'overview' && (
+              <div className="mb-8">
+                <h2 className="section-title">
+                  {t('dashboard.performance_overview')}
+                </h2>
+              </div>
+            )}
 
             {/* Tab Navigation */}
             <div className="mb-8">
               <nav className="flex space-x-8 border-b border-secondary-200 dark:border-secondary-700">
-                {['overview', 'users', /*'weeks',*/ 'games'].map((tab) => (
+                {['overview', 'users', 'games'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`py-2 px-1 border-b-2 text-sm transition-colors ${
                       activeTab === tab
-                        ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                        ? 'border-primary-600 text-primary-600 font-bold'
                         : 'border-transparent text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200'
                     }`}
                   >
-                    {t(`admin.${tab}`)}
+                    {tab === 'overview' ? t('dashboard.performance_overview') : t(`admin.${tab}`)}
                   </button>
                 ))}
               </nav>
@@ -358,7 +370,7 @@ export default function AdminPage() {
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="performance-card">
-                    <div className="performance-card-title">
+                    <div className="performance-card-title text-primary-600 font-semibold">
                       {t('admin.total_users')}
                     </div>
                     <div className="performance-card-value">
@@ -367,7 +379,7 @@ export default function AdminPage() {
                   </div>
                   
                   <div className="performance-card">
-                    <div className="performance-card-title">
+                    <div className="performance-card-title text-primary-600 font-semibold">
                       {t('admin.active_users')}
                     </div>
                     <div className="performance-card-value">
@@ -376,7 +388,7 @@ export default function AdminPage() {
                   </div>
                   
                   <div className="performance-card">
-                    <div className="performance-card-title">
+                    <div className="performance-card-title text-primary-600 font-semibold">
                       {t('admin.total_bets')}
                     </div>
                     <div className="performance-card-value">
@@ -385,27 +397,31 @@ export default function AdminPage() {
                   </div>
                   
                   <div className="performance-card">
-                    <div className="performance-card-title">
+                    <div className="performance-card-title text-primary-600 font-semibold">
                       {t('admin.total_revenue')}
                     </div>
-                    <div className="performance-card-value">
-                      {formatCurrency(typeof stats.totalRevenue === 'number' && !isNaN(stats.totalRevenue) ? stats.totalRevenue : 125000)}
+                    <div>
+                      <span className="performance-card-value !text-success-600 dark:!text-success-400">
+                        {formatCurrency(typeof stats.totalRevenue === 'number' && !isNaN(stats.totalRevenue) ? stats.totalRevenue : 125000, language)}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Recent Activity */}
+                <div className="mt-12 mb-4">
+                  <h2 className="section-title">
+                    {t('admin.recent_activity')}
+                  </h2>
+                </div>
                 <div className="card">
-                  <div className="card-header">
-                    <h2 className="card-title">{t('admin.recent_activity')}</h2>
-                  </div>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-secondary-600 dark:text-secondary-400">
                         {t('admin.current_week_bets')}
                       </span>
                       <span className="font-semibold text-secondary-900 dark:text-secondary-100">
-                        {stats.currentWeekBets}
+                        {currentWeek?._count?.bets || 0}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -487,7 +503,7 @@ export default function AdminPage() {
                               {user.totalBets}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900 dark:text-secondary-100">
-                              {formatCurrency(user.totalWinnings)}
+                              {formatCurrency(user.totalWinnings, language)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

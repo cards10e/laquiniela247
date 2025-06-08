@@ -32,7 +32,7 @@ export function Header({ minimal = false }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white dark:bg-secondary-900 shadow-sm border-b border-secondary-200 dark:border-secondary-700">
+    <header className="bg-secondary-900 shadow-sm border-b border-secondary-700 !text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -41,7 +41,7 @@ export function Header({ minimal = false }: HeaderProps) {
               <img
                 src="/logotipo-la-quiniela-247-min-2-1-1.png"
                 alt="La Quiniela 247"
-                className="h-8 w-auto"
+                className="h-10 w-30 object-contain"
               />
             </Link>
           </div>
@@ -53,7 +53,7 @@ export function Header({ minimal = false }: HeaderProps) {
                 <Link
                   key={item.key}
                   href={item.href}
-                  className="text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -63,18 +63,18 @@ export function Header({ minimal = false }: HeaderProps) {
 
           {/* Right side controls */}
           <div className="flex items-center space-x-4">
-            <LanguageToggle />
-            <ThemeToggle />
+            <LanguageToggle className="text-secondary-100 dark:text-white" />
+            <ThemeToggle className="text-secondary-100 dark:text-white" />
 
             {/* User menu for authenticated users */}
             {!minimal && isAuthenticated && (
               <div className="hidden md:flex items-center space-x-4">
-                <span className="text-sm text-secondary-600 dark:text-secondary-400">
+                <span className="text-sm text-secondary-100 dark:text-white">
                   {user?.firstName} {user?.lastName}
                 </span>
                 <button
                   onClick={logout}
-                  className="text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {t('navigation.logout')}
                 </button>
@@ -85,7 +85,7 @@ export function Header({ minimal = false }: HeaderProps) {
             {!minimal && isAuthenticated && (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors"
+                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors"
                 aria-expanded="false"
               >
                 <span className="sr-only">Open main menu</span>
@@ -107,7 +107,7 @@ export function Header({ minimal = false }: HeaderProps) {
                 <Link
                   key={item.key}
                   href={item.href}
-                  className="text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -115,7 +115,7 @@ export function Header({ minimal = false }: HeaderProps) {
               ))}
               <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4 pb-3">
                 <div className="flex items-center px-3">
-                  <span className="text-sm text-secondary-600 dark:text-secondary-400">
+                  <span className="text-sm text-secondary-100 dark:text-white">
                     {user?.firstName} {user?.lastName}
                   </span>
                 </div>
@@ -124,7 +124,7 @@ export function Header({ minimal = false }: HeaderProps) {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="mt-3 text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
+                  className="mt-3 text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
                 >
                   {t('navigation.logout')}
                 </button>

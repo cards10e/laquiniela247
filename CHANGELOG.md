@@ -125,6 +125,17 @@ All notable changes to this project will be documented in this file.
 - Fixed issue where admin users were incorrectly redirected to /dashboard after login, even when navigation was updated.
 - Ensured all changes are fully documented and committed to a feature branch (not merged to main).
 
+### Changed
+- Header navigation links, user info, logout, and toggle buttons now use consistent color classes: light grey in light mode, white in dark mode, for a modern and accessible look.
+- Navigation links font weight standardized to medium (500) for visual consistency.
+- Toggle buttons (language/theme) now accept a className prop and inherit color from the header, ensuring correct color regardless of rebuilds or merges.
+- All header hover states now use the brand red for both nav links and toggles.
+- Admin panel: 'Ingresos Totales' (Total Revenue) now displays in green and uses the correct currency and locale based on the selected language (MXN for Spanish, USD for English), with robust formatting and forced color using Tailwind's important modifier.
+
+### Fixed
+- Resolved issues where header/toggle colors would revert after rebuilds or merges.
+- Fixed admin revenue formatting and color to always match the selected language and design spec.
+
 ---
 
 ## [Unreleased]

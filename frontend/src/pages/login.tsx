@@ -108,15 +108,6 @@ export default function LoginPage() {
     <Layout title={t('auth.login')} description={t('auth.login_description')} minimal>
       <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <img
-              src="/logotipo-la-quiniela-247-min-2-1-1.png"
-              alt="La Quiniela 247"
-              className="h-16 w-auto"
-            />
-          </div>
-
           {/* Title */}
           <h1 className="text-center text-3xl font-bold text-primary-600 dark:text-primary-400 mb-8">
             {t('auth.login')}
