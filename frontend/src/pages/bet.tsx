@@ -98,6 +98,7 @@ export default function BetPage() {
     } catch (error) {
       console.error('Failed to fetch betting data:', error);
       // Set mock data for demo
+      /*
       setCurrentWeek({
         id: 1,
         weekNumber: 15,
@@ -148,6 +149,7 @@ export default function BetPage() {
           status: 'scheduled'
         }
       ]);
+      */
     } finally {
       setLoading(false);
     }

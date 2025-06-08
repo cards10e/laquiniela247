@@ -203,8 +203,10 @@ const translations = {
     admin: {
       overview: "Overview",
       users: "Users",
+      user_management_tab: "User Management",
       weeks: "Weeks",
       games: "Games",
+      game_management: "Game Management",
       manage_platform: "Manage the La Quiniela 247 platform",
       total_users: "Total Users",
       active_users: "Active Users",
@@ -253,7 +255,8 @@ const translations = {
       game_result_updated: "Game result updated successfully",
       game_result_update_failed: "Failed to update game result",
       user_status_updated: "User status updated successfully",
-      user_status_update_failed: "Failed to update user status"
+      user_status_update_failed: "Failed to update user status",
+      no_games_message: "No games currently scheduled. Please create a game above."
     },
     themes: {
       light: "Light Mode",
@@ -458,8 +461,10 @@ const translations = {
     admin: {
       overview: "Resumen",
       users: "Usuarios",
+      user_management_tab: "Gestión de Usuarios",
       weeks: "Jornadas",
       games: "Juegos",
+      game_management: "Gestión de Juegos",
       manage_platform: "Administra la plataforma La Quiniela 247",
       total_users: "Total de Usuarios",
       active_users: "Usuarios Activos",
@@ -508,7 +513,8 @@ const translations = {
       game_result_updated: "Resultado del juego actualizado exitosamente",
       game_result_update_failed: "Error al actualizar el resultado del juego",
       user_status_updated: "Estado del usuario actualizado exitosamente",
-      user_status_update_failed: "Error al actualizar el estado del usuario"
+      user_status_update_failed: "Error al actualizar el estado del usuario",
+      no_games_message: "No hay juegos programados actualmente. Por favor, crea un juego arriba."
     },
     themes: {
       light: "Modo Claro",

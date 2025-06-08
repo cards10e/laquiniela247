@@ -139,4 +139,8 @@ All notable changes to this project will be documented in this file.
 ---
 
 ## [Unreleased]
-- Ongoing improvements and minor bug fixes. 
+- Ongoing improvements and minor bug fixes.
+- Admin: Restrict minute selection for game creation to :00, :15, :30, :45 and use dropdowns for hour/minute.
+- Admin: Group existing games by week in the games list.
+- Admin: Show a localized message when no games are scheduled (translation key added to I18nContext.tsx).
+- Translation: Fixed translation loading to use I18nContext.tsx, not JSON files. 

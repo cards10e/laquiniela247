@@ -137,3 +137,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Installed `cookie-parser` and its types in backend.
 
 **Status:** Resolved as of June 2025. Admin panel and protected routes now authenticate correctly using cookies or headers.
+
+## Notes on Translations
+- All translation keys are managed in `frontend/src/context/I18nContext.tsx` in the `translations` object. The JSON files in `frontend/src/locales/` are not used.
+
+## Recent Admin UI Improvements
+- Game creation now restricts minute selection to :00, :15, :30, :45.
+- Existing games are grouped by week.
+- A localized message is shown when no games are scheduled.

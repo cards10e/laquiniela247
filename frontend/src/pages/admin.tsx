@@ -84,6 +84,11 @@ export default function AdminPage() {
     gameDate: ''
   });
 
+  // Add state for hour and minute selection
+  const [gameDate, setGameDate] = useState('');
+  const [gameHour, setGameHour] = useState('12');
+  const [gameMinute, setGameMinute] = useState('00');
+
   const [axiosInstance] = useState(() => {
     return axios.create({
       baseURL: '/api',
@@ -312,6 +317,12 @@ export default function AdminPage() {
     }
   };
 
+  // Add this helper function at the top or bottom of the file
+  function combineDateTime(date: string, hour: string, minute: string) {
+    if (!date) return '';
+    return `${date}T${hour}:${minute}`;
+  }
+
   if (loading) {
     return (
       <Layout title={t('navigation.admin_panel')}>
@@ -358,7 +369,7 @@ export default function AdminPage() {
                         : 'border-transparent text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200'
                     }`}
                   >
-                    {tab === 'overview' ? t('dashboard.performance_overview') : t(`admin.${tab}`)}
+                    {tab === 'overview' ? t('dashboard.performance_overview') : tab === 'games' ? t('admin.game_management') : tab === 'users' ? t('admin.user_management_tab') : t(`admin.${tab}`)}
                   </button>
                 ))}
               </nav>
@@ -601,15 +612,44 @@ export default function AdminPage() {
                         <label className="form-label">
                           {t('admin.game_date')}
                         </label>
-                        <input
-                          type="datetime-local"
-                          value={newGame.gameDate}
-                          onChange={(e) => setNewGame(prev => ({ ...prev, gameDate: e.target.value }))}
-                          className="form-input"
-                          required
-                          min={minGameDate}
-                          max={maxGameDate}
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="date"
+                            value={gameDate}
+                            onChange={e => {
+                              setGameDate(e.target.value);
+                              setNewGame(prev => ({ ...prev, gameDate: combineDateTime(e.target.value, gameHour, gameMinute) }));
+                            }}
+                            className="form-input"
+                            required
+                            min={minGameDate ? minGameDate.split('T')[0] : undefined}
+                            max={maxGameDate ? maxGameDate.split('T')[0] : undefined}
+                          />
+                          <select
+                            value={gameHour}
+                            onChange={e => {
+                              setGameHour(e.target.value);
+                              setNewGame(prev => ({ ...prev, gameDate: combineDateTime(gameDate, e.target.value, gameMinute) }));
+                            }}
+                            className="form-input"
+                          >
+                            {Array.from({length: 24}, (_, h) => h).map(h => (
+                              <option key={h} value={h.toString().padStart(2, '0')}>{h.toString().padStart(2, '0')}</option>
+                            ))}
+                          </select>
+                          <select
+                            value={gameMinute}
+                            onChange={e => {
+                              setGameMinute(e.target.value);
+                              setNewGame(prev => ({ ...prev, gameDate: combineDateTime(gameDate, gameHour, e.target.value) }));
+                            }}
+                            className="form-input"
+                          >
+                            {['00', '15', '30', '45'].map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                       <div>
                         <label className="form-label">
@@ -656,78 +696,101 @@ export default function AdminPage() {
                     <h2 className="card-title">{t('admin.existing_games')}</h2>
                   </div>
                   <div className="space-y-4">
-                    {games.map((game) => (
-                      <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
-                              {(game.homeTeamName || 'TBD')} vs {(game.awayTeamName || 'TBD')}
-                            </h3>
-                            <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                              {game.gameDate && !isNaN(new Date(game.gameDate).getTime()) ? new Date(game.gameDate).toLocaleString() : 'TBD'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              game.status === 'completed'
-                                ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
-                                : game.status === 'live'
-                                ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
-                                : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                            }`}>
-                              {(() => {
-                                const statusKey = `admin.${game.status.toLowerCase()}`;
-                                const translatedStatus = t(statusKey);
-                                const fallbackStatus = t('admin.scheduled');
-                                return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
-                              })()}
-                            </span>
-                            <button
-                              className="btn-danger btn-xs ml-2"
-                              onClick={() => handleDeleteGame(game.id)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {game.status === 'scheduled' && (
-                          <div className="flex items-center space-x-4">
-                            <input
-                              type="number"
-                              placeholder={t('admin.home_score')}
-                              className="form-input w-20"
-                              id={`home-score-${game.id}`}
-                            />
-                            <span className="text-secondary-500 dark:text-secondary-400">-</span>
-                            <input
-                              type="number"
-                              placeholder={t('admin.away_score')}
-                              className="form-input w-20"
-                              id={`away-score-${game.id}`}
-                            />
-                            <button
-                              onClick={() => {
-                                const homeScore = parseInt((document.getElementById(`home-score-${game.id}`) as HTMLInputElement).value);
-                                const awayScore = parseInt((document.getElementById(`away-score-${game.id}`) as HTMLInputElement).value);
-                                if (!isNaN(homeScore) && !isNaN(awayScore)) {
-                                  handleUpdateGameResult(game.id, homeScore, awayScore);
-                                }
-                              }}
-                              className="btn-primary"
-                            >
-                              {t('admin.update_result')}
-                            </button>
-                          </div>
-                        )}
-                        
-                        {game.status === 'completed' && (
-                          <div className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-                            {t('admin.final_score')}: {game.homeScore} - {game.awayScore}
-                          </div>
-                        )}
+                    {games.length === 0 ? (
+                      <div className="text-center py-8 text-secondary-600 dark:text-secondary-400">
+                        {t('admin.no_games_message')}
                       </div>
-                    ))}
+                    ) : (
+                      // Group games by week
+                      Object.entries(
+                        games.reduce((acc, game) => {
+                          const weekId = game.weekId;
+                          if (!acc[weekId]) {
+                            acc[weekId] = [];
+                          }
+                          acc[weekId].push(game);
+                          return acc;
+                        }, {} as Record<number, Game[]>)
+                      ).map(([weekId, weekGames]) => (
+                        <div key={weekId} className="space-y-4">
+                          <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                            {t('dashboard.week')} {weekGames[0].weekId}
+                          </h3>
+                          {weekGames.map((game) => (
+                            <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
+                              <div className="flex items-center justify-between mb-4">
+                                <div>
+                                  <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                                    {(game.homeTeamName || 'TBD')} vs {(game.awayTeamName || 'TBD')}
+                                  </h3>
+                                  <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                                    {game.gameDate && !isNaN(new Date(game.gameDate).getTime()) ? new Date(game.gameDate).toLocaleString() : 'TBD'}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    game.status === 'completed'
+                                      ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                                      : game.status === 'live'
+                                      ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                                      : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                                  }`}>
+                                    {(() => {
+                                      const statusKey = `admin.${game.status.toLowerCase()}`;
+                                      const translatedStatus = t(statusKey);
+                                      const fallbackStatus = t('admin.scheduled');
+                                      return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
+                                    })()}
+                                  </span>
+                                  <button
+                                    className="btn-danger btn-xs ml-2"
+                                    onClick={() => handleDeleteGame(game.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {game.status === 'scheduled' && (
+                                <div className="flex items-center space-x-4">
+                                  <input
+                                    type="number"
+                                    placeholder={t('admin.home_score')}
+                                    className="form-input w-20"
+                                    id={`home-score-${game.id}`}
+                                  />
+                                  <span className="text-secondary-500 dark:text-secondary-400">-</span>
+                                  <input
+                                    type="number"
+                                    placeholder={t('admin.away_score')}
+                                    className="form-input w-20"
+                                    id={`away-score-${game.id}`}
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const homeScore = parseInt((document.getElementById(`home-score-${game.id}`) as HTMLInputElement).value);
+                                      const awayScore = parseInt((document.getElementById(`away-score-${game.id}`) as HTMLInputElement).value);
+                                      if (!isNaN(homeScore) && !isNaN(awayScore)) {
+                                        handleUpdateGameResult(game.id, homeScore, awayScore);
+                                      }
+                                    }}
+                                    className="btn-primary"
+                                  >
+                                    {t('admin.update_result')}
+                                  </button>
+                                </div>
+                              )}
+                              
+                              {game.status === 'completed' && (
+                                <div className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+                                  {t('admin.final_score')}: {game.homeScore} - {game.awayScore}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>

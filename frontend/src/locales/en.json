@@ -1,0 +1,5 @@
+{
+  "admin": {
+    "no_games_message": "No games currently scheduled. Please create a game above."
+  }
+} 
