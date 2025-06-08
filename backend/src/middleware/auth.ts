@@ -16,16 +16,21 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   try {
+    // Try to get token from Authorization header first, then from cookie
+    let token;
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else if (req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    }
+
+    if (!token) {
       return res.status(401).json({
         error: 'Authentication required.'
       });
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
     if (!process.env.JWT_SECRET) {
       return res.status(500).json({
         error: 'JWT secret not configured.'

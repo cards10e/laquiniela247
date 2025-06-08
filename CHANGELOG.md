@@ -102,5 +102,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased] - June 2025
+### Fixed
+- Resolved critical bug where admin panel and dashboard API requests returned 401/404 due to backend only checking Authorization header for JWT.
+- Updated backend auth middleware to check for JWT in both Authorization header and auth_token cookie.
+- Enabled cookie-parser middleware in backend.
+- Audited frontend to ensure all protected API calls use the configured axios instance with baseURL: '/api'.
+- Installed missing cookie-parser and types for backend build.
+
+### Investigation
+- Verified CORS, environment variables, Next.js rewrites, and cookie settings.
+- Confirmed cookies were set and sent by browser but not used by backend.
+- Identified duplicate/inconsistent API calls in frontend.
+- Systematically tested and documented all steps before applying the fix.
+
+---
+
 ## [Unreleased]
 - Ongoing improvements and minor bug fixes. 

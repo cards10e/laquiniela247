@@ -94,3 +94,30 @@ The application will be available at:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Troubleshooting: Admin Panel Authentication 401/404 Bug (June 2025)
+
+### Symptoms
+- Admin panel and dashboard failed to load protected data.
+- All API requests to `/api/admin/*`, `/api/users/profile`, etc. returned 401 or 404.
+- `auth_token` cookie present in browser but not used for authentication.
+- Duplicate API calls (e.g., `/api/admin/users` and `/users`).
+
+### Investigation
+- Checked frontend/backend ports, CORS, and environment variables.
+- Verified Next.js rewrite config and `NEXT_PUBLIC_API_URL`.
+- Confirmed cookies were set and sent by browser.
+- Audited frontend API calls for correct axios instance usage.
+- Checked backend CORS and cookie settings.
+- Discovered backend auth middleware only checked Authorization header.
+
+### Root Cause
+- Backend only checked for JWT in Authorization header, not in `auth_token` cookie. Frontend relied on cookie for authentication, causing 401s.
+
+### Solution
+- Updated backend auth middleware to check for JWT in both Authorization header and `auth_token` cookie.
+- Enabled `cookie-parser` middleware in backend.
+- Audited frontend to ensure all protected API calls use the configured axios instance with `baseURL: '/api'`.
+- Installed `cookie-parser` and its types in backend.
+
+**Status:** Resolved as of June 2025. Admin panel and protected routes now authenticate correctly using cookies or headers.

@@ -2,12 +2,9 @@ import express from 'express';
 import { z } from 'zod';
 import { prisma } from '../index';
 import { asyncHandler, createError } from '../middleware/errorHandler';
-import { AuthenticatedRequest, adminMiddleware } from '../middleware/auth';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 const router = express.Router();
-
-// Apply admin middleware to all routes
-router.use(adminMiddleware);
 
 // Schema for updating user
 const updateUserSchema = z.object({

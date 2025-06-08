@@ -39,7 +39,7 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [axiosInstance] = useState(() => {
     return axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+      baseURL: '/api', // Use relative path for API requests
       withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     console.log('[Auth Debug] Registering axios interceptors');
+    console.log('[Auth Debug] API URL:', process.env.NEXT_PUBLIC_API_URL);
     
     // Add request interceptor
     const requestInterceptor = axiosInstance.interceptors.request.use(
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const refreshToken = Cookies.get('refresh_token');
           if (refreshToken) {
             try {
-              const response = await axiosInstance.post('/api/auth/refresh', { refreshToken });
+              const response = await axiosInstance.post('/auth/refresh', { refreshToken });
               const { token } = response.data;
               Cookies.set('auth_token', token, { expires: 7 });
               // Retry the original request
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/api/users/profile');
+      const response = await axiosInstance.get('/users/profile');
       // Normalize role to lowercase
       const normalizedUser = { ...response.data.user, role: response.data.user.role?.toLowerCase() };
       setUser(normalizedUser);
@@ -151,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await axiosInstance.post('/api/auth/login', { email, password });
+      const response = await axiosInstance.post('/auth/login', { email, password });
       const { tokens, user: userData } = response.data;
       const token = tokens.accessToken;
       const refreshToken = tokens.refreshToken;
@@ -159,11 +160,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Normalize role to lowercase
       const normalizedUser = { ...userData, role: userData.role?.toLowerCase() };
       
-      // Set cookies with appropriate expiration
+      // Set cookies with appropriate expiration and domain
       const expires = remember ? 30 : 7; // 30 days if remember, 7 days otherwise
-      Cookies.set('auth_token', token, { expires });
+      const domain = process.env.NODE_ENV === 'production' ? '.laquiniela247demo.live' : undefined;
+      Cookies.set('auth_token', token, { expires, domain });
       if (refreshToken) {
-        Cookies.set('refresh_token', refreshToken, { expires: 30 });
+        Cookies.set('refresh_token', refreshToken, { expires: 30, domain });
       }
       
       setUser(normalizedUser);
@@ -181,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await axiosInstance.post('/api/auth/register', {
+      const response = await axiosInstance.post('/auth/register', {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
@@ -192,10 +194,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { token, refreshToken, user: newUser } = response.data;
 
-      // Set cookies
-      Cookies.set('auth_token', token, { expires: 7 });
+      // Set cookies with domain
+      const domain = process.env.NODE_ENV === 'production' ? '.laquiniela247demo.live' : undefined;
+      Cookies.set('auth_token', token, { expires: 7, domain });
       if (refreshToken) {
-        Cookies.set('refresh_token', refreshToken, { expires: 30 });
+        Cookies.set('refresh_token', refreshToken, { expires: 30, domain });
       }
 
       setUser(newUser);
@@ -211,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await axiosInstance.post('/api/auth/logout');
+      await axiosInstance.post('/auth/logout');
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
@@ -229,7 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await axiosInstance.post('/api/auth/refresh', { refreshToken });
+      const response = await axiosInstance.post('/auth/refresh', { refreshToken });
       const { token } = response.data;
       Cookies.set('auth_token', token, { expires: 7 });
     } catch (error) {
@@ -243,7 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await axiosInstance.get('/api/auth/status');
+      const response = await axiosInstance.get('/auth/status');
       setUser(response.data.user);
       return response.data.user;
     } catch (err) {

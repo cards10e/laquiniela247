@@ -138,6 +138,15 @@ router.post('/login', asyncHandler(async (req: express.Request, res: express.Res
   // Generate tokens
   const { accessToken, refreshToken } = generateTokens(user.id);
 
+  // Set the auth_token as an HTTP-only cookie
+  res.cookie('auth_token', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/',
+  });
+
   res.json({
     message: 'Login successful',
     user: {

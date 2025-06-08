@@ -185,5 +185,36 @@
 - **Demo User**: demo@laquiniela247.mx / demo123
 - **Admin User**: admin@laquiniela247.mx / admin123
 
+## Postmortem: Admin Panel & Authentication 401/404 Bug (June 2025)
+
+### Symptoms
+- Admin panel and dashboard pages failed to load protected data.
+- All API requests to `/api/admin/*`, `/api/users/profile`, etc. returned 401 Unauthorized or 404 Not Found.
+- `auth_token` cookie was present in browser but not used for authentication.
+- Duplicate API calls observed (e.g., `/api/admin/users` and `/users`).
+- Debug logs showed `auth_token cookie: undefined` and repeated login attempts.
+
+### Investigation & Things Tried
+- Verified frontend and backend ports, CORS, and environment variables.
+- Checked Next.js rewrite config and ensured `NEXT_PUBLIC_API_URL` was set.
+- Confirmed cookies were being set and sent by the browser.
+- Audited all frontend API calls for correct axios instance and path usage.
+- Checked backend CORS and cookie settings for local development.
+- Confirmed backend was setting the cookie with correct options.
+- Discovered backend auth middleware only checked the Authorization header, not cookies.
+
+### Root Cause
+- Backend authentication middleware only checked for JWT in the `Authorization` header, not in the `auth_token` cookie. When the frontend relied on the cookie for authentication, backend requests failed with 401.
+- Some frontend API calls were not using the configured axios instance, causing inconsistent credential handling and duplicate requests.
+
+### Final Fix
+- Updated backend `authMiddleware` to check for JWT in both the `Authorization` header and `auth_token` cookie.
+- Ensured `cookie-parser` middleware is enabled in the backend.
+- Audited frontend to ensure all protected API calls use the configured axios instance with `baseURL: '/api'` and a leading slash in the path.
+- Installed `cookie-parser` and its types in the backend.
+
+### Status
+- **Resolved** as of June 2025. Admin panel and protected routes now authenticate correctly using cookies or headers.
+
 ---
 *Last Updated: June 6, 2025* 

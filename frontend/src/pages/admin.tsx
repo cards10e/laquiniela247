@@ -83,6 +83,17 @@ export default function AdminPage() {
     gameDate: ''
   });
 
+  const [axiosInstance] = useState(() => {
+    return axios.create({
+      baseURL: '/api',
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+  });
+
   useEffect(() => {
     fetchAdminData();
     fetchTeams();
@@ -92,10 +103,10 @@ export default function AdminPage() {
     try {
       setLoading(true);
       const [statsRes, usersRes, weeksRes, gamesRes] = await Promise.all([
-        axios.get('/api/admin/dashboard'),
-        axios.get('/api/admin/users'),
-        axios.get('/api/weeks'),
-        axios.get('/api/admin/games')
+        axiosInstance.get('/admin/dashboard'),
+        axiosInstance.get('/admin/users'),
+        axiosInstance.get('/weeks'),
+        axiosInstance.get('/admin/games')
       ]);
 
       setStats(statsRes.data.overview || statsRes.data);
@@ -128,7 +139,7 @@ export default function AdminPage() {
 
   const fetchTeams = async () => {
     try {
-      const res = await axios.get('/api/admin/teams');
+      const res = await axiosInstance.get('/admin/teams');
       setTeams(res.data.teams || []);
     } catch (error) {
       setTeams([]);
@@ -139,7 +150,7 @@ export default function AdminPage() {
     e.preventDefault();
     try {
       console.log('[DEBUG] Sending week creation request:', newWeek);
-      const res = await axios.post('/api/admin/weeks', {
+      const res = await axiosInstance.post('/admin/weeks', {
         weekNumber: parseInt(newWeek.weekNumber),
         season: newWeek.season,
         bettingDeadline: newWeek.bettingDeadline,
@@ -166,7 +177,7 @@ export default function AdminPage() {
       let backendWeek = weeks.find(w => w.weekNumber === selectedWeek.weekNumber);
       if (!backendWeek) {
         console.log('[DEBUG] Sending week creation request for game:', selectedWeek);
-        const weekRes = await axios.post('/api/admin/weeks', {
+        const weekRes = await axiosInstance.post('/admin/weeks', {
           weekNumber: selectedWeek.weekNumber,
           season: '2025',
           startDate: selectedWeek.startDate,
@@ -177,7 +188,7 @@ export default function AdminPage() {
         // Robustly fetch weeks directly from backend until the new week appears
         let tries = 0;
         while (tries < 5) {
-          const res = await axios.get('/api/weeks');
+          const res = await axiosInstance.get('/weeks');
           const freshWeeks = res.data.weeks;
           backendWeek = freshWeeks.find((w: any) => w.weekNumber === selectedWeek.weekNumber);
           if (backendWeek) break;
@@ -195,7 +206,7 @@ export default function AdminPage() {
         awayTeamId: parseInt(newGame.awayTeamId),
         matchDate: matchDateISO
       });
-      const gameRes = await axios.post('/api/admin/games', {
+      const gameRes = await axiosInstance.post('/admin/games', {
         weekNumber: selectedWeek.weekNumber,
         season: '2025',
         homeTeamId: parseInt(newGame.homeTeamId),
@@ -214,7 +225,7 @@ export default function AdminPage() {
 
   const handleUpdateGameResult = async (gameId: number, homeScore: number, awayScore: number) => {
     try {
-      await axios.put(`/api/admin/games/${gameId}/result`, {
+      await axiosInstance.put(`/admin/games/${gameId}/result`, {
         homeScore,
         awayScore,
         status: 'completed'
@@ -230,7 +241,7 @@ export default function AdminPage() {
 
   const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
     try {
-      await axios.put(`/api/admin/users/${userId}`, { isActive: !isActive });
+      await axiosInstance.put(`/admin/users/${userId}`, { isActive: !isActive });
       toast.success(t('admin.user_status_updated'));
       fetchAdminData();
     } catch (error) {
@@ -287,7 +298,7 @@ export default function AdminPage() {
   const handleDeleteGame = async (gameId: number) => {
     if (!window.confirm('Are you sure you want to delete this game?')) return;
     try {
-      await axios.delete(`/api/admin/games/${gameId}`);
+      await axiosInstance.delete(`/admin/games/${gameId}`);
       toast.success('Game deleted');
       fetchAdminData();
     } catch (error) {
