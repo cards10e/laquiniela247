@@ -116,6 +116,15 @@ All notable changes to this project will be documented in this file.
 - Identified duplicate/inconsistent API calls in frontend.
 - Systematically tested and documented all steps before applying the fix.
 
+### Changed
+- Admin navigation for users with the admin role is now minimal: "Dashboard" and "My History" links are hidden, and "Admin Panel" is the default/leftmost view.
+- Admin users are now redirected to /admin after login instead of /dashboard.
+- Navigation and login redirect logic are now fully role-aware and minimal for admins, with no impact on non-admin workflows.
+
+### Fixed
+- Fixed issue where admin users were incorrectly redirected to /dashboard after login, even when navigation was updated.
+- Ensured all changes are fully documented and committed to a feature branch (not merged to main).
+
 ---
 
 ## [Unreleased]

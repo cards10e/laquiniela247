@@ -9,6 +9,14 @@ A modern web application for managing and participating in sports predictions.
 - Real-time game updates
 - Responsive design with dark mode support
 - Multi-language support
+- Admin navigation and login redirect are now role-aware and minimal for admins (June 2025)
+
+## June 2025: Admin Navigation & Login Redirect Update
+
+- Admin users now see a minimal navigation: only "Admin Panel" and "Profile" are shown; "Dashboard" and "My History" are hidden for admins.
+- After login, admin users are redirected to the Admin Panel (/admin) instead of the Dashboard.
+- Navigation and login logic are now fully role-aware and minimal for admins, with no impact on regular user workflows.
+- All changes are documented and committed to a feature branch (not merged to main).
 
 ## Development Setup
 
