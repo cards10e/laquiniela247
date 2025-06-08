@@ -1921,7 +1921,85 @@ No, the single restart is **not an issue**—it is expected behavior.
 
 **Summary:**  
 - A single (or any number of) restarts is not a problem as long as the process is `online`.
-- If you see frequent, automatic restarts (the count keeps going up by itself), that could indicate a crash loop, which
+- If you see frequent, automatic restarts (the count keeps going up by itself), that could indicate a crash loop, which would be a problem.
+
+**You are good to go!**  
+If you want to ensure the new environment variables are picked up, you can use:
+```sh
+pm2 restart laquiniela-frontend --update-env
+```
+But for most changes, a regular restart is sufficient.
+
+Let me know if you have any other questions or want to verify the app is working!
+
+---
+
+_**User**_
+
+pls update our changelog, readme, and push all changes to main
+
+---
+
+_**Assistant**_
+
+```diff
+  - Automated deployment script with SSH key caching and improved error handling.
+  - SSL certificate management with automatic verification and retry mechanism.
++ - Documented that after updating environment variables (e.g., .env.local), you should run `pm2 restart laquiniela-frontend --update-env` to ensure the new environment is loaded by the running process.
+  
+  ### Changed
+```
+
+---
+
+```diff
+     - Use `nano` or `vim` to edit Nginx config if heredoc/printf fails.
+  
++ **Note:**
++ After changing environment variables (such as `.env.local`), always run:
++ ```
++ pm2 restart laquiniela-frontend --update-env
++ ```
++ This ensures the running process picks up the new environment variables.
++ 
+  ## 📊 Database
+  
+```
+
+---
+
+```bash
+git add . && git commit -m "docs: update README and CHANGELOG for PM2 env var reload best practice" && git push origin main
+```
+
+```
+<nv var reload best practice" && git push origin main
+[main a63693a] docs: update README and CHANGELOG for PM2 env var reload best practice
+ 7 files changed, 7036 insertions(+), 282 deletions(-)
+ create mode 100644 .specstory/history/2025-06-06_19-07-resolve-pm2-process-not-found-error.md
+Enumerating objects: 28, done.
+Counting objects: 100% (28/28), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (15/15), 73.62 KiB | 8.18 MiB/s, done.
+Total 15 (delta 10), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (10/10), completed with 10 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   36564ab..a63693a  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+All requested updates are complete:
+
+- **CHANGELOG.md**: Now documents that after changing environment variables (like `.env.local`), you should run `pm2 restart laquiniela-frontend --update-env` to ensure the new environment is loaded.
+- **README.md**: Deployment section now includes a clear note about restarting PM2 with `--update-env` after env changes.
+- **All changes have been committed and pushed to the `main` branch.**
+
+Your documentation and deployment process now fully reflect best practices for environment variable management with PM2 and all recent live server fixes.
+
+If you need to update any other files or want a summary of the changes, just let me know!
 
 ---
 

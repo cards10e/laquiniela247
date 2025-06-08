@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2024-03-19
+## [1.0.0] - 2024-03-08
 ### Added
 - Initial standalone release migrated from WordPress plugin (v1.0.1).
 - Next.js 14 frontend with React 18, TypeScript, Tailwind CSS, and full SSR/SSG support.
@@ -79,16 +79,16 @@ All notable changes to this project will be documented in this file.
 - Admin panel: Improved merging and display of mock and real games in the 'Existing Games' section.
 - Admin panel: Temporarily hid the 'Weeks' tab for a cleaner UI.
 
----
+### Changed
+- Updated axios configuration to use a single instance with proper interceptors
+- Improved token refresh mechanism
+- Enhanced error handling in authentication flow
+- Updated CORS configuration to properly handle credentials and headers
 
-## [v0.95] - 2024-06-05
-### Fixed
-- Admin panel: Added localized fallback for game status translation, ensuring correct display in all languages.
-- Admin panel: Normalized and merged mock/real games for robust display in 'Existing Games'.
-- Admin panel: Temporarily hid the 'Weeks' tab for a cleaner demo UI.
-- Documentation: Updated README and CHANGELOG for all recent UI/UX improvements.
-
----
+### Added
+- Added proper error boundaries for admin panel
+- Added loading states and error messages for better user feedback
+- Added debug logging for authentication flow
 
 ## [Unreleased] - Deployment & Live Server Fixes
 

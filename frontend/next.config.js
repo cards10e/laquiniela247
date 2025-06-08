@@ -7,7 +7,7 @@ const nextConfig = {
     unoptimized: false
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+    NEXT_PUBLIC_API_URL: 'http://localhost:3001',
     NEXT_PUBLIC_APP_NAME: 'La Quiniela 247',
     NEXT_PUBLIC_APP_VERSION: '1.0.0'
   },
@@ -15,7 +15,13 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/:path*`
+        destination: 'http://localhost:3001/api/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'authorization',
+          },
+        ],
       }
     ];
   },

@@ -268,40 +268,49 @@ router.post('/logout', (req, res) => {
   });
 });
 
-// GET /api/auth/status
+// GET /api/auth/status - Check authentication status
 router.get('/status', asyncHandler(async (req: express.Request, res: express.Response) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const authHeader = req.headers.authorization;
   
-  if (!token) {
-    return res.json({ authenticated: false });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.json({ isAuthenticated: false });
+  }
+
+  const token = authHeader.substring(7);
+  
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({
+      error: 'JWT secret not configured.'
+    });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
+    
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: {
-        profile: true
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true
       }
     });
 
     if (!user || !user.isActive) {
-      return res.json({ authenticated: false });
+      return res.json({ isAuthenticated: false });
     }
 
-    res.json({
-      authenticated: true,
+    return res.json({
+      isAuthenticated: true,
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        profile: user.profile
+        role: user.role
       }
     });
   } catch (error) {
-    res.json({ authenticated: false });
+    return res.json({ isAuthenticated: false });
   }
 }));
 

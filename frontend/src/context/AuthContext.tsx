@@ -20,10 +20,12 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (email: string, password: string, remember?: boolean) => Promise<void>;
-  logout: () => void;
-  register: (userData: RegisterData) => Promise<void>;
+  error: string | null;
+  login: (email: string, password: string, remember?: boolean) => Promise<User>;
+  logout: () => Promise<void>;
+  register: (userData: RegisterData) => Promise<User>;
   refreshToken: () => Promise<void>;
+  checkAuth: () => Promise<User | null>;
 }
 
 interface RegisterData {
@@ -39,58 +41,78 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-// Configure axios defaults
-axios.defaults.baseURL = API_BASE_URL;
-
-console.log('[Auth Debug] Registering axios request interceptor');
-axios.interceptors.request.use((config) => {
-  const token = Cookies.get('auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  // Debug logging
-  if (typeof window !== 'undefined') {
-    console.log('[Auth Debug] auth_token cookie:', token);
-    console.log('[Auth Debug] Request URL:', config.url);
-    console.log('[Auth Debug] Request Headers:', config.headers);
-  }
-  return config;
-});
-console.log('[Auth Debug] Axios request interceptor registered');
-
-// Add response interceptor to handle token refresh
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      // Token expired, try to refresh
-      const refreshToken = Cookies.get('refresh_token');
-      if (refreshToken) {
-        try {
-          const response = await axios.post('/api/auth/refresh', { refreshToken });
-          const { token } = response.data;
-          Cookies.set('auth_token', token, { expires: 7 });
-          // Retry the original request
-          error.config.headers.Authorization = `Bearer ${token}`;
-          return axios.request(error.config);
-        } catch (refreshError) {
-          // Refresh failed, logout user
-          Cookies.remove('auth_token');
-          Cookies.remove('refresh_token');
-          window.location.href = '/login';
-        }
-      } else {
-        // No refresh token, redirect to login
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [axiosInstance] = useState(() => {
+    return axios.create({
+      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+  });
+
+  useEffect(() => {
+    console.log('[Auth Debug] Registering axios interceptors');
+    
+    // Add request interceptor
+    const requestInterceptor = axiosInstance.interceptors.request.use(
+      (config) => {
+        const token = Cookies.get('auth_token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        console.log('[Auth Debug] auth_token cookie:', token);
+        console.log('[Auth Debug] Request URL:', config.url);
+        console.log('[Auth Debug] Request Headers:', config.headers);
+        return config;
+      },
+      (error) => {
+        console.error('[Auth Debug] Request error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Add response interceptor to handle token refresh
+    const responseInterceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          // Token expired, try to refresh
+          const refreshToken = Cookies.get('refresh_token');
+          if (refreshToken) {
+            try {
+              const response = await axiosInstance.post('/api/auth/refresh', { refreshToken });
+              const { token } = response.data;
+              Cookies.set('auth_token', token, { expires: 7 });
+              // Retry the original request
+              error.config.headers.Authorization = `Bearer ${token}`;
+              return axiosInstance.request(error.config);
+            } catch (refreshError) {
+              // Refresh failed, logout user
+              Cookies.remove('auth_token');
+              Cookies.remove('refresh_token');
+              window.location.href = '/login';
+            }
+          } else {
+            // No refresh token, redirect to login
+            window.location.href = '/login';
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup interceptors on unmount
+    return () => {
+      axiosInstance.interceptors.request.eject(requestInterceptor);
+      axiosInstance.interceptors.response.eject(responseInterceptor);
+    };
+  }, [axiosInstance]);
 
   const isAuthenticated = !!user;
 
@@ -127,28 +149,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string, remember = false) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      const { tokens, user } = response.data;
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.post('/api/auth/login', { email, password });
+      const { tokens, user: userData } = response.data;
       const token = tokens.accessToken;
       const refreshToken = tokens.refreshToken;
+      
       // Normalize role to lowercase
-      const normalizedUser = { ...user, role: user.role?.toLowerCase() };
+      const normalizedUser = { ...userData, role: userData.role?.toLowerCase() };
+      
       // Set cookies with appropriate expiration
       const expires = remember ? 30 : 7; // 30 days if remember, 7 days otherwise
       Cookies.set('auth_token', token, { expires });
       if (refreshToken) {
         Cookies.set('refresh_token', refreshToken, { expires: 30 });
       }
+      
       setUser(normalizedUser);
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+      return normalizedUser;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during login';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await axios.post('/api/auth/register', {
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.post('/api/auth/register', {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
@@ -157,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         newsletter: userData.newsletter || false
       });
 
-      const { token, refreshToken, user } = response.data;
+      const { token, refreshToken, user: newUser } = response.data;
 
       // Set cookies
       Cookies.set('auth_token', token, { expires: 7 });
@@ -165,18 +198,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Cookies.set('refresh_token', refreshToken, { expires: 30 });
       }
 
-      setUser(user);
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
+      setUser(newUser);
+      return newUser;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during registration';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = () => {
-    Cookies.remove('auth_token');
-    Cookies.remove('refresh_token');
-    setUser(null);
-    window.location.href = '/login';
+  const logout = async () => {
+    try {
+      await axiosInstance.post('/api/auth/logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      Cookies.remove('auth_token');
+      Cookies.remove('refresh_token');
+      setUser(null);
+      window.location.href = '/login';
+    }
   };
 
   const refreshToken = async () => {
@@ -186,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await axios.post('/api/auth/refresh', { refreshToken });
+      const response = await axiosInstance.post('/api/auth/refresh', { refreshToken });
       const { token } = response.data;
       Cookies.set('auth_token', token, { expires: 7 });
     } catch (error) {
@@ -196,14 +239,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const checkAuth = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.get('/api/auth/status');
+      setUser(response.data.user);
+      return response.data.user;
+    } catch (err) {
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated,
     loading,
+    error,
     login,
     logout,
     register,
-    refreshToken
+    refreshToken,
+    checkAuth
   };
 
   return (

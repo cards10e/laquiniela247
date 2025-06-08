@@ -9,35 +9,36 @@ const router = express.Router();
 // Apply admin middleware to all routes
 router.use(adminMiddleware);
 
-// Validation schemas
-const createGameSchema = z.object({
-  weekNumber: z.number().int().positive(),
-  season: z.string().min(1),
-  homeTeamId: z.number().int().positive(),
-  awayTeamId: z.number().int().positive(),
-  matchDate: z.string().datetime()
-});
-
-const updateGameSchema = z.object({
-  homeScore: z.number().int().min(0).optional(),
-  awayScore: z.number().int().min(0).optional(),
-  status: z.enum(['SCHEDULED', 'LIVE', 'FINISHED']).optional(),
-  matchDate: z.string().datetime().optional()
-});
-
-const createWeekSchema = z.object({
-  weekNumber: z.number().int().positive(),
-  season: z.string().min(1),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
-  bettingDeadline: z.string().datetime()
-});
-
+// Schema for updating user
 const updateUserSchema = z.object({
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-  role: z.enum(['USER', 'ADMIN']).optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
+  role: z.enum(['USER', 'ADMIN']).optional()
+});
+
+// Schema for creating game
+const createGameSchema = z.object({
+  weekNumber: z.number(),
+  season: z.string(),
+  homeTeamId: z.number(),
+  awayTeamId: z.number(),
+  matchDate: z.string()
+});
+
+// Schema for updating game
+const updateGameSchema = z.object({
+  homeScore: z.number().optional(),
+  awayScore: z.number().optional(),
+  status: z.enum(['SCHEDULED', 'LIVE', 'COMPLETED']).optional(),
+  matchDate: z.string().optional()
+});
+
+// Schema for creating week
+const createWeekSchema = z.object({
+  weekNumber: z.number(),
+  season: z.string(),
+  bettingDeadline: z.string(),
+  startDate: z.string(),
+  endDate: z.string()
 });
 
 // GET /api/admin/dashboard - Admin dashboard overview
@@ -346,48 +347,19 @@ router.put('/games/:id', asyncHandler(async (req: AuthenticatedRequest, res: exp
   }
 
   const updateData: any = {};
-  
+  if (validatedData.status !== undefined) updateData.status = validatedData.status;
   if (validatedData.homeScore !== undefined) updateData.homeScore = validatedData.homeScore;
   if (validatedData.awayScore !== undefined) updateData.awayScore = validatedData.awayScore;
-  if (validatedData.status !== undefined) updateData.status = validatedData.status;
   if (validatedData.matchDate !== undefined) updateData.matchDate = new Date(validatedData.matchDate);
-
-  // Calculate result if both scores are provided
-  if (validatedData.homeScore !== undefined && validatedData.awayScore !== undefined) {
-    if (validatedData.homeScore > validatedData.awayScore) {
-      updateData.result = 'HOME';
-    } else if (validatedData.awayScore > validatedData.homeScore) {
-      updateData.result = 'AWAY';
-    } else {
-      updateData.result = 'DRAW';
-    }
-  }
 
   const updatedGame = await prisma.game.update({
     where: { id: gameId },
     data: updateData,
     include: {
       homeTeam: true,
-      awayTeam: true,
-      week: true
+      awayTeam: true
     }
   });
-
-  // If game is finished and has a result, update bet results
-  if (updatedGame.status === 'FINISHED' && updatedGame.result) {
-    const bets = await prisma.bet.findMany({ where: { gameId } });
-    for (const bet of bets) {
-      let isCorrect: boolean | null = null;
-      if (updatedGame.result) {
-        isCorrect = bet.prediction === updatedGame.result;
-      }
-      await prisma.bet.update({ where: { id: bet.id }, data: { isCorrect } });
-    }
-
-    // Trigger performance calculation for the week
-    // This would typically be done in a background job
-    // For now, we'll just mark it as needing calculation
-  }
 
   res.json({
     message: 'Game updated successfully',
