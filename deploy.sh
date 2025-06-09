@@ -271,7 +271,7 @@ fi
 
 # Set MySQL root password
 log_info "Step 2/10: Configuring MySQL..."
-execute_command "ssh $SSH_OPTS $REMOTE \"mysql -u root -e \\\"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'T6Bkd239XsdQA1'; FLUSH PRIVILEGES;\\\"\"" "set MySQL root password"
+execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'T6Bkd239XsdQA1'; FLUSH PRIVILEGES;\\\" | mysql -u root\"" "set MySQL root password"
 log_step_complete 2 10 "Provisioning server dependencies"
 log_info "8 steps remaining..."
 
@@ -313,7 +313,7 @@ log_info "Step 7/10: Starting database migration process..."
 
 # Create database if it doesn't exist
 log_info "Step 7/10: Creating database..."
-execute_command "ssh $SSH_OPTS $REMOTE 'mysql -u root -p\"T6Bkd239XsdQA1\" -e \"CREATE DATABASE IF NOT EXISTS laquiniela247 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\"'" "create database"
+execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"CREATE DATABASE IF NOT EXISTS laquiniela247 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\\\" | mysql -u root -p'T6Bkd239XsdQA1'\"" "create database"
 
 # Backup existing database if it exists
 backup_file="$REMOTE_PATH/backup_$(date +%Y%m%d_%H%M%S).sql"
