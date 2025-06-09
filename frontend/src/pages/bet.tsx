@@ -492,6 +492,13 @@ export default function BetPage() {
     <Layout title={t('betting.place_bet')}>
       <ProtectedRoute>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Page Title */}
+          <div className="mb-8">
+            <h1 className="page-title">
+              {t('navigation.games')}
+            </h1>
+          </div>
+          
           <div className="bg-primary-600 text-white rounded-lg p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
