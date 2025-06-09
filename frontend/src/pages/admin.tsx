@@ -369,7 +369,7 @@ export default function AdminPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+              <h1 className="page-title">
                 {t('navigation.admin_panel')}
               </h1>
             </div>
@@ -771,7 +771,7 @@ export default function AdminPage() {
                         return (
                           <div key={weekId} className="space-y-4">
                             <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                              <h3 className="content-title">
                                 {t('dashboard.week')} {weekGames[0].weekId}
                               </h3>
                               {week && week.status && week.status.toLowerCase() === 'upcoming' && openDeadlineWeekId !== Number(weekId) && (

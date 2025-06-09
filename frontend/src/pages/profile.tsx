@@ -167,7 +167,7 @@ export default function ProfilePage() {
         <ProtectedRoute>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="card text-center py-12">
-              <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+              <h2 className="subsection-title">
                 {t('profile.profile_not_found')}
               </h2>
             </div>
@@ -183,7 +183,7 @@ export default function ProfilePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+            <h1 className="page-title">
               {t('profile.title')}
             </h1>
             <p className="text-secondary-600 dark:text-secondary-400">
@@ -469,9 +469,9 @@ export default function ProfilePage() {
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
-                          {t('profile.email_notifications')}
-                        </h3>
+                                        <h3 className="content-title">
+                  {t('profile.email_notifications')}
+                </h3>
                         <p className="text-sm text-secondary-600 dark:text-secondary-400">
                           {t('profile.email_notifications_desc')}
                         </p>
@@ -486,7 +486,7 @@ export default function ProfilePage() {
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                        <h3 className="content-title">
                           {t('profile.sms_notifications')}
                         </h3>
                         <p className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -503,7 +503,7 @@ export default function ProfilePage() {
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                        <h3 className="content-title">
                           {t('auth.newsletter')}
                         </h3>
                         <p className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -601,13 +601,13 @@ export default function ProfilePage() {
           {/* Demo User Settings */}
           {isDemoUser && (
             <div className="card mt-8">
-              <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
+              <h2 className="subsection-title">
                 {t('profile.demo_settings')}
               </h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
+                    <h3 className="content-title">
                       {t('profile.endless_betting')}
                     </h3>
                     <p className="text-sm text-secondary-600 dark:text-secondary-400">

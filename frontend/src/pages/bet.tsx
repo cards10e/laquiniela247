@@ -381,7 +381,7 @@ export default function BetPage() {
         <ProtectedRoute>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+              <h1 className="page-title">
                 Existing Games
               </h1>
             </div>
@@ -471,7 +471,7 @@ export default function BetPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="card text-center py-12">
               <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">⏰</div>
-              <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+              <h2 className="subsection-title">
                 {t('betting.betting_closed')}
               </h2>
               <p className="text-secondary-600 dark:text-secondary-400 mb-6">
@@ -495,7 +495,7 @@ export default function BetPage() {
           <div className="bg-primary-600 text-white rounded-lg p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-xl font-bold mb-2">
+                <h2 className="subsection-title text-white mb-2">
                   {t('dashboard.week')} {currentWeek.weekNumber}
                 </h2>
                 <span className="inline-block bg-warning-600 text-secondary-900 px-3 py-1 rounded-full text-sm font-medium">
@@ -531,7 +531,7 @@ export default function BetPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
-                  <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
+                  <h3 className="subsection-title">
                     {t('betting.select_predictions')}
                   </h3>
                   <div className="space-y-4">
@@ -687,9 +687,9 @@ export default function BetPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Games List (existing code) */}
             <div className="lg:col-span-2">
-              <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
-                {t('betting.select_predictions')}
-              </h3>
+                              <h3 className="subsection-title">
+                  {t('betting.select_predictions')}
+                </h3>
               <div className="space-y-4">
                 {games.map((game) => (
                   <div key={game.id} className="card">
@@ -743,7 +743,7 @@ export default function BetPage() {
             {/* Bet Summary (existing code) */}
             <div className="lg:col-span-1">
               <div className="card sticky top-8">
-                <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
+                <h3 className="subsection-title">
                   {t('betting.bet_summary')}
                 </h3>
                 {/* Predictions Count */}

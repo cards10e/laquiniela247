@@ -115,9 +115,9 @@ export default function LoginPage() {
       <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           {/* Title */}
-          <h1 className="text-center text-3xl font-bold text-primary-600 dark:text-primary-400 mb-8">
-            {t('auth.login')}
-          </h1>
+                      <h1 className="page-title text-center text-primary-600 dark:text-primary-400 mb-8">
+              {t('auth.login')}
+            </h1>
         </div>
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md">

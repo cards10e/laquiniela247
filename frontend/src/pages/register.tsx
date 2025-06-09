@@ -127,9 +127,9 @@ export default function RegisterPage() {
           </div>
 
           {/* Title */}
-          <h1 className="text-center text-3xl font-bold text-primary-600 dark:text-primary-400 mb-8">
-            {t('auth.register')}
-          </h1>
+                      <h1 className="page-title text-center text-primary-600 dark:text-primary-400 mb-8">
+              {t('auth.register')}
+            </h1>
         </div>
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md">

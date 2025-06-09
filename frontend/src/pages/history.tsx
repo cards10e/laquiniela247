@@ -201,7 +201,7 @@ export default function HistoryPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+            <h1 className="page-title mb-4">
               {t('history.title')}
             </h1>
             
@@ -235,7 +235,7 @@ export default function HistoryPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center space-x-4 mb-4 sm:mb-0">
                         <div>
-                          <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
+                          <h3 className="content-title">
                             {t('dashboard.week')} {bet.weekNumber}
                           </h3>
                           <p className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -352,7 +352,7 @@ export default function HistoryPage() {
           ) : (
             <div className="card text-center py-12">
               <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">📊</div>
-              <h2 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+              <h2 className="subsection-title">
                 {filter === 'all' 
                   ? t('history.no_bets_yet')
                   : t('history.no_bets_in_filter').replace('%s', getStatusText(filter))

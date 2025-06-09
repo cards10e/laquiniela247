@@ -208,7 +208,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+            <h1 className="page-title">
               {t('dashboard.welcome').replace('%s', user?.firstName || user?.displayName || '')}
             </h1>
           </div>
@@ -271,7 +271,7 @@ export default function DashboardPage() {
               <div className="bg-primary-600 text-white rounded-lg p-6 mb-6 shadow-lq247-accent">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold mb-2">
+                    <h3 className="subsection-title">
                       {t('dashboard.week')} {currentWeek.weekNumber}
                     </h3>
                     {currentWeek.status === 'open' && (
@@ -354,7 +354,7 @@ export default function DashboardPage() {
                 className="card hover:shadow-lg transition-shadow text-center"
               >
                 <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">🎯</div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                <h3 className="content-title">
                   {t('dashboard.new_bet')}
                 </h3>
                 <p className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -367,7 +367,7 @@ export default function DashboardPage() {
                 className="card hover:shadow-lg transition-shadow text-center"
               >
                 <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">📊</div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                <h3 className="content-title">
                   {t('dashboard.view_history')}
                 </h3>
                 <p className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -380,7 +380,7 @@ export default function DashboardPage() {
                 className="card hover:shadow-lg transition-shadow text-center"
               >
                 <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">⚙️</div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                <h3 className="content-title">
                   {t('dashboard.profile_settings')}
                 </h3>
                 <p className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -390,7 +390,7 @@ export default function DashboardPage() {
               
               <div className="card text-center">
                 <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">🏆</div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
+                <h3 className="content-title">
                   {t('dashboard.results')}
                 </h3>
                 <p className="text-sm text-secondary-600 dark:text-secondary-400">

@@ -28,9 +28,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-secondary-50 dark:bg-secondary-900">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Something went wrong
-            </h2>
+                    <h2 className="subsection-title">
+          Something went wrong
+        </h2>
             <button
               onClick={() => window.location.reload()}
               className="btn-primary"
