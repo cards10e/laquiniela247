@@ -172,8 +172,8 @@ execute_command "npm run build" "build frontend application"
 cd ..
 
 # Install backend dependencies and build
-log_info "Step 1/10: Installing backend production dependencies..."
-execute_command "cd backend && npm install --production && npm install -g tsx" "install backend production dependencies"
+log_info "Step 1/10: Installing backend dependencies..."
+execute_command "cd backend && npm install && npm install -g tsx" "install backend dependencies"
 
 log_info "Step 1/10: Building backend application..."
 execute_command "cd backend && npm run build && npx prisma generate" "build backend application and generate Prisma client"
