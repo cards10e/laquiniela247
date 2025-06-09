@@ -377,23 +377,23 @@ export default function BetPage() {
   // Admin view - don't check betting status
   if (isAdmin) {
     return (
-      <Layout title="Existing Games">
+      <Layout title={t('admin.existing_games')}>
         <ProtectedRoute>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
               <h1 className="page-title">
-                Existing Games
+                {t('admin.existing_games')}
               </h1>
             </div>
             <div className="space-y-8">
               <div className="card">
                 <div className="card-header">
-                  <h2 className="card-title">Games</h2>
+                  <h2 className="card-title">{t('admin.games')}</h2>
                 </div>
                 <div className="space-y-4">
                   {games.length === 0 ? (
                     <div className="text-center py-8 text-secondary-600 dark:text-secondary-400">
-                      No games available.
+                      {t('admin.no_games_message')}
                     </div>
                   ) : (
                     // Group games by week
@@ -410,7 +410,7 @@ export default function BetPage() {
                       <div key={weekId} className="space-y-4">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
-                            Week {weekId}
+                            {t('dashboard.week')} {weekId}
                           </h3>
                         </div>
                         {weekGames.map((game) => (
@@ -424,7 +424,7 @@ export default function BetPage() {
                                   )}
                                   <span className="font-medium truncate max-w-[120px]">{game.homeTeamName}</span>
                                 </div>
-                                <span className="mx-2 text-secondary-500">vs</span>
+                                <span className="mx-2 text-secondary-500">{t('admin.vs')}</span>
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className="font-medium truncate max-w-[120px]">{game.awayTeamName}</span>
                                   {game.awayTeamLogo && (
@@ -435,9 +435,9 @@ export default function BetPage() {
                               {/* Badges/buttons right */}
                               <div className="flex items-center gap-2">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
-                                  Game Start: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
+                                  {t('admin.game_start')}: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
                                     ? new Date(game.gameDate).toLocaleString(undefined, { timeZoneName: 'short' })
-                                    : 'TBD'}
+                                    : t('admin.tbd')}
                                 </span>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                   game.status === 'completed'
