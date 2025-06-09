@@ -163,6 +163,10 @@ All notable changes to this project will be documented in this file.
   - Now uses `frontend/.env.production` and `backend/.env.production` for live deployments
   - Local development environment files remain unchanged
   - Ensures proper separation of development and production configurations
+- **Build Process**: Fixed deployment script TypeScript compilation issues
+  - Changed backend dependency installation to include dev dependencies for TypeScript build
+  - Resolves missing @types/* packages needed for compilation
+  - Production server still only uses compiled JavaScript files
 
 ---
 
