@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2025-06-09
+### 🎯 Major Betting Interface Overhaul
+- **Consistent Bet Summary Display**: Both Single Bets and La Quiniela tabs now show bet summaries for improved UX consistency
+- **Fixed La Quiniela Amounts**: La Quiniela betting now uses fixed $200 bet / $2000 payout with read-only input field
+- **Enhanced Single Bets Experience**: Added real-time bet summary with active bet tracking, dynamic totals, and 2.5x multiplier for transparent winnings calculation
+- **Improved Tab Switching**: Seamless switching between betting modes with persistent summaries and real-time updates
+- **Professional UX Design**: Implemented consistent card layouts, visual hierarchy, and clear value propositions across all betting modes
+
+### Added
+- Real-time bet summary calculations for Single Bets mode
+- Fixed amount display and validation for La Quiniela mode
+- Internationalization support for new betting interface elements (English/Spanish)
+- Visual state indicators for read-only fields and completed predictions
+- Responsive design optimizations for bet summary components
+
+### Changed
+- La Quiniela betting amount input is now read-only with fixed $200/$2000 amounts
+- Single Bets now show comprehensive summary instead of empty sidebar
+- Improved visual consistency between betting modes
+- Enhanced user feedback with clear progress indicators and winnings calculations
+
+### Fixed
+- Missing bet summary display when switching to Single Bets tab
+- Inconsistent betting amount handling between Single Bets and La Quiniela
+- Improved accessibility with proper read-only field indicators
+
+### 🚀 Deployment & Database Management
+- **Automatic Database Dump Generation**: Deploy script now automatically creates fresh database dumps before deployment
+- **Complete Database Overwrite**: Live server database is now completely overwritten with local data for consistency
+- **MySQL Command Fixes**: Resolved shell escaping issues in deployment script MySQL commands
+- **Enhanced Error Handling**: Improved deployment script reliability with better error detection and recovery
+
+### Technical Improvements
+- Added TypeScript support for enhanced betting interface components
+- Optimized component rendering with minimal re-renders
+- Improved state management for betting calculations
+- Enhanced build process reliability
+
 ## [1.0.0] - 2024-03-08
 ### Added
 - Initial standalone release migrated from WordPress plugin (v1.0.1).

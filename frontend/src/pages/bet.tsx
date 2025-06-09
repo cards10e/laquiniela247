@@ -52,6 +52,12 @@ export default function BetPage() {
   // For single bets
   const [singleBetAmounts, setSingleBetAmounts] = useState<Record<number, number>>({});
   const [singleSubmitting, setSingleSubmitting] = useState<Record<number, boolean>>({});
+  // Add state for tracking single bet summary
+  const [singleBetSummary, setSingleBetSummary] = useState<{ totalBets: number; totalAmount: number; potentialWinnings: number }>({
+    totalBets: 0,
+    totalAmount: 0,
+    potentialWinnings: 0
+  });
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -193,14 +199,39 @@ export default function BetPage() {
     }));
   };
 
-  const calculatePotentialWinnings = () => {
-    const numPredictions = Object.keys(predictions).length;
-    if (numPredictions === 0) return 0;
+  // Update single bet amounts calculation
+  useEffect(() => {
+    const selectedGames = Object.keys(predictions).filter(gameId => 
+      tab === 'single' && predictions[parseInt(gameId)]
+    );
+    const totalAmount = selectedGames.reduce((sum, gameId) => 
+      sum + (singleBetAmounts[parseInt(gameId)] || 50), 0
+    );
+    const potentialWinnings = totalAmount * 2.5; // 2.5x multiplier for single bets
     
-    // Simple calculation: base amount * multiplier based on number of correct predictions
-    const baseMultiplier = 1.5;
-    const bonusMultiplier = numPredictions >= games.length ? 2.0 : 1.0;
-    return betAmount * baseMultiplier * bonusMultiplier;
+    setSingleBetSummary({
+      totalBets: selectedGames.length,
+      totalAmount,
+      potentialWinnings
+    });
+  }, [predictions, singleBetAmounts, tab]);
+
+  // Modified calculate function for La Quiniela fixed amounts
+  const calculatePotentialWinnings = () => {
+    if (tab === 'parlay') {
+      // Fixed amounts for La Quiniela
+      return Object.keys(predictions).length === games.length ? 2000 : 0;
+    }
+    // For single bets, return summary calculation
+    return singleBetSummary.potentialWinnings;
+  };
+
+  // Modified bet amount for La Quiniela
+  const getEffectiveBetAmount = () => {
+    if (tab === 'parlay') {
+      return 200; // Fixed amount for La Quiniela
+    }
+    return singleBetSummary.totalAmount;
   };
 
   const timeUntilDeadline = (deadline: string) => {
@@ -282,10 +313,13 @@ export default function BetPage() {
       toast.error(t('betting.select_all_games'));
       return;
     }
-    if (betAmount < 10) {
+    
+    const effectiveAmount = getEffectiveBetAmount();
+    if (effectiveAmount < 10) {
       toast.error(t('betting.minimum_bet_amount'));
       return;
     }
+    
     setSubmitting(true);
     try {
       // For demo user with endless betting, we'll simulate a successful parlay without making an API call
@@ -304,7 +338,7 @@ export default function BetPage() {
           gameId: parseInt(gameId),
           prediction: (prediction as string).toUpperCase()
         })),
-        amount: betAmount
+        amount: effectiveAmount
       };
       await axios.post('/api/bets/multi', betData);
       toast.success(t('betting.bet_placed'));
@@ -601,7 +635,46 @@ export default function BetPage() {
                   </div>
                 </div>
                 <div className="lg:col-span-1">
-                  {/* You can add a bet slip or summary here if desired */}
+                  {/* Bet Summary for Single Bets */}
+                  <div className="card sticky top-8">
+                    <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
+                      {t('betting.bet_summary')}
+                    </h3>
+                    {/* Active Bets Count */}
+                    <div className="mb-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-secondary-600 dark:text-secondary-400">
+                          {t('betting.active_bets')}
+                        </span>
+                        <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                          {singleBetSummary.totalBets}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Total Bet Amount */}
+                    <div className="mb-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-secondary-600 dark:text-secondary-400">
+                          {t('betting.bet_amount')}
+                        </span>
+                        <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                          ${singleBetSummary.totalAmount}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Potential Winnings */}
+                    <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
+                        <span className="text-success-700 dark:text-success-300 font-bold text-lg">${singleBetSummary.potentialWinnings.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    {singleBetSummary.totalBets === 0 && (
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 text-center">
+                        Select predictions and set amounts to see your bet summary
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -697,12 +770,18 @@ export default function BetPage() {
                       min="10"
                       max="1000"
                       step="10"
-                      value={betAmount}
-                      onChange={(e) => setBetAmount(Number(e.target.value))}
-                      className="form-input pl-8"
+                      value={getEffectiveBetAmount()}
+                      onChange={tab === 'parlay' ? undefined : (e) => setBetAmount(Number(e.target.value))}
+                      readOnly={tab === 'parlay'}
+                      className={`form-input pl-8 ${tab === 'parlay' ? 'bg-secondary-100 dark:bg-secondary-700 cursor-not-allowed' : ''}`}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">{t('betting.bet_amount_range')}</p>
+                                      <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
+                      {tab === 'parlay' 
+                        ? t('betting.la_quiniela_fixed_amount')
+                        : t('betting.bet_amount_range')
+                      }
+                    </p>
                 </div>
                 {/* Potential Winnings */}
                 <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
@@ -714,8 +793,8 @@ export default function BetPage() {
                 {/* Submit Button */}
                 <button
                   onClick={handleSubmitParlay}
-                  disabled={Object.keys(predictions).length !== games.length || submitting || betAmount < 10}
-                  className={`btn-primary w-full ${Object.keys(predictions).length !== games.length || submitting || betAmount < 10 ? 'btn-disabled' : ''}`}
+                  disabled={Object.keys(predictions).length !== games.length || submitting || getEffectiveBetAmount() < 10}
+                  className={`btn-primary w-full ${Object.keys(predictions).length !== games.length || submitting || getEffectiveBetAmount() < 10 ? 'btn-disabled' : ''}`}
                 >
                   {submitting ? (
                     <div className="flex items-center"><div className="spinner-sm mr-2"></div>{t('common.loading')}</div>

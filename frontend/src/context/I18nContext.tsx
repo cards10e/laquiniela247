@@ -134,7 +134,9 @@ const translations = {
       betting_closed_message: "Betting for this week has been closed. Please check back next week.",
       deadline_passed: "Deadline has passed",
       single_bets: "Single Bets",
-      weekly_parlay: "La Quiniela"
+      weekly_parlay: "La Quiniela",
+      active_bets: "Active Bets",
+      la_quiniela_fixed_amount: "Fixed amount for La Quiniela - All games must be predicted to win $2,000"
     },
     profile: {
       title: "Profile",
@@ -406,7 +408,9 @@ const translations = {
       betting_closed_message: "Las apuestas para esta jornada han sido cerradas. Por favor regresa la próxima semana.",
       deadline_passed: "La fecha límite ha pasado",
       single_bets: "Apuestas Simples",
-      weekly_parlay: "La Quiniela"
+      weekly_parlay: "La Quiniela",
+      active_bets: "Apuestas Activas",
+      la_quiniela_fixed_amount: "Cantidad fija para La Quiniela - Todos los juegos deben predecirse para ganar $2,000"
     },
     profile: {
       title: "Perfil",

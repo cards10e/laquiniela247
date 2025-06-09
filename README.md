@@ -2,14 +2,28 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## Features
+## 🚀 Version 2.0.0 - Major Betting Interface Overhaul
+
+### 🎯 Enhanced Betting Experience
+- **Consistent Bet Summary**: Both Single Bets and La Quiniela tabs now feature comprehensive bet summaries
+- **Fixed La Quiniela Pricing**: $200 bet / $2000 payout with read-only amounts for clarity
+- **Real-time Single Bets Tracking**: Live calculations with 2.5x multiplier and active bet counter
+- **Professional UX Design**: Seamless tab switching with consistent layouts and visual hierarchy
+
+### 🛠️ Deployment & Database Management
+- **Automatic Database Sync**: Deploy script generates fresh dumps and completely overwrites live database
+- **Enhanced Reliability**: Improved MySQL commands and error handling in deployment process
+
+## Core Features
 
 - User authentication with JWT
+- Advanced betting system with Single Bets and La Quiniela modes
 - Admin panel for managing games, teams, and users
-- Real-time game updates
+- Real-time game updates and bet tracking
 - Responsive design with dark mode support
-- Multi-language support
-- Admin navigation and login redirect are now role-aware and minimal for admins (June 2025)
+- Multi-language support (English/Spanish)
+- Professional bet summary interfaces with live calculations
+- Admin navigation and login redirect are now role-aware and minimal for admins
 
 ## June 2025: Admin Navigation & Login Redirect Update
 

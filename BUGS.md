@@ -54,7 +54,7 @@
 ## UI/UX Bugs
 
 ### 1. Light/Dark Mode Toggle
-- **Status**: Open
+- **Status**: Will not fix
 - **Priority**: Medium
 - **Reported By**: Jim Baskin
 - **Date**: June 6, 2025
@@ -66,7 +66,7 @@
 - **Expected Behavior**: Should only have two states (light/dark)
 
 ### 2. Team Logo Visibility
-- **Status**: Open
+- **Status**: Fixed
 - **Priority**: Medium
 - **Reported By**: Meeting Discussion
 - **Date**: June 6, 2025
@@ -74,6 +74,7 @@
   - Logos not visible in light mode
   - Logo size too small for legibility
   - Logos getting lost with white background
+  - moved to black header and white text
 
 ### 3. Betting Window Size
 - **Status**: Open
