@@ -183,7 +183,7 @@ export default function ProfilePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="page-title">
+            <h1 className="section-title">
               {t('profile.title')}
             </h1>
             <p className="text-secondary-600 dark:text-secondary-400">

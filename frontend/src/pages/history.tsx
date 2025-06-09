@@ -224,6 +224,10 @@ export default function HistoryPage() {
           </div>
 
           {/* Betting History */}
+          <h2 className="section-title">
+            {t('history.title')}
+          </h2>
+          
           {filteredBets.length > 0 ? (
             <div className="space-y-4">
               {filteredBets.map((bet) => (
