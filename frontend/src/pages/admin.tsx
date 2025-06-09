@@ -848,7 +848,7 @@ export default function AdminPage() {
                                       ) {
                                         return (
                                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400 mr-2">
-                                            {`Open for betting: ${new Date(week.bettingDeadline).toLocaleString(undefined, { timeZoneName: 'short' })}`}
+                                            {`${t('dashboard.open_for_betting')}: ${new Date(week.bettingDeadline).toLocaleString(undefined, { timeZoneName: 'short' })}`}
                                           </span>
                                         );
                                       }
