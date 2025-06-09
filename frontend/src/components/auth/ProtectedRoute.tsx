@@ -14,9 +14,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        // Redirect to login with return URL
-        const returnUrl = router.asPath;
-        router.replace(`/login?redirect=${encodeURIComponent(returnUrl)}`);
+        // Clean redirect to login without exposing protected URLs
+        router.replace('/login');
         return;
       }
 

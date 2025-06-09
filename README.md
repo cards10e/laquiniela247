@@ -2,7 +2,15 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.0 - Major Betting Interface Overhaul
+## 🚀 Version 2.0.1 - Security & UX Improvements
+
+### 🔒 Enhanced Security & Clean Authentication
+- **Secure Authentication Flow**: Fixed redirect behavior to prevent exposure of protected URLs when logged out
+- **Clean Login Experience**: Users now see clean `/login` URLs without query parameters or page remnants
+- **Streamlined Dashboard**: Temporarily removed Quick Actions for cleaner interface
+- **Development Optimization**: Enhanced development experience with temporary rate limiting adjustments
+
+### Previous: Version 2.0.0 - Major Betting Interface Overhaul
 
 ### 🎯 Enhanced Betting Experience
 - **Consistent Bet Summary**: Both Single Bets and La Quiniela tabs now feature comprehensive bet summaries

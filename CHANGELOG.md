@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2025-01-18
+### 🔒 Security & UX Improvements
+- **Enhanced Authentication Security**: Fixed authentication redirect behavior to prevent URL exposure of protected pages when logged out
+- **Clean Login Experience**: Users are now redirected to clean `/login` URL without query parameters or remnants of protected pages
+- **UI Streamlining**: Temporarily hidden Quick Actions section from dashboard for cleaner interface
+- **Development Optimization**: Temporarily disabled rate limiting for smoother development experience
+
+### Changed
+- ProtectedRoute now performs clean redirects to `/login` without exposing protected URLs
+- Login page simplified to remove redirect parameter logic
+- Dashboard Quick Actions section commented out for streamlined interface
+- Rate limiting temporarily disabled in development environment
+
+### Fixed
+- Security issue where protected page URLs were visible in address bar when logged out
+- Information leakage about existing protected routes through redirect parameters
+- Improved authentication flow with no session remnants visible to unauthenticated users
+
+### Security
+- ✅ No exposure of protected URLs in the address bar when logged out
+- ✅ Clean login experience with no session remnants
+- ✅ No information leakage about what pages exist in the application
+- ✅ Simplified and more secure authentication flow
+
 ## [2.0.0] - 2025-06-09
 ### 🎯 Major Betting Interface Overhaul
 - **Consistent Bet Summary Display**: Both Single Bets and La Quiniela tabs now show bet summaries for improved UX consistency

@@ -342,7 +342,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Quick Actions */}
+          {/* Quick Actions - COMMENTED OUT */}
+          {/*
           <div className="mb-8">
             <h2 className="section-title">
               {t('dashboard.quick_actions')}
@@ -399,6 +400,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+          */}
 
           {/* Recent Activity */}
           <div>

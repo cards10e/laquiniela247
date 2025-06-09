@@ -28,8 +28,7 @@ export default function LoginPage() {
         router.replace('/admin');
       } else {
         const defaultRoute = isDemoUser ? '/bet' : '/dashboard';
-        const redirectTo = (router.query.redirect as string) || defaultRoute;
-        router.replace(redirectTo);
+        router.replace(defaultRoute);
       }
     }
   }, [isAuthenticated, loading, router, user, isDemoUser]);
@@ -84,8 +83,7 @@ export default function LoginPage() {
         // Check if this is a demo user by email
         const isNewDemoUser = user.email === 'demo@laquiniela247.mx';
         const defaultRoute = isNewDemoUser ? '/bet' : '/dashboard';
-        const redirectTo = (router.query.redirect as string) || defaultRoute;
-        router.push(redirectTo);
+        router.push(defaultRoute);
       }
     } catch (error: any) {
       console.error('Login error:', error);
