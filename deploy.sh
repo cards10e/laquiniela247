@@ -161,9 +161,38 @@ execute_command() {
 # Start SSH agent and cache key
 setup_ssh_agent
 
+# 0. GENERATE FRESH DATABASE DUMP
+log_step 0 11 "Generating fresh database dump"
+log_info "Step 0/11: Creating fresh dump.sql from local database..."
+
+# Check if local database exists
+if ! mysql -u root -pT6Bkd239XsdQA1 -e "USE laquiniela247;" 2>/dev/null; then
+    log_error "Local database 'laquiniela247' not found! Please ensure your local database is set up."
+    exit 1
+fi
+
+# Remove old dump if it exists
+if [ -f "dump.sql" ]; then
+    log_info "Step 0/11: Removing old dump.sql..."
+    rm dump.sql
+fi
+
+# Create fresh database dump
+execute_command "mysqldump -u root -pT6Bkd239XsdQA1 --single-transaction --routines --triggers laquiniela247 > dump.sql" "create fresh database dump"
+
+# Verify dump was created and is not empty
+if [ ! -f "dump.sql" ] || [ ! -s "dump.sql" ]; then
+    log_error "Failed to create dump.sql or file is empty!"
+    exit 1
+fi
+
+log_info "Step 0/11: Fresh dump.sql created successfully ($(du -h dump.sql | cut -f1))"
+log_step_complete 0 11 "Generating fresh database dump"
+log_info "10 steps remaining..."
+
 # 1. BUILD AND PREPARE APPLICATIONS LOCALLY
-log_step 1 10 "Building and preparing applications locally"
-log_info "Step 1/10: Building frontend application..."
+log_step 1 11 "Building and preparing applications locally"
+log_info "Step 1/11: Building frontend application..."
 
 # Build frontend
 cd frontend
@@ -172,25 +201,25 @@ execute_command "npm run build" "build frontend application"
 cd ..
 
 # Install backend dependencies and build
-log_info "Step 1/10: Installing backend dependencies..."
+log_info "Step 1/11: Installing backend dependencies..."
 execute_command "cd backend && npm install && npm install -g tsx" "install backend dependencies"
 
-log_info "Step 1/10: Building backend application..."
+log_info "Step 1/11: Building backend application..."
 execute_command "cd backend && npm run build && npx prisma generate" "build backend application and generate Prisma client"
 
-log_step_complete 1 10 "Building and preparing applications locally"
+log_step_complete 1 11 "Building and preparing applications locally"
 log_info "9 steps remaining..."
 
 # 2. PROVISION SERVER DEPENDENCIES
-log_step 2 10 "Provisioning server dependencies"
+log_step 2 11 "Provisioning server dependencies"
 
 # Install Nginx if not present
 if ! ssh $SSH_OPTS $REMOTE "command -v nginx > /dev/null"; then
-    log_info "Step 2/10: Installing Nginx..."
+    log_info "Step 2/11: Installing Nginx..."
     execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y nginx'" "install Nginx"
     
     # Configure Nginx
-    log_info "Step 2/10: Writing Nginx config for SSR..."
+    log_info "Step 2/11: Writing Nginx config for SSR..."
     execute_command "ssh $SSH_OPTS $REMOTE 'cat > /etc/nginx/sites-available/default << \"NGINX_CONFIG\"
 server {
     server_name laquiniela247demo.live;
@@ -238,12 +267,12 @@ NGINX_CONFIG'" "write SSR Nginx config"
 fi
 
 # Install required packages
-log_info "Step 2/10: Installing required packages..."
+log_info "Step 2/11: Installing required packages..."
 execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y curl git build-essential'" "install required packages"
 
 # Install Node.js if not present or if version is not 18.x
 if ! ssh $SSH_OPTS $REMOTE "command -v node > /dev/null && node -v | grep -q 'v18'"; then
-    log_info "Step 2/10: Installing Node.js 18..."
+    log_info "Step 2/11: Installing Node.js 18..."
     execute_command "ssh $SSH_OPTS $REMOTE 'curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -'" "add NodeSource repository"
     execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y nodejs'" "install Node.js"
     
@@ -257,79 +286,79 @@ fi
 
 # Install PM2 if not present
 if ! ssh $SSH_OPTS $REMOTE "command -v pm2 > /dev/null"; then
-    log_info "Step 2/10: Installing PM2..."
+    log_info "Step 2/11: Installing PM2..."
     execute_command "ssh $SSH_OPTS $REMOTE 'npm install -g pm2'" "install PM2"
 fi
 
 # Install MySQL if not present
 if ! ssh $SSH_OPTS $REMOTE "command -v mysql > /dev/null"; then
-    log_info "Step 2/10: Installing MySQL..."
+    log_info "Step 2/11: Installing MySQL..."
     execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y mysql-server'" "install MySQL server"
     execute_command "ssh $SSH_OPTS $REMOTE 'systemctl enable mysql && systemctl start mysql'" "enable and start MySQL"
     verify_service "mysql"
 fi
 
 # Set MySQL root password
-log_info "Step 2/10: Configuring MySQL..."
+log_info "Step 2/11: Configuring MySQL..."
 execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'T6Bkd239XsdQA1'; FLUSH PRIVILEGES;\\\" | mysql -u root\"" "set MySQL root password"
-log_step_complete 2 10 "Provisioning server dependencies"
-log_info "8 steps remaining..."
+log_step_complete 2 11 "Provisioning server dependencies"
+log_info "9 steps remaining..."
 
 # 3. CHECK REQUIRED FILES
-log_step 3 10 "Checking required files"
-log_info "Step 3/10: Verifying .env files..."
+log_step 3 11 "Checking required files"
+log_info "Step 3/11: Verifying .env files..."
 if [ ! -f frontend/.env.production ] || [ ! -f backend/.env.production ]; then
     log_error "Required .env.production files are missing!"
     exit 1
 fi
-log_step_complete 3 10 "Checking required files"
-log_info "7 steps remaining..."
+log_step_complete 3 11 "Checking required files"
+log_info "8 steps remaining..."
 
 # 4. ENSURE REMOTE DIRECTORY EXISTS
-log_step 4 10 "Ensuring remote directory exists"
-log_info "Step 4/10: Creating remote directory..."
+log_step 4 11 "Ensuring remote directory exists"
+log_info "Step 4/11: Creating remote directory..."
 execute_command "ssh $SSH_OPTS $REMOTE 'mkdir -p $REMOTE_PATH'" "create remote directory"
-log_step_complete 4 10 "Ensuring remote directory exists"
-log_info "6 steps remaining..."
+log_step_complete 4 11 "Ensuring remote directory exists"
+log_info "7 steps remaining..."
 
 # 5. UPLOAD PROJECT FILES
-log_step 5 10 "Uploading project files"
-log_info "Step 5/10: Uploading project files to server..."
+log_step 5 11 "Uploading project files"
+log_info "Step 5/11: Uploading project files to server..."
 execute_command "rsync -av -e \"ssh $SSH_OPTS\" --exclude '.git' ./ $REMOTE:$REMOTE_PATH" "upload project files"
-log_step_complete 5 10 "Uploading project files"
-log_info "5 steps remaining..."
+log_step_complete 5 11 "Uploading project files"
+log_info "6 steps remaining..."
 
 # 6. UPLOAD ENV FILES
-log_step 6 10 "Uploading environment files"
-log_info "Step 6/10: Uploading environment files..."
+log_step 6 11 "Uploading environment files"
+log_info "Step 6/11: Uploading environment files..."
 execute_command "rsync -av -e \"ssh $SSH_OPTS\" frontend/.env.production $REMOTE:$REMOTE_PATH/frontend/.env.local" "upload frontend env file"
 execute_command "rsync -av -e \"ssh $SSH_OPTS\" backend/.env.production $REMOTE:$REMOTE_PATH/backend/.env" "upload backend env file"
-log_step_complete 6 10 "Uploading environment files"
-log_info "4 steps remaining..."
+log_step_complete 6 11 "Uploading environment files"
+log_info "5 steps remaining..."
 
 # 7. MIGRATE MYSQL DATABASE
-log_step 7 10 "Setting up database"
-log_info "Step 7/10: Starting database migration process..."
+log_step 7 11 "Setting up database"
+log_info "Step 7/11: Starting database migration process..."
 
-# Create database if it doesn't exist
-log_info "Step 7/10: Creating database..."
-execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"CREATE DATABASE IF NOT EXISTS laquiniela247 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\\\" | mysql -u root -p'T6Bkd239XsdQA1'\"" "create database"
+# Always overwrite database - drop and recreate to ensure clean slate
+log_info "Step 7/11: Dropping and recreating database for complete overwrite..."
+execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"DROP DATABASE IF EXISTS laquiniela247; CREATE DATABASE laquiniela247 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\\\" | mysql -u root -p'T6Bkd239XsdQA1'\"" "drop and recreate database"
 
-# Backup existing database if it exists
+# Create backup file path (for rollback safety, though we're doing complete overwrite)
 backup_file="$REMOTE_PATH/backup_$(date +%Y%m%d_%H%M%S).sql"
-backup_database
+# Note: No backup needed since we're doing complete database replacement
 
 # Upload and import dump.sql
-log_info "Step 7/10: Uploading and importing dump.sql..."
+log_info "Step 7/11: Uploading and importing dump.sql..."
 if [ ! -f "dump.sql" ]; then
     log_error "dump.sql not found in project root! Please create it before deploying."
     exit 1
 fi
 
-log_info "Step 7/10: Copying local dump.sql to server..."
+log_info "Step 7/11: Copying local dump.sql to server..."
 execute_command "rsync -av -e \"ssh $SSH_OPTS\" dump.sql $REMOTE:$REMOTE_PATH/" "upload dump.sql"
 
-log_info "Step 7/10: Importing database..."
+log_info "Step 7/11: Importing database..."
 if ! ssh $SSH_OPTS $REMOTE "mysql -u root -p'T6Bkd239XsdQA1' laquiniela247 < $REMOTE_PATH/dump.sql"; then
     log_error "Database import failed!"
     log_warning "Attempting rollback..."
@@ -346,47 +375,47 @@ if ! verify_database_import; then
 fi
 
 # Clean up
-log_info "Step 7/10: Cleaning up temporary files..."
+log_info "Step 7/11: Cleaning up temporary files..."
 execute_command "ssh $SSH_OPTS $REMOTE 'rm -f $REMOTE_PATH/dump.sql'" "clean up temporary files"
 
-log_step_complete 7 10 "Setting up database"
-log_info "3 steps remaining..."
+log_step_complete 7 11 "Setting up database"
+log_info "4 steps remaining..."
 
 # 8. RESTART NODE.JS APP (PM2)
-log_step 8 10 "Restarting Node.js app with PM2"
-log_info "Step 8/10: Starting frontend (Next.js SSR) with PM2..."
+log_step 8 11 "Restarting Node.js app with PM2"
+log_info "Step 8/11: Starting frontend (Next.js SSR) with PM2..."
 execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && pm2 delete laquiniela-frontend || true && pm2 start npm --name laquiniela-frontend -- start'" "start frontend SSR with PM2"
 verify_pm2_process "laquiniela-frontend"
 
-log_info "Step 8/10: Starting backend (Express) with PM2..."
+log_info "Step 8/11: Starting backend (Express) with PM2..."
 execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/backend && pm2 delete laquiniela-backend || true && pm2 start --name laquiniela-backend --interpreter \$(which tsx) src/index.ts'" "start backend with PM2"
 verify_pm2_process "laquiniela-backend"
-log_step_complete 8 10 "Restarting Node.js app with PM2"
-log_info "2 steps remaining..."
+log_step_complete 8 11 "Restarting Node.js app with PM2"
+log_info "3 steps remaining..."
 
 # 9. RESTART NGINX
-log_step 9 10 "Restarting Nginx"
-log_info "Step 9/10: Restarting Nginx service..."
+log_step 9 11 "Restarting Nginx"
+log_info "Step 9/11: Restarting Nginx service..."
 execute_command "ssh $SSH_OPTS $REMOTE 'systemctl restart nginx'" "restart Nginx"
 verify_service "nginx"
-log_step_complete 9 10 "Restarting Nginx"
+log_step_complete 9 11 "Restarting Nginx"
 log_info "1 step remaining..."
 
 # Final verification (keep this as a final check)
-log_step 10 10 "Performing final service verification"
-log_info "Step 10/10: Verifying all services..."
+log_step 11 11 "Performing final service verification"
+log_info "Step 11/11: Verifying all services..."
 verify_service "nginx"
 verify_service "mysql"
 verify_pm2_process "laquiniela-frontend"
 verify_pm2_process "laquiniela-backend"
-log_step_complete 10 10 "Final service verification"
+log_step_complete 11 11 "Final service verification"
 
 # --- HEALTH CHECK ---
-log_info "Step 10/10: Checking backend health endpoint..."
+log_info "Step 11/11: Checking backend health endpoint..."
 execute_command "ssh $SSH_OPTS $REMOTE 'curl -f http://localhost:3001/health'" "check backend health endpoint"
 
 # --- MANUAL NGINX EDIT INSTRUCTIONS ---
 log_info "If Nginx config fails to update, manually edit /etc/nginx/sites-available/default using nano or vim as described in the README."
 
-log_success "Deployment completed successfully! All 10 steps completed."
+log_success "Deployment completed successfully! All 11 steps completed."
 log_info "Application is now running at https://$DOMAIN" 
