@@ -531,7 +531,7 @@ export default function BetPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
-                  <h3 className="subsection-title">
+                  <h3 className="section-title">
                     {t('betting.select_predictions')}
                   </h3>
                   <div className="space-y-4">
@@ -687,7 +687,7 @@ export default function BetPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Games List (existing code) */}
             <div className="lg:col-span-2">
-                              <h3 className="subsection-title">
+                              <h3 className="section-title">
                   {t('betting.select_predictions')}
                 </h3>
               <div className="space-y-4">
