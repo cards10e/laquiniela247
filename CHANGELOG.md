@@ -51,6 +51,9 @@ All notable changes to this project will be documented in this file.
 - All teams now seeded with valid logo URLs for consistent frontend display.
 - Admin Create Game form now uses dropdowns for Home and Away Team selection, fetching teams from the backend.
 - Team selection dropdowns have fully localized placeholders (Spanish/English) using the new 'select_team' translation key.
+- Admin games management now displays team logos next to team names.
+- User Management table now shows 0 (localized) for total winnings if no winnings exist, instead of $NaN.
+- Preparation for /games page to use only real data and show all scheduled games (mock data removal and API logic update planned).
 
 ### Changed
 - **Seeding:** Removed legacy week 99 logic from all seeding scripts. All week/game/bet seeding is now handled by `seedHistory.ts`.

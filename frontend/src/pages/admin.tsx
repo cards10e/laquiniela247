@@ -38,6 +38,8 @@ interface Game {
   status: 'scheduled' | 'live' | 'completed';
   homeScore?: number;
   awayScore?: number;
+  homeTeamLogo?: string;
+  awayTeamLogo?: string;
 }
 
 interface AdminStats {
@@ -126,7 +128,9 @@ export default function AdminPage() {
         homeTeamName: game.homeTeamName || game.homeTeam?.name || 'TBD',
         awayTeamName: game.awayTeamName || game.awayTeam?.name || 'TBD',
         gameDate: game.gameDate || game.matchDate || '',
-        status: game.status || 'SCHEDULED'
+        status: game.status || 'SCHEDULED',
+        homeTeamLogo: game.homeTeam?.logoUrl || '',
+        awayTeamLogo: game.awayTeam?.logoUrl || '',
       });
 
       const normalizedGames = (gamesRes.data.games || []).map(normalizeGame);
@@ -514,7 +518,10 @@ export default function AdminPage() {
                               {user.totalBets}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900 dark:text-secondary-100">
-                              {formatCurrency(user.totalWinnings, language)}
+                              {formatCurrency(
+                                typeof user.totalWinnings === 'number' && !isNaN(user.totalWinnings) ? user.totalWinnings : 0,
+                                language
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -720,8 +727,28 @@ export default function AdminPage() {
                             <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
                               <div className="flex items-center justify-between mb-4">
                                 <div>
-                                  <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
-                                    {(game.homeTeamName || 'TBD')} vs {(game.awayTeamName || 'TBD')}
+                                  <h3 className="font-medium text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+                                    {game.homeTeamLogo && (
+                                      <img
+                                        src={game.homeTeamLogo}
+                                        alt={game.homeTeamName}
+                                        className="w-8 h-8 rounded-full object-cover mr-2"
+                                        style={{ background: '#fff' }}
+                                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                                      />
+                                    )}
+                                    <span>{game.homeTeamName || 'TBD'}</span>
+                                    <span className="mx-2">vs</span>
+                                    {game.awayTeamLogo && (
+                                      <img
+                                        src={game.awayTeamLogo}
+                                        alt={game.awayTeamName}
+                                        className="w-8 h-8 rounded-full object-cover mr-2"
+                                        style={{ background: '#fff' }}
+                                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                                      />
+                                    )}
+                                    <span>{game.awayTeamName || 'TBD'}</span>
                                   </h3>
                                   <p className="text-sm text-secondary-600 dark:text-secondary-400">
                                     {game.gameDate && !isNaN(new Date(game.gameDate).getTime()) ? new Date(game.gameDate).toLocaleString() : 'TBD'}

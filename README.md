@@ -145,3 +145,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Game creation now restricts minute selection to :00, :15, :30, :45.
 - Existing games are grouped by week.
 - A localized message is shown when no games are scheduled.
+
+## Recent Updates
+- Team logos are now shown in the admin games management section.
+- User Management table displays 0 (localized) for total winnings if none exist.
+- The /games page will soon show all scheduled games using only real data (mock data will be removed).
