@@ -415,6 +415,38 @@ router.post('/weeks', asyncHandler(async (req: AuthenticatedRequest, res: expres
   });
 }));
 
+// PUT /api/admin/weeks/:id - Update week status and betting deadline
+router.put('/weeks/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  const weekId = parseInt(req.params.id);
+  if (isNaN(weekId)) {
+    throw createError('Invalid week ID', 400);
+  }
+
+  const { status, bettingDeadline } = req.body;
+  if (!status && !bettingDeadline) {
+    throw createError('No update fields provided', 400);
+  }
+
+  const updateData: any = {};
+  if (status) updateData.status = status.toUpperCase();
+  if (bettingDeadline) updateData.bettingDeadline = new Date(bettingDeadline);
+
+  const week = await prisma.week.findUnique({ where: { id: weekId } });
+  if (!week) {
+    throw createError('Week not found', 404);
+  }
+
+  const updatedWeek = await prisma.week.update({
+    where: { id: weekId },
+    data: updateData,
+  });
+
+  res.json({
+    message: 'Week updated successfully',
+    week: updatedWeek,
+  });
+}));
+
 // GET /api/admin/teams - Get all teams
 router.get('/teams', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const teams = await prisma.team.findMany({

@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { addDays, startOfWeek, format, isAfter, isBefore } from 'date-fns';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import React from 'react';
 
 interface User {
   id: number;
@@ -23,7 +24,7 @@ interface User {
 interface Week {
   id: number;
   weekNumber: number;
-  status: 'open' | 'closed' | 'completed';
+  status: 'upcoming' | 'open' | 'closed' | 'completed';
   bettingDeadline: string;
   startDate: string;
   endDate: string;
@@ -91,6 +92,16 @@ export default function AdminPage() {
   const [gameHour, setGameHour] = useState('12');
   const [gameMinute, setGameMinute] = useState('00');
 
+  // Add state for the deadline modal
+  const [showDeadlineModal, setShowDeadlineModal] = useState<string | null>(null);
+
+  // Add state for selected deadline (in hours)
+  const [selectedDeadlineHours, setSelectedDeadlineHours] = useState<string | null>(null);
+
+  // Add at the top level of the AdminPage component, before the return statement:
+  const [openDeadlineWeekId, setOpenDeadlineWeekId] = React.useState<number | null>(null);
+  const [deadlineLoading, setDeadlineLoading] = React.useState(false);
+
   const [axiosInstance] = useState(() => {
     return axios.create({
       baseURL: '/api',
@@ -125,6 +136,7 @@ export default function AdminPage() {
       // Normalize games data
       const normalizeGame = (game: any) => ({
         id: game.id,
+        weekId: game.weekId || game.weekNumber || (game.week && (game.week.id || game.week.weekNumber)),
         homeTeamName: game.homeTeamName || game.homeTeam?.name || 'TBD',
         awayTeamName: game.awayTeamName || game.awayTeam?.name || 'TBD',
         gameDate: game.gameDate || game.matchDate || '',
@@ -186,51 +198,40 @@ export default function AdminPage() {
       if (!selectedWeek) throw new Error('Selected week not found');
       // Check if week exists in backend
       let backendWeek = weeks.find(w => w.weekNumber === selectedWeek.weekNumber);
+      let backendWeekId;
       if (!backendWeek) {
-        console.log('[DEBUG] Sending week creation request for game:', selectedWeek);
+        // Create the week and use the returned ID, set betting deadline here
+        const firstGameDate = newGame.gameDate ? new Date(newGame.gameDate) : new Date(selectedWeek.startDate);
+        const bettingDeadline = new Date(firstGameDate.getTime() - Number(selectedDeadlineHours) * 60 * 60 * 1000).toISOString();
         const weekRes = await axiosInstance.post('/admin/weeks', {
           weekNumber: selectedWeek.weekNumber,
           season: '2025',
           startDate: selectedWeek.startDate,
           endDate: selectedWeek.endDate,
-          bettingDeadline: new Date(new Date(selectedWeek.startDate).getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+          bettingDeadline
         });
-        console.log('[DEBUG] Week creation response for game:', weekRes.data);
-        // Robustly fetch weeks directly from backend until the new week appears
-        let tries = 0;
-        while (tries < 5) {
-          const res = await axiosInstance.get('/weeks');
-          const freshWeeks = res.data.weeks;
-          backendWeek = freshWeeks.find((w: any) => w.weekNumber === selectedWeek.weekNumber);
-          if (backendWeek) break;
-          await new Promise(res => setTimeout(res, 300));
-          tries++;
-        }
+        backendWeekId = weekRes.data.id;
+      } else {
+        backendWeekId = backendWeek.id;
+        // Do NOT update the week, since no update endpoint exists
       }
-      if (!backendWeek) throw new Error('Failed to create or find week');
+      if (!backendWeekId) throw new Error('Failed to create or find week');
       // Create the game
       const matchDateISO = new Date(newGame.gameDate).toISOString();
-      console.log('[DEBUG] Sending game creation request:', {
+      await axiosInstance.post('/admin/games', {
         weekNumber: selectedWeek.weekNumber,
         season: '2025',
         homeTeamId: parseInt(newGame.homeTeamId),
         awayTeamId: parseInt(newGame.awayTeamId),
         matchDate: matchDateISO
       });
-      const gameRes = await axiosInstance.post('/admin/games', {
-        weekNumber: selectedWeek.weekNumber,
-        season: '2025',
-        homeTeamId: parseInt(newGame.homeTeamId),
-        awayTeamId: parseInt(newGame.awayTeamId),
-        matchDate: matchDateISO
-      });
-      console.log('[DEBUG] Game creation response:', gameRes.data);
       toast.success(t('admin.game_created'));
       setNewGame({ weekId: '', homeTeamId: '', awayTeamId: '', gameDate: '' });
+      setSelectedDeadlineHours(null);
+      setShowDeadlineModal(null);
       fetchAdminData();
-    } catch (error) {
-      console.error('[DEBUG] Failed to create game:', error);
-      toast.error(t('admin.game_creation_failed'));
+    } catch (error: any) {
+      toast.error(t('admin.game_creation_failed') + (error?.response?.data?.message ? ': ' + error.response.data.message : ''));
     }
   };
 
@@ -311,13 +312,13 @@ export default function AdminPage() {
 
   // Delete game handler
   const handleDeleteGame = async (gameId: number) => {
-    if (!window.confirm('Are you sure you want to delete this game?')) return;
+    if (!window.confirm(t('admin.delete_game_confirm'))) return;
     try {
       await axiosInstance.delete(`/admin/games/${gameId}`);
-      toast.success('Game deleted');
+      toast.success(t('admin.game_deleted'));
       fetchAdminData();
     } catch (error) {
-      toast.error('Failed to delete game');
+      toast.error(t('admin.game_delete_failed'));
     }
   };
 
@@ -325,6 +326,28 @@ export default function AdminPage() {
   function combineDateTime(date: string, hour: string, minute: string) {
     if (!date) return '';
     return `${date}T${hour}:${minute}`;
+  }
+
+  // Handler to set current week and deadline
+  async function handleSetCurrentWeek(weekId: string, hours: number) {
+    // Find all games for this week
+    const weekGames = games.filter(g => String(g.weekId) === String(weekId));
+    if (!weekGames.length) {
+      toast.error(t('admin.no_games_for_week'));
+      return;
+    }
+    // Find the earliest gameDate
+    const firstGame = weekGames.reduce((earliest, game) =>
+      !earliest || new Date(game.gameDate) < new Date(earliest.gameDate) ? game : earliest, null as Game | null
+    );
+    const deadline = new Date(new Date(firstGame!.gameDate).getTime() - hours * 60 * 60 * 1000).toISOString();
+    await axiosInstance.put(`/admin/weeks/${weekId}`, {
+      status: 'open',
+      bettingDeadline: deadline
+    });
+    setShowDeadlineModal(null);
+    toast.success(t('admin.week_set_current'));
+    fetchAdminData();
   }
 
   if (loading) {
@@ -691,9 +714,7 @@ export default function AdminPage() {
                         </select>
                       </div>
                     </div>
-                    <button type="submit" className="btn-primary">
-                      {t('admin.create_game')}
-                    </button>
+                    <button type="submit" className="btn-primary">{t('admin.create_game')}</button>
                   </form>
                 </div>
 
@@ -718,105 +739,148 @@ export default function AdminPage() {
                           acc[weekId].push(game);
                           return acc;
                         }, {} as Record<number, Game[]>)
-                      ).map(([weekId, weekGames]) => (
-                        <div key={weekId} className="space-y-4">
-                          <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
-                            {t('dashboard.week')} {weekGames[0].weekId}
-                          </h3>
-                          {weekGames.map((game) => (
-                            <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg">
-                              <div className="flex items-center justify-between mb-4">
-                                <div>
-                                  <h3 className="font-medium text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-                                    {game.homeTeamLogo && (
-                                      <img
-                                        src={game.homeTeamLogo}
-                                        alt={game.homeTeamName}
-                                        className="w-8 h-8 rounded-full object-cover mr-2"
-                                        style={{ background: '#fff' }}
-                                        onError={e => { e.currentTarget.style.display = 'none'; }}
-                                      />
-                                    )}
-                                    <span>{game.homeTeamName || 'TBD'}</span>
-                                    <span className="mx-2">vs</span>
-                                    {game.awayTeamLogo && (
-                                      <img
-                                        src={game.awayTeamLogo}
-                                        alt={game.awayTeamName}
-                                        className="w-8 h-8 rounded-full object-cover mr-2"
-                                        style={{ background: '#fff' }}
-                                        onError={e => { e.currentTarget.style.display = 'none'; }}
-                                      />
-                                    )}
-                                    <span>{game.awayTeamName || 'TBD'}</span>
-                                  </h3>
-                                  <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                                    {game.gameDate && !isNaN(new Date(game.gameDate).getTime()) ? new Date(game.gameDate).toLocaleString() : 'TBD'}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    game.status === 'completed'
-                                      ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
-                                      : game.status === 'live'
-                                      ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
-                                      : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                                  }`}>
-                                    {(() => {
-                                      const statusKey = `admin.${game.status.toLowerCase()}`;
-                                      const translatedStatus = t(statusKey);
-                                      const fallbackStatus = t('admin.scheduled');
-                                      return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
-                                    })()}
-                                  </span>
-                                  <button
-                                    className="btn-danger btn-xs ml-2"
-                                    onClick={() => handleDeleteGame(game.id)}
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                              
-                              {game.status === 'scheduled' && (
-                                <div className="flex items-center space-x-4">
-                                  <input
-                                    type="number"
-                                    placeholder={t('admin.home_score')}
-                                    className="form-input w-20"
-                                    id={`home-score-${game.id}`}
-                                  />
-                                  <span className="text-secondary-500 dark:text-secondary-400">-</span>
-                                  <input
-                                    type="number"
-                                    placeholder={t('admin.away_score')}
-                                    className="form-input w-20"
-                                    id={`away-score-${game.id}`}
-                                  />
-                                  <button
-                                    onClick={() => {
-                                      const homeScore = parseInt((document.getElementById(`home-score-${game.id}`) as HTMLInputElement).value);
-                                      const awayScore = parseInt((document.getElementById(`away-score-${game.id}`) as HTMLInputElement).value);
-                                      if (!isNaN(homeScore) && !isNaN(awayScore)) {
-                                        handleUpdateGameResult(game.id, homeScore, awayScore);
-                                      }
-                                    }}
-                                    className="btn-primary"
-                                  >
-                                    {t('admin.update_result')}
-                                  </button>
-                                </div>
-                              )}
-                              
-                              {game.status === 'completed' && (
-                                <div className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-                                  {t('admin.final_score')}: {game.homeScore} - {game.awayScore}
-                                </div>
+                      ).map(([weekId, weekGames]) => {
+                        const week = weeks.find(w => w.weekNumber === weekGames[0].weekId);
+
+                        // Handler for opening betting
+                        const handleOpenBetting = async (hours: string) => {
+                          if (!week) return;
+                          setDeadlineLoading(true);
+                          try {
+                            // Find earliest game date in this week
+                            const firstGame = weekGames.reduce((earliest, game) =>
+                              !earliest || new Date(game.gameDate) < new Date(earliest.gameDate) ? game : earliest, null as Game | null
+                            );
+                            const deadline = new Date(new Date(firstGame!.gameDate).getTime() - Number(hours) * 60 * 60 * 1000).toISOString();
+                            await axiosInstance.put(`/admin/weeks/${week.id}`, {
+                              status: 'open',
+                              bettingDeadline: deadline
+                            });
+                            toast.success(t('admin.week_set_current'));
+                            setOpenDeadlineWeekId(null);
+                            fetchAdminData();
+                          } catch (error) {
+                            toast.error(t('admin.week_creation_failed'));
+                          } finally {
+                            setDeadlineLoading(false);
+                          }
+                        };
+
+                        console.log('[DEBUG] weekId:', weekId, '\n[DEBUG] weekGames:', weekGames, '\n[DEBUG] found week:', week, '\n[DEBUG] week.status:', week && week.status);
+
+                        return (
+                          <div key={weekId} className="space-y-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                                {t('dashboard.week')} {weekGames[0].weekId}
+                              </h3>
+                              {week && week.status && week.status.toLowerCase() === 'upcoming' && openDeadlineWeekId !== Number(weekId) && (
+                                <button
+                                  className="btn btn-xs btn-primary"
+                                  type="button"
+                                  onClick={() => setOpenDeadlineWeekId(Number(weekId))}
+                                >
+                                  {t('admin.open_betting')}
+                                </button>
                               )}
                             </div>
-                          ))}
-                        </div>
-                      ))
+                            {openDeadlineWeekId === Number(weekId) && (
+                              <div className="mb-2 p-2 bg-secondary-50 dark:bg-secondary-900/30 rounded">
+                                <div className="font-semibold mb-2">{t('admin.choose_betting_deadline')}</div>
+                                {["12", "6", "2"].map(hours => (
+                                  <button
+                                    key={hours}
+                                    type="button"
+                                    className={`btn btn-xs mr-2 btn-secondary`}
+                                    disabled={deadlineLoading}
+                                    onClick={() => handleOpenBetting(hours)}
+                                  >
+                                    {t('admin.hours_before_game', { hours })}
+                                  </button>
+                                ))}
+                                <button
+                                  className="btn btn-xs btn-secondary"
+                                  type="button"
+                                  disabled={deadlineLoading}
+                                  onClick={() => setOpenDeadlineWeekId(null)}
+                                >
+                                  {t('admin.cancel')}
+                                </button>
+                              </div>
+                            )}
+                            {weekGames.map((game) => (
+                              <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-secondary-50 dark:bg-secondary-900/30 mb-2">
+                                <div className="flex items-center justify-between w-full">
+                                  {/* Teams/logos left */}
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {game.homeTeamLogo && (
+                                        <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-8 h-8 rounded-full object-cover" />
+                                      )}
+                                      <span className="font-medium truncate max-w-[120px]">{game.homeTeamName || t('admin.tbd')}</span>
+                                    </div>
+                                    <span className="mx-2 text-secondary-500">{t('admin.vs')}</span>
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span className="font-medium truncate max-w-[120px]">{game.awayTeamName || t('admin.tbd')}</span>
+                                      {game.awayTeamLogo && (
+                                        <img src={game.awayTeamLogo} alt={game.awayTeamName} className="w-8 h-8 rounded-full object-cover" />
+                                      )}
+                                    </div>
+                                  </div>
+                                  {/* Badges/buttons right */}
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
+                                      {t('admin.game_start')}: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
+                                        ? new Date(game.gameDate).toLocaleString(undefined, { timeZoneName: 'short' })
+                                        : t('admin.tbd')}
+                                    </span>
+                                    {/* Show 'Open' badge if the week is open and the game is scheduled */}
+                                    {(() => {
+                                      const week = weeks.find(w => w.weekNumber === game.weekId);
+                                      if (
+                                        week &&
+                                        week.status &&
+                                        week.status.toLowerCase() === 'open' &&
+                                        game.status &&
+                                        game.status.toLowerCase() === 'scheduled' &&
+                                        week.bettingDeadline &&
+                                        new Date() < new Date(week.bettingDeadline)
+                                      ) {
+                                        return (
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400 mr-2">
+                                            {`Open for betting: ${new Date(week.bettingDeadline).toLocaleString(undefined, { timeZoneName: 'short' })}`}
+                                          </span>
+                                        );
+                                      }
+                                      return null;
+                                    })()}
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                      game.status === 'completed'
+                                        ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                                        : game.status === 'live'
+                                        ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                                        : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                                    }`}>
+                                      {(() => {
+                                        const statusKey = `admin.${game.status.toLowerCase()}`;
+                                        const translatedStatus = t(statusKey);
+                                        const fallbackStatus = t('admin.scheduled');
+                                        return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
+                                      })()}
+                                    </span>
+                                    <button
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400 ml-2"
+                                      onClick={() => handleDeleteGame(game.id)}
+                                    >
+                                      {t('admin.delete_game')}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 </div>

@@ -270,11 +270,34 @@ router.post('/reset-password', asyncHandler(async (req: express.Request, res: ex
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  // In a stateless JWT system, logout is handled client-side
-  // by removing the token from storage
-  res.json({
-    message: 'Logged out successfully'
-  });
+  try {
+    // Clear the auth_token cookie properly
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? '.laquiniela247demo.live' : undefined
+    });
+
+    // Clear refresh_token cookie if it exists
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? '.laquiniela247demo.live' : undefined
+    });
+
+    res.json({
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      error: 'Logout failed'
+    });
+  }
 });
 
 // GET /api/auth/status - Check authentication status

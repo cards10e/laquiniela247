@@ -17,6 +17,7 @@ interface Game {
   status: 'scheduled' | 'live' | 'completed';
   homeScore?: number;
   awayScore?: number;
+  weekId?: number; // Added for admin view
   userBet?: {
     prediction: PredictionType;
     isCorrect: boolean | null;
@@ -26,7 +27,7 @@ interface Game {
 interface Week {
   id: number;
   weekNumber: number;
-  status: 'open' | 'closed' | 'completed';
+  status: 'upcoming' | 'open' | 'closed' | 'completed';
   bettingDeadline: string;
 }
 
@@ -52,9 +53,39 @@ export default function BetPage() {
   const [singleBetAmounts, setSingleBetAmounts] = useState<Record<number, number>>({});
   const [singleSubmitting, setSingleSubmitting] = useState<Record<number, boolean>>({});
 
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
+
   useEffect(() => {
-    fetchBettingData();
-  }, []);
+    if (isAdmin) {
+      fetchAdminGamesData();
+    } else {
+      fetchBettingData();
+    }
+  }, [isAdmin]);
+
+  const fetchAdminGamesData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/admin/games');
+      const adminGames = response.data.games.map((game: any) => ({
+        id: game.id,
+        homeTeamName: game.homeTeam?.name || 'TBD',
+        awayTeamName: game.awayTeam?.name || 'TBD',
+        homeTeamLogo: game.homeTeam?.logoUrl,
+        awayTeamLogo: game.awayTeam?.logoUrl,
+        gameDate: game.matchDate,
+        status: game.status?.toLowerCase() || 'scheduled',
+        weekId: game.weekNumber || game.week?.weekNumber,
+      }));
+      setGames(adminGames);
+    } catch (error) {
+      console.error('Failed to fetch admin games data:', error);
+      setGames([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchBettingData = async () => {
     try {
@@ -303,6 +334,96 @@ export default function BetPage() {
         <ProtectedRoute>
           <div className="flex items-center justify-center min-h-96">
             <div className="spinner"></div>
+          </div>
+        </ProtectedRoute>
+      </Layout>
+    );
+  }
+
+  // Admin view - don't check betting status
+  if (isAdmin) {
+    return (
+      <Layout title="Existing Games">
+        <ProtectedRoute>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+                Existing Games
+              </h1>
+            </div>
+            <div className="space-y-8">
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title">Games</h2>
+                </div>
+                <div className="space-y-4">
+                  {games.length === 0 ? (
+                    <div className="text-center py-8 text-secondary-600 dark:text-secondary-400">
+                      No games available.
+                    </div>
+                  ) : (
+                    // Group games by week
+                    Object.entries(
+                      games.reduce((acc, game) => {
+                        const weekId = game.weekId || 'unknown';
+                        if (!acc[weekId]) {
+                          acc[weekId] = [];
+                        }
+                        acc[weekId].push(game);
+                        return acc;
+                      }, {} as Record<string, Game[]>)
+                    ).map(([weekId, weekGames]) => (
+                      <div key={weekId} className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-medium text-secondary-900 dark:text-secondary-100">
+                            Week {weekId}
+                          </h3>
+                        </div>
+                        {weekGames.map((game) => (
+                          <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-secondary-50 dark:bg-secondary-900/30 mb-2">
+                            <div className="flex items-center justify-between w-full">
+                              {/* Teams/logos left */}
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {game.homeTeamLogo && (
+                                    <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-8 h-8 rounded-full object-cover" />
+                                  )}
+                                  <span className="font-medium truncate max-w-[120px]">{game.homeTeamName}</span>
+                                </div>
+                                <span className="mx-2 text-secondary-500">vs</span>
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="font-medium truncate max-w-[120px]">{game.awayTeamName}</span>
+                                  {game.awayTeamLogo && (
+                                    <img src={game.awayTeamLogo} alt={game.awayTeamName} className="w-8 h-8 rounded-full object-cover" />
+                                  )}
+                                </div>
+                              </div>
+                              {/* Badges/buttons right */}
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
+                                  Game Start: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
+                                    ? new Date(game.gameDate).toLocaleString(undefined, { timeZoneName: 'short' })
+                                    : 'TBD'}
+                                </span>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  game.status === 'completed'
+                                    ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                                    : game.status === 'live'
+                                    ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                                    : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                                }`}>
+                                  {game.status.charAt(0).toUpperCase() + game.status.slice(1)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </ProtectedRoute>
       </Layout>

@@ -256,7 +256,21 @@ const translations = {
       game_result_update_failed: "Failed to update game result",
       user_status_updated: "User status updated successfully",
       user_status_update_failed: "Failed to update user status",
-      no_games_message: "No games currently scheduled. Please create a game above."
+      no_games_message: "No games currently scheduled. Please create a game above.",
+      open_betting: "Open Betting for This Week",
+      choose_betting_deadline: "Choose Betting Deadline",
+      hours_before_game: "%{hours} Hours before game start",
+      cancel: "Cancel",
+      delete_game: "Delete",
+      delete_game_confirm: "Are you sure you want to delete this game?",
+      game_deleted: "Game deleted",
+      game_delete_failed: "Failed to delete game",
+      betting_open: "Betting Open",
+      game_start: "Game Start",
+      vs: "vs",
+      tbd: "TBD",
+      week_set_current: "Week set as current and deadline updated!",
+      no_games_for_week: "No games found for this week."
     },
     themes: {
       light: "Light Mode",
@@ -514,7 +528,21 @@ const translations = {
       game_result_update_failed: "Error al actualizar el resultado del juego",
       user_status_updated: "Estado del usuario actualizado exitosamente",
       user_status_update_failed: "Error al actualizar el estado del usuario",
-      no_games_message: "No hay juegos programados actualmente. Por favor, crea un juego arriba."
+      no_games_message: "No hay juegos programados actualmente. Por favor, crea un juego arriba.",
+      open_betting: "Abrir Apuestas para Esta Jornada",
+      choose_betting_deadline: "Elegir Fecha Límite de Apuestas",
+      hours_before_game: "%{hours} Horas antes del inicio del juego",
+      cancel: "Cancelar",
+      delete_game: "Eliminar",
+      delete_game_confirm: "¿Estás seguro de que quieres eliminar este juego?",
+      game_deleted: "Juego eliminado",
+      game_delete_failed: "Error al eliminar el juego",
+      betting_open: "Apuestas Abiertas",
+      game_start: "Inicio del Juego",
+      vs: "vs",
+      tbd: "Pendiente",
+      week_set_current: "¡Jornada establecida como actual y fecha límite actualizada!",
+      no_games_for_week: "No se encontraron juegos para esta jornada."
     },
     themes: {
       light: "Modo Claro",
@@ -571,11 +599,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       return key;
     }
 
-    // Replace parameters in the string
+    // Replace named parameters in the string
     if (params) {
-      return value.replace(/%s/g, () => {
-        const paramKeys = Object.keys(params);
-        return paramKeys.length > 0 ? String(params[paramKeys[0]]) : '%s';
+      return value.replace(/%{(\w+)}/g, (match, paramName) => {
+        return params[paramName] !== undefined ? String(params[paramName]) : match;
       });
     }
 

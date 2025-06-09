@@ -138,6 +138,26 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Status:** Resolved as of June 2025. Admin panel and protected routes now authenticate correctly using cookies or headers.
 
+## Troubleshooting: Logout Issues (June 2025)
+
+### Symptoms
+- Users unable to properly logout and re-login with different accounts
+- Session state persisting after logout attempts
+- Incomplete cleanup when switching between demo and admin users
+
+### Root Cause
+- Backend logout endpoint wasn't clearing HTTP-only cookies
+- Frontend cookie cleanup wasn't handling domain variations
+- Local/session storage not being cleared during logout
+
+### Solution
+- Enhanced backend `/auth/logout` to properly clear cookies with correct domain/path settings
+- Improved frontend logout to handle development vs production domains
+- Added comprehensive storage cleanup (localStorage + sessionStorage)
+- Implemented fallback mechanisms for robust logout completion
+
+**Status:** Resolved as of June 2025. Logout now works reliably across all user types and environments.
+
 ## Notes on Translations
 - All translation keys are managed in `frontend/src/context/I18nContext.tsx` in the `translations` object. The JSON files in `frontend/src/locales/` are not used.
 

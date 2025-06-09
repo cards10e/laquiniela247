@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
+import { useDemo } from '@/context/DemoContext';
 import { Layout } from '@/components/layout/Layout';
 import { toast } from 'react-hot-toast';
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, loading, user } = useAuth();
   const { t } = useI18n();
+  const { isDemoUser } = useDemo();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -25,11 +27,12 @@ export default function LoginPage() {
       if (user && user.role && user.role.toLowerCase() === 'admin') {
         router.replace('/admin');
       } else {
-        const redirectTo = (router.query.redirect as string) || '/dashboard';
+        const defaultRoute = isDemoUser ? '/bet' : '/dashboard';
+        const redirectTo = (router.query.redirect as string) || defaultRoute;
         router.replace(redirectTo);
       }
     }
-  }, [isAuthenticated, loading, router, user]);
+  }, [isAuthenticated, loading, router, user, isDemoUser]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -78,7 +81,10 @@ export default function LoginPage() {
       if (user.role && user.role.toLowerCase() === 'admin') {
         router.push('/admin');
       } else {
-        const redirectTo = (router.query.redirect as string) || '/dashboard';
+        // Check if this is a demo user by email
+        const isNewDemoUser = user.email === 'demo@laquiniela247.mx';
+        const defaultRoute = isNewDemoUser ? '/bet' : '/dashboard';
+        const redirectTo = (router.query.redirect as string) || defaultRoute;
         router.push(redirectTo);
       }
     } catch (error: any) {

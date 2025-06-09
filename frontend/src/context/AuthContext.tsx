@@ -214,14 +214,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      // Call backend logout to clear server-side cookies
       await axiosInstance.post('/auth/logout');
     } catch (err) {
       console.error('Logout error:', err);
-    } finally {
+      // Continue with cleanup even if backend call fails
+    }
+
+    try {
+      // Clear client-side cookies with all possible domain variations
+      const domain = process.env.NODE_ENV === 'production' ? '.laquiniela247demo.live' : undefined;
+      
+      // Remove cookies with domain
+      Cookies.remove('auth_token', { domain });
+      Cookies.remove('refresh_token', { domain });
+      
+      // Remove cookies without domain (fallback)
       Cookies.remove('auth_token');
       Cookies.remove('refresh_token');
+      
+      // Clear all local storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // Clear user state
       setUser(null);
-      window.location.href = '/login';
+      setError(null);
+      setLoading(false);
+      
+      // Use router for navigation instead of window.location
+      if (typeof window !== 'undefined') {
+        // Small delay to ensure state is cleared
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      }
+    } catch (cleanupError) {
+      console.error('Cleanup error during logout:', cleanupError);
+      // Force redirect even if cleanup fails
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
   };
 

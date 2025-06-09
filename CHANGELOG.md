@@ -141,6 +141,31 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased] - June 2025
+
+### Fixed
+- **Critical Logout Bug**: Resolved high-priority logout issues when switching between users or ending testing sessions
+  - Enhanced backend `/auth/logout` endpoint to properly clear HTTP-only cookies with correct domain/path settings
+  - Improved frontend logout to clear cookies with all domain variations (development vs production)
+  - Added comprehensive localStorage/sessionStorage cleanup
+  - Added fallback error handling and forced cleanup mechanisms
+  - Fixed issues where partial logout states could occur during network failures
+
+### Changed
+- **Demo User Navigation**: For demo users only, reordered navigation to show "Juegos" (Games) first, followed by "Panel"
+  - Navigation now displays: "Juegos | Panel | Mi Historial | Perfil" for demo users
+  - Panel link shows as "Panel" instead of "Admin Panel" for demo users
+  - Regular admin users maintain original navigation order
+  - No impact on regular user navigation
+
+### Deployment
+- **Environment Files**: Updated deployment script (`deploy.sh`) to use production environment files
+  - Now uses `frontend/.env.production` and `backend/.env.production` for live deployments
+  - Local development environment files remain unchanged
+  - Ensures proper separation of development and production configurations
+
+---
+
 ## [Unreleased]
 - Ongoing improvements and minor bug fixes.
 - Admin: Restrict minute selection for game creation to :00, :15, :30, :45 and use dropdowns for hour/minute.

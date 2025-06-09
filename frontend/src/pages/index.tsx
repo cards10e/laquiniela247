@@ -1,20 +1,23 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
+import { useDemo } from '@/context/DemoContext';
 
 export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
+  const { isDemoUser } = useDemo();
 
   useEffect(() => {
     if (!loading) {
       if (isAuthenticated) {
-        router.replace('/dashboard');
+        // Demo users go to games page, regular users go to dashboard
+        router.replace(isDemoUser ? '/bet' : '/dashboard');
       } else {
         router.replace('/login');
       }
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, isDemoUser, router]);
 
   // Show loading spinner while determining redirect
   return (

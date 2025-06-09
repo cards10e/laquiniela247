@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
+import { useDemo } from '@/context/DemoContext';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
@@ -12,6 +13,7 @@ interface HeaderProps {
 export function Header({ minimal = false }: HeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const { t } = useI18n();
+  const { isDemoUser } = useDemo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   let navItems = [
@@ -23,7 +25,16 @@ export function Header({ minimal = false }: HeaderProps) {
 
   const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
 
-  if (isAdmin) {
+  // Special handling for demo users - they get regular user navigation + Panel access with games first
+  if (isDemoUser) {
+    navItems = [
+      { key: 'games', href: '/bet', label: t('navigation.games') },
+      { key: 'admin', href: '/admin', label: 'Panel' }, // Use "Panel" instead of full "Admin Panel"
+      { key: 'history', href: '/history', label: t('navigation.history') },
+      { key: 'profile', href: '/profile', label: t('navigation.profile') },
+    ];
+  } else if (isAdmin) {
+    // For regular admin users: keep original order
     navItems = [
       { key: 'admin', href: '/admin', label: t('navigation.admin_panel') },
       { key: 'games', href: '/bet', label: t('navigation.games') },
@@ -37,7 +48,7 @@ export function Header({ minimal = false }: HeaderProps) {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center">
+            <Link href={isAuthenticated ? (isDemoUser ? "/bet" : "/dashboard") : "/"} className="flex items-center">
               <img
                 src="/logotipo-la-quiniela-247-min-2-1-1.png"
                 alt="La Quiniela 247"

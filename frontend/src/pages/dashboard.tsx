@@ -64,12 +64,12 @@ export default function DashboardPage() {
       const [profileRes, weekRes, gamesRes, statsRes] = await Promise.all([
         axios.get('/api/users/profile'),
         axios.get('/api/weeks/current'),
-        axios.get('/api/games/current-week'),
+        axios.get('/api/games'),
         axios.get('/api/users/stats')
       ]);
       console.log('[Dashboard Debug] /api/users/profile response:', profileRes.data);
       console.log('[Dashboard Debug] /api/weeks/current response:', weekRes.data);
-      console.log('[Dashboard Debug] /api/games/current-week response:', gamesRes.data);
+      console.log('[Dashboard Debug] /api/games response:', gamesRes.data);
       console.log('[Dashboard Debug] /api/users/stats response:', statsRes.data);
       // Debug: log raw games array
       console.log('[Dashboard Debug] Raw games array:', gamesRes.data.games);
@@ -149,49 +149,11 @@ export default function DashboardPage() {
       }, 1000);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-      // Set mock data for demo
-      setProfile({
-        totalBets: 24,
-        overallPercentage: 66.7,
-        bestRankingPosition: 10,
-        totalWinnings: 2500,
-        currentStreak: 3,
-        bestWeek: 85
-      });
-      setCurrentWeek({
-        id: 1,
-        weekNumber: 15,
-        status: 'open',
-        bettingDeadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      });
-      setGames([
-        {
-          id: 1,
-          homeTeamName: 'América',
-          awayTeamName: 'Chivas',
-          gameDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        },
-        {
-          id: 2,
-          homeTeamName: 'Cruz Azul',
-          awayTeamName: 'Pumas',
-          gameDate: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        }
-      ]);
-      setRecentActivity([
-        {
-          id: 1,
-          weekNumber: 14,
-          correctPredictions: 8,
-          totalPredictions: 10,
-          winnings: 150,
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ]);
+      // Remove all mock data. Only set loading to false and optionally set error state.
+      setProfile(null);
+      setCurrentWeek(null);
+      setGames([]);
+      setRecentActivity([]);
     } finally {
       setLoading(false);
     }

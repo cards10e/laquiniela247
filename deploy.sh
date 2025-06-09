@@ -278,8 +278,8 @@ log_info "8 steps remaining..."
 # 3. CHECK REQUIRED FILES
 log_step 3 10 "Checking required files"
 log_info "Step 3/10: Verifying .env files..."
-if [ ! -f frontend/.env.local ] || [ ! -f backend/.env ]; then
-    log_error "Required .env files are missing!"
+if [ ! -f frontend/.env.production ] || [ ! -f backend/.env.production ]; then
+    log_error "Required .env.production files are missing!"
     exit 1
 fi
 log_step_complete 3 10 "Checking required files"
@@ -302,8 +302,8 @@ log_info "5 steps remaining..."
 # 6. UPLOAD ENV FILES
 log_step 6 10 "Uploading environment files"
 log_info "Step 6/10: Uploading environment files..."
-execute_command "rsync -av -e \"ssh $SSH_OPTS\" frontend/.env.local $REMOTE:$REMOTE_PATH/frontend/.env.local" "upload frontend env file"
-execute_command "rsync -av -e \"ssh $SSH_OPTS\" backend/.env $REMOTE:$REMOTE_PATH/backend/.env" "upload backend env file"
+execute_command "rsync -av -e \"ssh $SSH_OPTS\" frontend/.env.production $REMOTE:$REMOTE_PATH/frontend/.env.local" "upload frontend env file"
+execute_command "rsync -av -e \"ssh $SSH_OPTS\" backend/.env.production $REMOTE:$REMOTE_PATH/backend/.env" "upload backend env file"
 log_step_complete 6 10 "Uploading environment files"
 log_info "4 steps remaining..."
 
