@@ -10,6 +10,10 @@ REMOTE_PATH="/var/www/laquiniela"
 DOMAIN="laquiniela247demo.live"
 EMAIL="mikeaj5150@gmail.com"
 
+# --- DEPLOYMENT OPTIONS ---
+MIGRATE_DB=${MIGRATE_DB:-false}
+BACKUP_PROD=${BACKUP_PROD:-false}
+
 # --- COLORS ---
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -161,34 +165,64 @@ execute_command() {
 # Start SSH agent and cache key
 setup_ssh_agent
 
-# 0. GENERATE FRESH DATABASE DUMP
-log_step 0 11 "Generating fresh database dump"
-log_info "Step 0/11: Creating fresh dump.sql from local database..."
+# --- DEPLOYMENT CONFIGURATION ---
+log_info "=== DEPLOYMENT CONFIGURATION ==="
+log_info "Database Migration: $MIGRATE_DB"
+log_info "Production Backup: $BACKUP_PROD"
+log_info "Target Server: $REMOTE"
+log_info "Target Domain: $DOMAIN"
 
-# Check if local database exists
-if ! mysql -u root -pT6Bkd239XsdQA1 -e "USE laquiniela247;" 2>/dev/null; then
-    log_error "Local database 'laquiniela247' not found! Please ensure your local database is set up."
-    exit 1
+if [ "$MIGRATE_DB" = "true" ]; then
+    log_warning "⚠️  WARNING: Database migration is ENABLED!"
+    log_warning "⚠️  This will COMPLETELY OVERWRITE production database!"
+    log_warning "⚠️  All production-only data will be PERMANENTLY LOST!"
+    if [ "$BACKUP_PROD" = "true" ]; then
+        log_info "✅ Production backup is enabled for safety"
+    else
+        log_warning "❌ NO BACKUP will be created - data loss is permanent!"
+    fi
+    log_warning "Press Ctrl+C within 10 seconds to abort deployment..."
+    sleep 10
+    log_info "Proceeding with database migration..."
+else
+    log_info "✅ Safe deployment mode - database will NOT be modified"
 fi
 
-# Remove old dump if it exists
-if [ -f "dump.sql" ]; then
-    log_info "Step 0/11: Removing old dump.sql..."
-    rm dump.sql
+# 0. GENERATE FRESH DATABASE DUMP (Conditional)
+if [ "$MIGRATE_DB" = "true" ]; then
+    log_step 0 11 "Generating fresh database dump"
+    log_info "Step 0/11: Creating fresh dump.sql from local database..."
+
+    # Check if local database exists
+    if ! mysql -u root -pT6Bkd239XsdQA1 -e "USE laquiniela247;" 2>/dev/null; then
+        log_error "Local database 'laquiniela247' not found! Please ensure your local database is set up."
+        exit 1
+    fi
+
+    # Remove old dump if it exists
+    if [ -f "dump.sql" ]; then
+        log_info "Step 0/11: Removing old dump.sql..."
+        rm dump.sql
+    fi
+
+    # Create fresh database dump
+    execute_command "mysqldump -u root -pT6Bkd239XsdQA1 --single-transaction --routines --triggers laquiniela247 > dump.sql" "create fresh database dump"
+
+    # Verify dump was created and is not empty
+    if [ ! -f "dump.sql" ] || [ ! -s "dump.sql" ]; then
+        log_error "Failed to create dump.sql or file is empty!"
+        exit 1
+    fi
+
+    log_info "Step 0/11: Fresh dump.sql created successfully ($(du -h dump.sql | cut -f1))"
+    log_step_complete 0 11 "Generating fresh database dump"
+    log_info "10 steps remaining..."
+else
+    log_step 0 11 "Skipping database dump (migration disabled)"
+    log_info "Step 0/11: Database migration disabled - skipping dump.sql creation"
+    log_step_complete 0 11 "Skipping database dump"
+    log_info "10 steps remaining..."
 fi
-
-# Create fresh database dump
-execute_command "mysqldump -u root -pT6Bkd239XsdQA1 --single-transaction --routines --triggers laquiniela247 > dump.sql" "create fresh database dump"
-
-# Verify dump was created and is not empty
-if [ ! -f "dump.sql" ] || [ ! -s "dump.sql" ]; then
-    log_error "Failed to create dump.sql or file is empty!"
-    exit 1
-fi
-
-log_info "Step 0/11: Fresh dump.sql created successfully ($(du -h dump.sql | cut -f1))"
-log_step_complete 0 11 "Generating fresh database dump"
-log_info "10 steps remaining..."
 
 # 1. BUILD AND PREPARE APPLICATIONS LOCALLY
 log_step 1 11 "Building and preparing applications locally"
@@ -362,50 +396,66 @@ execute_command "rsync -av -e \"ssh $SSH_OPTS\" backend/.env.production $REMOTE:
 log_step_complete 6 11 "Uploading environment files"
 log_info "5 steps remaining..."
 
-# 7. MIGRATE MYSQL DATABASE
-log_step 7 11 "Setting up database"
-log_info "Step 7/11: Starting database migration process..."
+# 7. MIGRATE MYSQL DATABASE (Conditional)
+if [ "$MIGRATE_DB" = "true" ]; then
+    log_step 7 11 "Setting up database migration"
+    log_info "Step 7/11: Starting database migration process..."
 
-# Always overwrite database - drop and recreate to ensure clean slate
-log_info "Step 7/11: Dropping and recreating database for complete overwrite..."
-execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"DROP DATABASE IF EXISTS laquiniela247; CREATE DATABASE laquiniela247 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\\\" | mysql -u root -p'T6Bkd239XsdQA1'\"" "drop and recreate database"
+    # Create backup if requested
+    if [ "$BACKUP_PROD" = "true" ]; then
+        backup_file="$REMOTE_PATH/prod_backup_$(date +%Y%m%d_%H%M%S).sql"
+        log_info "Step 7/11: Creating production database backup..."
+        execute_command "ssh $SSH_OPTS $REMOTE 'mysqldump -u root -p\"T6Bkd239XsdQA1\" --single-transaction --routines --triggers laquiniela247 > $backup_file'" "backup production database"
+        log_success "Production backup created: $backup_file"
+    fi
 
-# Create backup file path (for rollback safety, though we're doing complete overwrite)
-backup_file="$REMOTE_PATH/backup_$(date +%Y%m%d_%H%M%S).sql"
-# Note: No backup needed since we're doing complete database replacement
+    # Drop and recreate database for complete overwrite
+    log_info "Step 7/11: Dropping and recreating database for complete overwrite..."
+    execute_command "ssh $SSH_OPTS $REMOTE \"echo \\\"DROP DATABASE IF EXISTS laquiniela247; CREATE DATABASE laquiniela247 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\\\" | mysql -u root -p'T6Bkd239XsdQA1'\"" "drop and recreate database"
 
-# Upload and import dump.sql
-log_info "Step 7/11: Uploading and importing dump.sql..."
-if [ ! -f "dump.sql" ]; then
-    log_error "dump.sql not found in project root! Please create it before deploying."
-    exit 1
+    # Upload and import dump.sql
+    log_info "Step 7/11: Uploading and importing dump.sql..."
+    if [ ! -f "dump.sql" ]; then
+        log_error "dump.sql not found in project root! Database migration enabled but no dump file available."
+        exit 1
+    fi
+
+    log_info "Step 7/11: Copying local dump.sql to server..."
+    execute_command "rsync -av -e \"ssh $SSH_OPTS\" dump.sql $REMOTE:$REMOTE_PATH/" "upload dump.sql"
+
+    log_info "Step 7/11: Importing database..."
+    if ! ssh $SSH_OPTS $REMOTE "mysql -u root -p'T6Bkd239XsdQA1' laquiniela247 < $REMOTE_PATH/dump.sql"; then
+        log_error "Database import failed!"
+        if [ "$BACKUP_PROD" = "true" ]; then
+            log_warning "Attempting rollback from backup..."
+            rollback_database "$backup_file"
+        fi
+        exit 1
+    fi
+
+    # Verify the import
+    if ! verify_database_import; then
+        log_error "Database verification failed!"
+        if [ "$BACKUP_PROD" = "true" ]; then
+            log_warning "Attempting rollback from backup..."
+            rollback_database "$backup_file"
+        fi
+        exit 1
+    fi
+
+    # Clean up
+    log_info "Step 7/11: Cleaning up temporary files..."
+    execute_command "ssh $SSH_OPTS $REMOTE 'rm -f $REMOTE_PATH/dump.sql'" "clean up temporary files"
+
+    log_step_complete 7 11 "Database migration completed"
+    log_info "4 steps remaining..."
+else
+    log_step 7 11 "Skipping database migration"
+    log_info "Step 7/11: Database migration disabled - production database unchanged"
+    log_success "Production database preserved - no data loss risk"
+    log_step_complete 7 11 "Database migration skipped"
+    log_info "4 steps remaining..."
 fi
-
-log_info "Step 7/11: Copying local dump.sql to server..."
-execute_command "rsync -av -e \"ssh $SSH_OPTS\" dump.sql $REMOTE:$REMOTE_PATH/" "upload dump.sql"
-
-log_info "Step 7/11: Importing database..."
-if ! ssh $SSH_OPTS $REMOTE "mysql -u root -p'T6Bkd239XsdQA1' laquiniela247 < $REMOTE_PATH/dump.sql"; then
-    log_error "Database import failed!"
-    log_warning "Attempting rollback..."
-    rollback_database "$backup_file"
-    exit 1
-fi
-
-# Verify the import
-if ! verify_database_import; then
-    log_error "Database verification failed!"
-    log_warning "Attempting rollback..."
-    rollback_database "$backup_file"
-    exit 1
-fi
-
-# Clean up
-log_info "Step 7/11: Cleaning up temporary files..."
-execute_command "ssh $SSH_OPTS $REMOTE 'rm -f $REMOTE_PATH/dump.sql'" "clean up temporary files"
-
-log_step_complete 7 11 "Setting up database"
-log_info "4 steps remaining..."
 
 # 8. RESTART NODE.JS APP (PM2)
 log_step 8 11 "Restarting Node.js app with PM2"
@@ -444,4 +494,22 @@ execute_command "ssh $SSH_OPTS $REMOTE 'curl -f http://localhost:3001/health'" "
 log_info "If Nginx config fails to update, manually edit /etc/nginx/sites-available/default using nano or vim as described in the README."
 
 log_success "Deployment completed successfully! All 11 steps completed."
-log_info "Application is now running at https://$DOMAIN" 
+log_info "Application is now running at https://$DOMAIN"
+
+# --- DEPLOYMENT SUMMARY ---
+log_info "=== DEPLOYMENT SUMMARY ==="
+if [ "$MIGRATE_DB" = "true" ]; then
+    log_warning "✅ Database migration: COMPLETED"
+    if [ "$BACKUP_PROD" = "true" ]; then
+        log_success "✅ Production backup: CREATED (check $REMOTE_PATH/prod_backup_*.sql)"
+    else
+        log_warning "⚠️  NO backup was created - previous data is permanently lost"
+    fi
+else
+    log_success "✅ Safe deployment: Production database PRESERVED"
+fi
+
+log_info "=== USAGE EXAMPLES ==="
+log_info "Code-only deployment (safe):        ./deploy.sh"
+log_info "Database migration (destructive):   MIGRATE_DB=true ./deploy.sh"
+log_info "Migration with backup (safest):     BACKUP_PROD=true MIGRATE_DB=true ./deploy.sh" 
