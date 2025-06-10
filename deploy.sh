@@ -334,6 +334,23 @@ log_info "7 steps remaining..."
 log_step 5 11 "Uploading project files"
 log_info "Step 5/11: Uploading project files to server..."
 execute_command "rsync -av -e \"ssh $SSH_OPTS\" --exclude '.git' ./ $REMOTE:$REMOTE_PATH" "upload project files"
+
+# Enable rate limiting for production deployment
+log_info "Step 5/11: Enabling rate limiting for production..."
+execute_command "ssh $SSH_OPTS $REMOTE \"
+cd $REMOTE_PATH/backend/src && 
+sed -i 's|^// const limiter = rateLimit|const limiter = rateLimit|' index.ts &&
+sed -i 's|^//   windowMs:|  windowMs:|' index.ts &&
+sed -i 's|^//   max:|  max:|' index.ts &&
+sed -i 's|^//   message:|  message:|' index.ts &&
+sed -i 's|^//     error:|    error:|' index.ts &&
+sed -i 's|^//   },|  },|' index.ts &&
+sed -i 's|^//   standardHeaders:|  standardHeaders:|' index.ts &&
+sed -i 's|^//   legacyHeaders:|  legacyHeaders:|' index.ts &&
+sed -i 's|^// });|});|' index.ts &&
+sed -i 's|^// app.use(limiter);|app.use(limiter);|' index.ts
+\"" "enable rate limiting for production"
+
 log_step_complete 5 11 "Uploading project files"
 log_info "6 steps remaining..."
 

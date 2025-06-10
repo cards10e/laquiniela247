@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.2] - 2025-01-18
+### 🌍 Multi-Currency Support Implementation
+- **Currency Selector**: Added compact currency toggle supporting MXN (Mexican Pesos), USD (US Dollars), and Bitcoin (BTC)
+- **Mobile-Optimized Layout**: Currency selector positioned to the left of bet amount inputs with optimized sizing for mobile UX
+- **Consistent Currency Display**: All bet amounts, winnings, and summaries now use selected currency with proper formatting
+- **Persistent User Preferences**: Currency selection saved to localStorage and persists across sessions
+- **Internationalization**: Added translation keys for all currencies in English and Spanish
+- **Bitcoin Support**: Proper decimal formatting (8 places) vs fiat currencies (2 places)
+
+### Enhanced Betting Interface
+- **Compact Design**: Reduced bet input field sizes per UX best practices for mobile optimization
+- **Eliminated Redundant Elements**: Removed unnecessary input box for La Quiniela fixed amounts, replaced with clean text display
+- **Improved Visual Hierarchy**: Moved "Select Your Predictions" heading above filter sections for better information architecture
+- **Touch-Friendly Spacing**: Optimized gaps and button sizes for mobile touch interactions
+
+### Added
+- `CurrencyContext.tsx` - Global currency state management with localStorage persistence
+- `CurrencySelector.tsx` - Reusable, mobile-friendly currency dropdown component
+- Currency formatting utilities with symbol management (₿ for Bitcoin, $ for fiat)
+- Real-time currency conversion display across all betting interfaces
+- Responsive sizing variants (small/medium) for different UI contexts
+
+### Changed
+- Bet amount input fields reduced from `w-32` to `w-24/w-20/w-16` for better mobile layout
+- Currency selector uses compact `w-14` width with smaller text for space efficiency
+- Button sizing optimized with `text-sm px-3 py-1` for mobile touch targets
+- History page currency displays now use dynamic formatting instead of hardcoded MXN
+- All monetary displays consistently use selected currency across the application
+
+### Fixed
+- Mobile layout overflow issues with betting interface elements
+- Inconsistent currency display between different app sections
+- Removed confusing read-only input field for La Quiniela fixed amounts
+- Improved responsive spacing with reduced gaps (`gap-2` to `gap-1`) for mobile screens
+
+### Technical Improvements
+- Added currency context provider to app root for global state management
+- Implemented proper TypeScript types for currency handling
+- Enhanced responsive design with mobile-first approach
+- Optimized component reusability across Single Bets and La Quiniela tabs
+
 ## [2.0.1] - 2025-01-18
 ### 🔒 Security & UX Improvements
 - **Enhanced Authentication Security**: Fixed authentication redirect behavior to prevent URL exposure of protected pages when logged out

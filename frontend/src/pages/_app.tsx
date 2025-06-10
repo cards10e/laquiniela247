@@ -4,17 +4,19 @@ import { AuthProvider } from '@/context/AuthContext';
 import { I18nProvider } from '@/context/I18nContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { DemoProvider } from '@/context/DemoContext';
+import { CurrencyProvider } from '@/context/CurrencyContext';
 import '@/styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider>
       <I18nProvider>
-        <AuthProvider>
-          <DemoProvider>
-          <Component {...pageProps} />
-          </DemoProvider>
-          <Toaster
+        <CurrencyProvider>
+          <AuthProvider>
+            <DemoProvider>
+            <Component {...pageProps} />
+            </DemoProvider>
+            <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
@@ -37,7 +39,8 @@ export default function App({ Component, pageProps }: AppProps) {
               },
             }}
           />
-        </AuthProvider>
+          </AuthProvider>
+        </CurrencyProvider>
       </I18nProvider>
     </ThemeProvider>
   );

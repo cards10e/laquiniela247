@@ -2,7 +2,21 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.1 - Security & UX Improvements
+## 🚀 Version 2.0.2 - Multi-Currency Support & Enhanced UX
+
+### 🌍 Multi-Currency Support
+- **Currency Toggle**: Choose between MXN (Mexican Pesos), USD (US Dollars), and Bitcoin (BTC)
+- **Mobile-Optimized Design**: Compact currency selector positioned left of bet inputs for optimal mobile UX
+- **Persistent Preferences**: Currency choice saved and remembered across sessions
+- **Consistent Formatting**: All monetary displays use selected currency with proper decimal places
+- **Bitcoin Integration**: Full support with 8-decimal precision and ₿ symbol
+
+### 📱 Enhanced Mobile Experience
+- **Optimized Input Sizing**: Reduced bet input fields for better mobile layout and touch interaction
+- **Cleaner Interface**: Removed unnecessary input boxes, improved visual hierarchy
+- **Touch-Friendly Controls**: Optimized button sizes and spacing for mobile devices
+
+### Previous: Version 2.0.1 - Security & UX Improvements
 
 ### 🔒 Enhanced Security & Clean Authentication
 - **Secure Authentication Flow**: Fixed redirect behavior to prevent exposure of protected URLs when logged out
@@ -26,11 +40,13 @@ A modern web application for managing and participating in sports predictions.
 
 - User authentication with JWT
 - Advanced betting system with Single Bets and La Quiniela modes
+- **Multi-currency support** (MXN, USD, Bitcoin) with persistent user preferences
 - Admin panel for managing games, teams, and users
 - Real-time game updates and bet tracking
-- Responsive design with dark mode support
+- **Mobile-optimized responsive design** with dark mode support
 - Multi-language support (English/Spanish)
 - Professional bet summary interfaces with live calculations
+- **Touch-friendly betting interface** optimized for mobile devices
 - Admin navigation and login redirect are now role-aware and minimal for admins
 
 ## June 2025: Admin Navigation & Login Redirect Update

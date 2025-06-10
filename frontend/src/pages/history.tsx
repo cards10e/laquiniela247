@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
+import { useCurrency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import axios from 'axios';
@@ -29,6 +30,7 @@ type FilterType = 'all' | 'won' | 'lost' | 'pending';
 export default function HistoryPage() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const { formatAmount } = useCurrency();
   const [bets, setBets] = useState<BetHistory[]>([]);
   const [filteredBets, setFilteredBets] = useState<BetHistory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,12 +117,7 @@ export default function HistoryPage() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(value);
-  };
+
 
   const formatPercentage = (correct: number, total: number) => {
     if (total === 0) return '0%';
@@ -205,6 +202,11 @@ export default function HistoryPage() {
               {t('history.title')}
             </h1>
             
+            {/* Betting History */}
+            <h2 className="section-title mb-4">
+              {t('history.title')}
+            </h2>
+            
             {/* Filter Buttons */}
             <div className="flex flex-wrap gap-2">
               {(['all', 'won', 'lost', 'pending'] as FilterType[]).map((filterType) => (
@@ -222,11 +224,6 @@ export default function HistoryPage() {
               ))}
             </div>
           </div>
-
-          {/* Betting History */}
-          <h2 className="section-title">
-            {t('history.title')}
-          </h2>
           
           {filteredBets.length > 0 ? (
             <div className="space-y-4">
@@ -252,7 +249,7 @@ export default function HistoryPage() {
                             {t('history.amount')}
                           </div>
                           <div className="font-medium text-secondary-900 dark:text-secondary-100">
-                            {formatCurrency(bet.amount)}
+                            {formatAmount(bet.amount)}
                           </div>
                         </div>
                         
@@ -279,7 +276,7 @@ export default function HistoryPage() {
                               ? 'text-success-600 dark:text-success-400' 
                               : 'text-secondary-600 dark:text-secondary-400'
                           }`}>
-                            {formatCurrency(bet.winnings)}
+                            {formatAmount(bet.winnings)}
                           </div>
                         </div>
                         
@@ -396,7 +393,7 @@ export default function HistoryPage() {
                   {t('history.total_wagered')}
                 </div>
                 <div className="performance-card-value">
-                  {formatCurrency(filteredBets.reduce((sum, bet) => sum + bet.amount, 0))}
+                  {formatAmount(filteredBets.reduce((sum, bet) => sum + bet.amount, 0))}
                 </div>
               </div>
               
@@ -405,7 +402,7 @@ export default function HistoryPage() {
                   {t('history.total_winnings')}
                 </div>
                 <div className="performance-card-value">
-                  {formatCurrency(filteredBets.reduce((sum, bet) => sum + bet.winnings, 0))}
+                  {formatAmount(filteredBets.reduce((sum, bet) => sum + bet.winnings, 0))}
                 </div>
               </div>
             </div>

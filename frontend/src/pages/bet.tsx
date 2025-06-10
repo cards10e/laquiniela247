@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
+import { useCurrency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { CurrencySelector } from '@/components/ui/CurrencySelector';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 
@@ -42,6 +44,7 @@ export default function BetPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { preferences, isDemoUser } = useDemo();
+  const { formatAmount, getCurrencySymbol } = useCurrency();
   const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [predictions, setPredictions] = useState<Record<number, PredictionType>>({});
@@ -500,6 +503,11 @@ export default function BetPage() {
             <h1 className="page-title">
               {t('navigation.games')}
             </h1>
+            
+            {/* Select Your Predictions heading - moved here for demo users */}
+            <h2 className="section-title">
+              {t('betting.select_predictions')}
+            </h2>
           </div>
           
           <div className="bg-primary-600 text-white rounded-lg p-6 mb-6">
@@ -541,9 +549,6 @@ export default function BetPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
-                  <h3 className="section-title">
-                    {t('betting.select_predictions')}
-                  </h3>
                   <div className="space-y-4">
                     {games.map((game) => {
                       console.log('[Render] game:', game);
@@ -619,22 +624,23 @@ export default function BetPage() {
                           )}
                           {/* Bet Amount and Place Bet */}
                           {canBetOnGame(game) && (
-                            <div className="flex items-center gap-3 mt-2">
+                            <div className="flex items-center gap-1 mt-2">
+                              <CurrencySelector size="sm" className="w-14 text-xs" />
                               <input
                                 type="number"
                                 min={10}
                                 max={1000}
                                 value={singleBetAmounts[game.id] || 50}
                                 onChange={e => setSingleBetAmounts(prev => ({ ...prev, [game.id]: Number(e.target.value) }))}
-                                className="form-input w-32"
-                                placeholder={t('betting.bet_amount')}
+                                className="form-input w-16 text-sm"
+                                placeholder="50"
                               />
                               <button
                                 onClick={() => handleSingleBet(game.id)}
                                 disabled={singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10}
-                                className={`btn-primary ${singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10 ? 'btn-disabled' : ''}`}
+                                className={`btn-primary text-sm px-3 py-1 ${singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10 ? 'btn-disabled' : ''}`}
                               >
-                                {singleSubmitting[game.id] ? <div className="spinner-sm mr-2"></div> : null}
+                                {singleSubmitting[game.id] ? <div className="spinner-sm mr-1"></div> : null}
                                 {t('betting.place_bet')}
                               </button>
                             </div>
@@ -668,7 +674,7 @@ export default function BetPage() {
                           {t('betting.bet_amount')}
                         </span>
                         <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                          ${singleBetSummary.totalAmount}
+                          {formatAmount(singleBetSummary.totalAmount)}
                         </span>
                       </div>
                     </div>
@@ -676,7 +682,7 @@ export default function BetPage() {
                     <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
-                        <span className="text-success-700 dark:text-success-300 font-bold text-lg">${singleBetSummary.potentialWinnings.toFixed(2)}</span>
+                        <span className="text-success-700 dark:text-success-300 font-bold text-lg">{formatAmount(singleBetSummary.potentialWinnings)}</span>
                       </div>
                     </div>
                     {singleBetSummary.totalBets === 0 && (
@@ -697,9 +703,6 @@ export default function BetPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Games List (existing code) */}
             <div className="lg:col-span-2">
-                              <h3 className="section-title">
-                  {t('betting.select_predictions')}
-                </h3>
               <div className="space-y-4">
                 {games.map((game) => (
                   <div key={game.id} className="card">
@@ -773,31 +776,41 @@ export default function BetPage() {
                 {/* Bet Amount */}
                 <div className="mb-6">
                   <label className="form-label">{t('betting.bet_amount')}</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-500 dark:text-secondary-400">$</span>
-                    <input
-                      type="number"
-                      min="10"
-                      max="1000"
-                      step="10"
-                      value={getEffectiveBetAmount()}
-                      onChange={tab === 'parlay' ? undefined : (e) => setBetAmount(Number(e.target.value))}
-                      readOnly={tab === 'parlay'}
-                      className={`form-input pl-8 ${tab === 'parlay' ? 'bg-secondary-100 dark:bg-secondary-700 cursor-not-allowed' : ''}`}
-                    />
-                  </div>
-                                      <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
-                      {tab === 'parlay' 
-                        ? t('betting.la_quiniela_fixed_amount')
-                        : t('betting.bet_amount_range')
-                      }
-                    </p>
+                  {tab === 'parlay' ? (
+                    <div className="flex items-center gap-2">
+                      <CurrencySelector size="sm" className="w-14 text-xs" />
+                      <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+                        {formatAmount(getEffectiveBetAmount())}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <CurrencySelector size="sm" className="w-14 text-xs" />
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          min="10"
+                          max="1000"
+                          step="10"
+                          value={getEffectiveBetAmount()}
+                          onChange={(e) => setBetAmount(Number(e.target.value))}
+                          className="form-input text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
+                    {tab === 'parlay' 
+                      ? t('betting.la_quiniela_fixed_amount')
+                      : t('betting.bet_amount_range')
+                    }
+                  </p>
                 </div>
                 {/* Potential Winnings */}
                 <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
-                    <span className="text-success-700 dark:text-success-300 font-bold text-lg">${calculatePotentialWinnings().toFixed(2)}</span>
+                    <span className="text-success-700 dark:text-success-300 font-bold text-lg">{formatAmount(calculatePotentialWinnings())}</span>
                   </div>
                 </div>
                 {/* Submit Button */}

@@ -136,7 +136,11 @@ const translations = {
       single_bets: "Single Bets",
       weekly_parlay: "La Quiniela",
       active_bets: "Active Bets",
-      la_quiniela_fixed_amount: "Fixed amount for La Quiniela - All games must be predicted to win $2,000"
+      la_quiniela_fixed_amount: "Fixed amount for La Quiniela - All games must be predicted to win $2,000",
+      currency: "Currency",
+      mxn: "MXN",
+      usd: "USD",
+      btc: "BTC"
     },
     profile: {
       title: "Profile",
@@ -412,7 +416,11 @@ const translations = {
       single_bets: "Apuestas Simples",
       weekly_parlay: "La Quiniela",
       active_bets: "Apuestas Activas",
-      la_quiniela_fixed_amount: "Cantidad fija para La Quiniela - Todos los juegos deben predecirse para ganar $2,000"
+      la_quiniela_fixed_amount: "Cantidad fija para La Quiniela - Todos los juegos deben predecirse para ganar $2,000",
+      currency: "Moneda",
+      mxn: "MXN",
+      usd: "USD",
+      btc: "BTC"
     },
     profile: {
       title: "Perfil",
