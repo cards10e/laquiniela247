@@ -828,10 +828,14 @@ export default function AdminPage() {
                                     </div>
                                   </div>
                                   {/* Badges/buttons right */}
-                                  <div className="flex flex-wrap items-center gap-2">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
                                       {t('admin.game_start')}: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
-                                        ? new Date(game.gameDate).toLocaleString(undefined, { timeZoneName: 'short' })
+                                        ? new Date(game.gameDate).toLocaleString(undefined, { 
+                                            dateStyle: 'short', 
+                                            timeStyle: 'short',
+                                            timeZoneName: typeof window !== 'undefined' && window.innerWidth < 640 ? undefined : 'short'
+                                          })
                                         : t('admin.tbd')}
                                     </span>
                                     {/* Show 'Open' badge if the week is open and the game is scheduled */}
@@ -847,8 +851,12 @@ export default function AdminPage() {
                                         new Date() < new Date(week.bettingDeadline)
                                       ) {
                                         return (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400 mr-2">
-                                            {`${t('dashboard.open_for_betting')}: ${new Date(week.bettingDeadline).toLocaleString(undefined, { timeZoneName: 'short' })}`}
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400">
+                                            {`${t('dashboard.open_for_betting')}: ${new Date(week.bettingDeadline).toLocaleString(undefined, { 
+                                              dateStyle: 'short', 
+                                              timeStyle: 'short',
+                                              timeZoneName: typeof window !== 'undefined' && window.innerWidth < 640 ? undefined : 'short'
+                                            })}`}
                                           </span>
                                         );
                                       }
@@ -869,10 +877,11 @@ export default function AdminPage() {
                                       })()}
                                     </span>
                                     <button
-                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400 ml-2"
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400"
                                       onClick={() => handleDeleteGame(game.id)}
                                     >
-                                      {t('admin.delete_game')}
+                                      <span className="sm:hidden">🗑️</span>
+                                      <span className="hidden sm:inline">{t('admin.delete_game')}</span>
                                     </button>
                                   </div>
                                 </div>
