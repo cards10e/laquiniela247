@@ -2,7 +2,15 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.2 - Multi-Currency Support & Enhanced UX
+## 🚀 Version 2.0.3 - Critical Security Fix & Enhanced Stability
+
+### 🔒 Password Change Functionality Fixed
+- **Critical Bug Fix**: Resolved HTTP method mismatch that completely broke password change functionality
+- **Universal Impact**: Fix applies to all user types (demo users, admin users, regular users)
+- **Root Cause**: Frontend was sending PUT requests while backend only accepted POST requests
+- **Security Restored**: All authenticated users can now successfully change their passwords
+
+### Previous: Version 2.0.2 - Multi-Currency Support & Enhanced UX
 
 ### 🌍 Multi-Currency Support
 - **Currency Toggle**: Choose between MXN (Mexican Pesos), USD (US Dollars), and Bitcoin (BTC)

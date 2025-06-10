@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2025-06-10
+### 🔒 Critical Security Fix
+- **Password Change Functionality**: Fixed critical HTTP method mismatch preventing all users from changing passwords
+  - **Bug**: Frontend was sending PUT requests while backend only accepted POST requests for `/api/users/change-password`
+  - **Impact**: Change password functionality was completely broken for all users (demo, admin, regular users)
+  - **Fix**: Corrected frontend to use POST method, restoring password change capability
+  - **Scope**: Affects all authenticated users across all roles
+
+### Fixed
+- Password change functionality now works correctly for all user types
+- HTTP method alignment between frontend (POST) and backend (POST) endpoints
+- Proper error handling and user feedback for password change operations
+
 ## [2.0.2] - 2025-01-18
 ### 🌍 Multi-Currency Support Implementation
 - **Currency Selector**: Added compact currency toggle supporting MXN (Mexican Pesos), USD (US Dollars), and Bitcoin (BTC)

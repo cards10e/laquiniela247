@@ -114,7 +114,7 @@ export default function ProfilePage() {
     
     setSaving(true);
     try {
-      await axios.put('/api/users/change-password', {
+      await axios.post('/api/users/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });
