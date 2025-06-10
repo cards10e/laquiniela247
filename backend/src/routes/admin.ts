@@ -192,7 +192,53 @@ router.put('/users/:id', asyncHandler(async (req: AuthenticatedRequest, res: exp
   });
 }));
 
-// GET /api/admin/games - Get all games with pagination
+// Helper function to compute betting status for games
+const computeBettingStatus = (game: any, week: any) => {
+  const now = new Date();
+  const gameDate = new Date(game.matchDate);
+  const daysTillGame = (gameDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  
+  // If week is already open, betting is active
+  if (week && week.status === 'OPEN') {
+    return {
+      status: 'open',
+      autoOpenDate: null,
+      canOpenNow: false,
+      description: 'Abierta para apuestas'
+    };
+  }
+  
+  // If game is more than 7 days away, it's scheduled for auto-open
+  if (daysTillGame > 7) {
+    const autoOpenDate = new Date(gameDate.getTime() - (7 * 24 * 60 * 60 * 1000)); // 7 days before
+    return {
+      status: 'scheduled',
+      autoOpenDate: autoOpenDate.toISOString(),
+      canOpenNow: false,
+      description: 'Auto-programado'
+    };
+  }
+  
+  // If game is within 7 days, ready for manual or auto opening
+  if (daysTillGame <= 7 && daysTillGame > 0) {
+    return {
+      status: 'ready',
+      autoOpenDate: null,
+      canOpenNow: true,
+      description: 'Listo para apuestas'
+    };
+  }
+  
+  // Game is in the past
+  return {
+    status: 'past',
+    autoOpenDate: null,
+    canOpenNow: false,
+    description: 'Finalizado'
+  };
+};
+
+// GET /api/admin/games - Get all games with pagination and computed betting status
 router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
   const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
@@ -210,9 +256,11 @@ router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res: express
       awayTeam: true,
       week: {
         select: {
+          id: true,
           weekNumber: true,
           season: true,
-          status: true
+          status: true,
+          bettingDeadline: true
         }
       },
       _count: {
@@ -228,10 +276,16 @@ router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res: express
     skip: offset
   });
 
+  // Enhance games with computed betting status
+  const enhancedGames = games.map(game => ({
+    ...game,
+    bettingStatus: computeBettingStatus(game, game.week)
+  }));
+
   const total = await prisma.game.count({ where });
 
   res.json({
-    games,
+    games: enhancedGames,
     pagination: {
       limit,
       offset,
@@ -444,6 +498,61 @@ router.put('/weeks/:id', asyncHandler(async (req: AuthenticatedRequest, res: exp
   res.json({
     message: 'Week updated successfully',
     week: updatedWeek,
+  });
+}));
+
+// POST /api/admin/weeks/auto-open - Auto-open betting for weeks ready for betting
+router.post('/weeks/auto-open', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  const now = new Date();
+  
+  // Find weeks that are upcoming and have games within 7 days
+  const weeks = await prisma.week.findMany({
+    where: {
+      status: 'UPCOMING'
+    },
+    include: {
+      games: {
+        orderBy: {
+          matchDate: 'asc'
+        }
+      }
+    }
+  });
+
+  const weeksToOpen = [];
+  
+  for (const week of weeks) {
+    if (week.games.length === 0) continue;
+    
+    const earliestGame = week.games[0];
+    const gameDate = new Date(earliestGame.matchDate);
+    const daysTillGame = (gameDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    
+    // If earliest game is within 7 days, mark week for auto-opening
+    if (daysTillGame <= 7 && daysTillGame > 0) {
+      // Set betting deadline to 2 hours before earliest game
+      const bettingDeadline = new Date(gameDate.getTime() - (2 * 60 * 60 * 1000));
+      
+      await prisma.week.update({
+        where: { id: week.id },
+        data: {
+          status: 'OPEN',
+          bettingDeadline
+        }
+      });
+      
+      weeksToOpen.push({
+        weekNumber: week.weekNumber,
+        season: week.season,
+        bettingDeadline,
+        gamesCount: week.games.length
+      });
+    }
+  }
+
+  res.json({
+    message: `Auto-opened ${weeksToOpen.length} weeks for betting`,
+    openedWeeks: weeksToOpen
   });
 }));
 
