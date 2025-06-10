@@ -73,6 +73,20 @@
 - **Git Commit**: b1fdc15 - "Critical Fix: Restore password change functionality for all users"
 - **Verification**: ✅ Admin and demo users can now successfully change passwords
 
+### 5. Admin Game Creation Intermittent Failure
+- **Status**: Open
+- **Priority**: High
+- **Reported By**: Live Testing
+- **Date**: June 10, 2025
+- **Description**: Admin game creation fails intermittently in live demo mode with "error creating game" message
+- **Behavior**: 
+  - Works sometimes, fails other times with inconsistent results
+  - Only occurs in live admin demo mode
+  - Same operation succeeds locally but fails unpredictably on live server
+- **Impact**: Admin cannot reliably create new games, affecting content management workflow
+- **Environment**: Live server only (not reproducible in local development)
+- **Additional Notes**: Intermittent nature suggests potential race condition, timeout, or server resource issue
+
 ## UI/UX Bugs
 
 ### 1. Light/Dark Mode Toggle
