@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.4] - 2025-06-10
+### 🧹 Code Simplification & UX Consistency
+- **Endless Betting Mode Removal**: Completely removed the endless betting feature for demo users
+  - **Rationale**: Provided inconsistent user experience compared to real betting behavior
+  - **Impact**: Demo users now experience authentic betting constraints and real API interactions
+  - **UX Improvement**: Cleaner profile interface with removal of demo-specific settings section
+  - **Code Quality**: Eliminated conditional logic branches and reduced technical debt
+
+### Enhanced Demo Experience
+- **Authentic Betting Logic**: Demo users now use real API calls instead of simulated interactions
+- **Consistent UX**: All users (demo, admin, regular) experience identical betting mechanics
+- **Better Onboarding**: Demo users get realistic preparation for actual account usage
+- **Simplified Codebase**: Removed dual code paths for betting functionality
+
+### Removed
+- Demo Settings section from user profile page
+- Endless betting toggle and related UI components
+- Simulated betting logic for demo users
+- Translation keys for endless betting functionality
+
+### Technical Improvements
+- Simplified DemoContext to only provide user identification
+- Reduced complexity in betting page logic
+- Cleaner separation of concerns in component architecture
+- Improved maintainability with single betting code path
+
 ## [2.0.3] - 2025-06-10
 ### 🔒 Critical Security Fix
 - **Password Change Functionality**: Fixed critical HTTP method mismatch preventing all users from changing passwords

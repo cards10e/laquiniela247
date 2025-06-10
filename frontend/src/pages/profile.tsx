@@ -28,7 +28,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const { t } = useI18n();
-  const { preferences, setEndlessBetting, isDemoUser } = useDemo();
+  const { isDemoUser } = useDemo();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -603,35 +603,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Demo User Settings */}
-          {isDemoUser && (
-            <div className="card mt-8">
-              <h2 className="subsection-title">
-                {t('profile.demo_settings')}
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="content-title">
-                      {t('profile.endless_betting')}
-                    </h3>
-                    <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                      {t('profile.endless_betting_description')}
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={preferences.endlessBetting}
-                      onChange={(e) => setEndlessBetting(e.target.checked)}
-                    />
-                    <div className="w-11 h-6 bg-secondary-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-secondary-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-secondary-600 peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </ProtectedRoute>
     </Layout>

@@ -145,9 +145,6 @@ const translations = {
     profile: {
       title: "Profile",
       my_profile: "My Profile",
-      demo_settings: "Demo Settings",
-      endless_betting: "Endless Betting Mode",
-      endless_betting_description: "Enable this to place unlimited bets on games (demo user only)",
       manage_account_settings: "Manage your account settings and preferences",
       personal_info: "Personal Information",
       account_security: "Account Security",
@@ -425,9 +422,6 @@ const translations = {
     profile: {
       title: "Perfil",
       my_profile: "Mi Perfil",
-      demo_settings: "Configuración de Demo",
-      endless_betting: "Modo de Apuestas Infinitas",
-      endless_betting_description: "Activa esto para realizar apuestas ilimitadas en los juegos (solo usuario demo)",
       manage_account_settings: "Administra la configuración y preferencias de tu cuenta",
       personal_info: "Información Personal",
       account_security: "Seguridad de la Cuenta",

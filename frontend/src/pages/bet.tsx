@@ -43,7 +43,7 @@ interface Prediction {
 export default function BetPage() {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { preferences, isDemoUser } = useDemo();
+  const { isDemoUser } = useDemo();
   const { formatAmount, getCurrencySymbol } = useCurrency();
   const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
   const [games, setGames] = useState<Game[]>([]);
@@ -277,20 +277,6 @@ export default function BetPage() {
     }
     setSingleSubmitting((prev) => ({ ...prev, [gameId]: true }));
     try {
-      // For demo user with endless betting, we'll simulate a successful bet without making an API call
-      if (isDemoUser && preferences.endlessBetting) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        toast.success(t('betting.bet_placed'));
-        // Reset prediction/amount for this game
-        setPredictions((prev) => {
-          const { [gameId]: _, ...rest } = prev;
-          return rest;
-        });
-        setSingleBetAmounts((prev) => ({ ...prev, [gameId]: 50 }));
-        // Refresh games to show the new bet
-        await fetchBettingData();
-      } else {
       await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
       toast.success(t('betting.bet_placed'));
       setPredictions((prev) => {
@@ -298,7 +284,6 @@ export default function BetPage() {
         return rest;
       });
       setSingleBetAmounts((prev) => ({ ...prev, [gameId]: 50 }));
-      }
     } catch (error: any) {
       if (error.response?.data?.error) {
         toast.error(error.response.data.error);
@@ -325,16 +310,6 @@ export default function BetPage() {
     
     setSubmitting(true);
     try {
-      // For demo user with endless betting, we'll simulate a successful parlay without making an API call
-      if (isDemoUser && preferences.endlessBetting) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        toast.success(t('betting.bet_placed'));
-        setPredictions({});
-        setBetAmount(50);
-        // Refresh games to show the new bets
-        await fetchBettingData();
-      } else {
       const betData = {
         weekNumber: currentWeek?.weekNumber,
         bets: Object.entries(predictions).map(([gameId, prediction]) => ({
@@ -347,7 +322,6 @@ export default function BetPage() {
       toast.success(t('betting.bet_placed'));
       setPredictions({});
       setBetAmount(50);
-      }
     } catch (error: any) {
       if (error.response?.data?.error) {
         toast.error(error.response.data.error);
@@ -359,9 +333,8 @@ export default function BetPage() {
     }
   };
 
-  // Modify the game rendering to show betting UI for demo user with endless betting
+  // Check if user can bet on this game
   const canBetOnGame = (game: Game) => {
-    if (isDemoUser && preferences.endlessBetting) return true;
     return !game.userBet;
   };
 

@@ -2,7 +2,15 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.3 - Critical Security Fix & Enhanced Stability
+## 🚀 Version 2.0.4 - Code Simplification & UX Consistency
+
+### 🧹 Enhanced User Experience & Simplified Architecture
+- **Authentic Demo Experience**: Demo users now experience real betting mechanics identical to production users
+- **Cleaner Interface**: Removed demo-specific settings and toggles for a streamlined profile page
+- **Code Quality**: Eliminated conditional logic and dual code paths for improved maintainability
+- **Consistent UX**: All user types (demo, admin, regular) follow the same betting rules and constraints
+
+### Previous: Version 2.0.3 - Critical Security Fix & Enhanced Stability
 
 ### 🔒 Password Change Functionality Fixed
 - **Critical Bug Fix**: Resolved HTTP method mismatch that completely broke password change functionality
