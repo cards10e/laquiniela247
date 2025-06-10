@@ -412,14 +412,11 @@ export default function BetPage() {
                                 </div>
                               </div>
                               {/* Badges/buttons right */}
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
-                                  {t('admin.game_start')}: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
-                                    ? new Date(game.gameDate).toLocaleString(undefined, { 
-                                        dateStyle: 'short', 
-                                        timeStyle: 'short',
-                                        timeZoneName: typeof window !== 'undefined' && window.innerWidth < 640 ? undefined : 'short'
-                                      })
+                              <div className="flex flex-wrap items-center gap-1">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
+                                  {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
+                                    ? new Date(game.gameDate).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) + 
+                                      ' ' + new Date(game.gameDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
                                     : t('admin.tbd')}
                                 </span>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
