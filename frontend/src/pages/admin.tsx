@@ -641,8 +641,8 @@ export default function AdminPage() {
                   <div className="card-header">
                     <h2 className="card-title">Gestión Automática de Apuestas</h2>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex-1">
                       <p className="text-secondary-600 dark:text-secondary-400 mb-2">
                         Abre automáticamente las apuestas para juegos programados dentro de 7 días.
                       </p>
@@ -652,9 +652,10 @@ export default function AdminPage() {
                     </div>
                     <button
                       onClick={handleAutoOpenWeeks}
-                      className="btn-secondary"
+                      className="btn-secondary whitespace-nowrap"
                     >
-                      Verificar y Abrir Ahora
+                      <span className="hidden sm:inline">Verificar y Abrir Ahora</span>
+                      <span className="sm:hidden">Auto-Abrir</span>
                     </button>
                   </div>
                 </div>
@@ -816,27 +817,41 @@ export default function AdminPage() {
 
                         return (
                           <div key={weekId} className="space-y-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="content-title">
-                                {(() => {
-                                  // Check if any games in this week are ready for betting
-                                  const readyGames = weekGames.filter(game => game.bettingStatus?.status === 'ready');
-                                  const scheduledGames = weekGames.filter(game => game.bettingStatus?.status === 'scheduled');
-                                  
-                                  let weekTitle = `${t('dashboard.week')} ${weekGames[0].weekId}`;
-                                  
-                                  if (week?.status?.toLowerCase() === 'open') {
-                                    weekTitle += ' (Abierta)';
-                                  } else if (readyGames.length > 0) {
-                                    weekTitle += ` (${readyGames.length} Listo${readyGames.length > 1 ? 's' : ''})`;
-                                  } else if (scheduledGames.length > 0 && scheduledGames[0].bettingStatus?.autoOpenDate) {
-                                    const autoDate = new Date(scheduledGames[0].bettingStatus.autoOpenDate);
-                                    weekTitle += ` (Auto: ${autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })})`;
-                                  }
-                                  
-                                  return weekTitle;
-                                })()}
-                              </h3>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                              <div className="flex-1">
+                                <h3 className="content-title">
+                                  {t('dashboard.week')} {weekGames[0].weekId}
+                                </h3>
+                                {/* Mobile-friendly status indicators */}
+                                <div className="flex flex-wrap items-center gap-1 mt-1">
+                                  {(() => {
+                                    const readyGames = weekGames.filter(game => game.bettingStatus?.status === 'ready');
+                                    const scheduledGames = weekGames.filter(game => game.bettingStatus?.status === 'scheduled');
+                                    
+                                    if (week?.status?.toLowerCase() === 'open') {
+                                      return (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
+                                          Abierta
+                                        </span>
+                                      );
+                                    } else if (readyGames.length > 0) {
+                                      return (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
+                                          {readyGames.length} Listo{readyGames.length > 1 ? 's' : ''}
+                                        </span>
+                                      );
+                                    } else if (scheduledGames.length > 0 && scheduledGames[0].bettingStatus?.autoOpenDate) {
+                                      const autoDate = new Date(scheduledGames[0].bettingStatus.autoOpenDate);
+                                      return (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                          Auto: {autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </div>
+                              </div>
                               {/* Enhanced Week Controls */}
                               <div className="flex items-center gap-2">
                                 {/* Auto-Open Button for Ready Games */}
@@ -847,7 +862,8 @@ export default function AdminPage() {
                                   if (isWeekOpen) {
                                     return (
                                       <span className="text-xs text-success-600 dark:text-success-400 font-medium">
-                                        Abierta para apuestas
+                                        <span className="hidden sm:inline">Abierta para apuestas</span>
+                                        <span className="sm:hidden">Abierta</span>
                                       </span>
                                     );
                                   }
@@ -855,11 +871,12 @@ export default function AdminPage() {
                                   if (readyGames.length > 0 && openDeadlineWeekId !== Number(weekId)) {
                                     return (
                                       <button
-                                        className="btn btn-xs btn-warning"
+                                        className="btn btn-xs btn-warning whitespace-nowrap"
                                         type="button"
                                         onClick={() => setOpenDeadlineWeekId(Number(weekId))}
                                       >
-                                        Abrir ahora ({readyGames.length})
+                                        <span className="hidden sm:inline">Abrir ahora ({readyGames.length})</span>
+                                        <span className="sm:hidden">Abrir ({readyGames.length})</span>
                                       </button>
                                     );
                                   }
@@ -947,10 +964,16 @@ export default function AdminPage() {
                                       const colorClass = statusColors[bettingStatus.status] || statusColors['past'];
                                       let displayText = bettingStatus.description;
                                       
-                                      // Show auto-open date for scheduled games
-                                      if (bettingStatus.status === 'scheduled' && bettingStatus.autoOpenDate) {
+                                      // Mobile-friendly text for status badges
+                                      if (bettingStatus.status === 'open') {
+                                        displayText = 'Abierta';
+                                      } else if (bettingStatus.status === 'ready') {
+                                        displayText = 'Listo';
+                                      } else if (bettingStatus.status === 'scheduled' && bettingStatus.autoOpenDate) {
                                         const autoDate = new Date(bettingStatus.autoOpenDate);
                                         displayText = `Auto: ${autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}`;
+                                      } else if (bettingStatus.status === 'past') {
+                                        displayText = 'Finalizado';
                                       }
                                       
                                       return (
