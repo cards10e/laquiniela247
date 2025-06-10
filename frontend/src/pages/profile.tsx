@@ -18,10 +18,10 @@ interface UserProfile {
   newsletter: boolean;
   emailNotifications: boolean;
   smsNotifications: boolean;
-  totalBets: number;
-  totalWinnings: number;
-  overallPercentage: number;
-  bestRankingPosition: number;
+  totalBets: number | null;
+  totalWinnings: number | null;
+  overallPercentage: number | null;
+  bestRankingPosition: number | null;
   memberSince: string;
 }
 
@@ -138,14 +138,16 @@ export default function ProfilePage() {
     }
   };
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value == null || isNaN(value)) return '$0.00';
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(value);
   };
 
-  const formatPercentage = (value: number) => {
+  const formatPercentage = (value: number | null | undefined) => {
+    if (value == null || isNaN(value)) return '0.0%';
     return `${value.toFixed(1)}%`;
   };
 
@@ -448,7 +450,7 @@ export default function ProfilePage() {
                     
                     <div className="space-y-4">
                       <p className="text-secondary-600 dark:text-secondary-400">
-                        {t('profile.member_since')}: {new Date(profile.memberSince).toLocaleDateString()}
+                        {t('profile.member_since')}: {profile.memberSince ? new Date(profile.memberSince).toLocaleDateString() : 'N/A'}
                       </p>
                       
                       <button
@@ -538,7 +540,7 @@ export default function ProfilePage() {
                           {t('dashboard.total_bets')}
                         </div>
                         <div className="performance-card-value">
-                          {profile.totalBets}
+                          {profile.totalBets || 0}
                         </div>
                       </div>
                       
@@ -565,7 +567,7 @@ export default function ProfilePage() {
                           {t('dashboard.best_position')}
                         </div>
                         <div className="performance-card-value">
-                          #{profile.bestRankingPosition}
+                          #{profile.bestRankingPosition || 'N/A'}
                         </div>
                       </div>
                     </div>
@@ -582,7 +584,7 @@ export default function ProfilePage() {
                           {t('profile.member_since')}
                         </span>
                         <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                          {new Date(profile.memberSince).toLocaleDateString()}
+                          {profile.memberSince ? new Date(profile.memberSince).toLocaleDateString() : 'N/A'}
                         </span>
                       </div>
                       
