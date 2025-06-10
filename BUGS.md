@@ -87,6 +87,34 @@
 - **Environment**: Live server only (not reproducible in local development)
 - **Additional Notes**: Intermittent nature suggests potential race condition, timeout, or server resource issue
 
+### 6. Mobile View Overflow in Admin Games Management
+- **Status**: Open
+- **Priority**: High
+- **Reported By**: Live Testing
+- **Date**: June 10, 2025
+- **Description**: Mobile views are overflowing off the page for all scheduled games in admin mode
+- **Affected Areas**:
+  - Games Management workflow
+  - Games scheduling interface
+  - All scheduled games display on mobile devices
+- **Impact**: Admin cannot properly manage games on mobile devices, affecting mobile administration capabilities
+- **Environment**: Mobile views in admin mode
+- **Additional Notes**: Responsive design issues specifically affecting admin panel mobile usability
+
+### 7. Admin Game Management Functions Broken
+- **Status**: Open
+- **Priority**: Critical
+- **Reported By**: Live Testing
+- **Date**: June 10, 2025
+- **Description**: Core admin game management functionality is no longer working
+- **Broken Functions**:
+  - Cannot open games for betting
+  - Cannot schedule new games
+  - Game status management not functioning
+- **Impact**: Complete loss of game management capabilities for administrators
+- **Environment**: Admin mode (affects core administrative workflow)
+- **Additional Notes**: This represents a critical failure of core admin functionality
+
 ## UI/UX Bugs
 
 ### 1. Light/Dark Mode Toggle
