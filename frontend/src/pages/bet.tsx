@@ -377,19 +377,22 @@ export default function BetPage() {
   // Admin view - don't check betting status
   if (isAdmin) {
     return (
-      <Layout title={t('admin.existing_games')}>
+      <Layout title={t('admin.scheduled_games')}>
         <ProtectedRoute>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
               <h1 className="page-title">
-                {t('admin.existing_games')}
+                {t('admin.scheduled_games')}
               </h1>
             </div>
-            <div className="space-y-8">
+            
+            {/* Scheduled Games Section */}
+            <div className="mb-8">
+              <h2 className="section-title">
+                {t('admin.scheduled_games')}
+              </h2>
+              
               <div className="card">
-                <div className="card-header">
-                  <h2 className="card-title">{t('admin.games')}</h2>
-                </div>
                 <div className="space-y-4">
                   {games.length === 0 ? (
                     <div className="text-center py-8 text-secondary-600 dark:text-secondary-400">
