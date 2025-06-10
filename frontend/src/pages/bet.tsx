@@ -394,9 +394,9 @@ export default function BetPage() {
                         </div>
                         {weekGames.map((game) => (
                           <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-secondary-50 dark:bg-secondary-900/30 mb-2">
-                            <div className="flex items-center justify-between w-full">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
                               {/* Teams/logos left */}
-                              <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-4 mb-2 sm:mb-0">
                                 <div className="flex items-center gap-2 min-w-0">
                                   {game.homeTeamLogo && (
                                     <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-8 h-8 rounded-full object-cover" />
@@ -412,7 +412,7 @@ export default function BetPage() {
                                 </div>
                               </div>
                               {/* Badges/buttons right */}
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
                                   {t('admin.game_start')}: {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
                                     ? new Date(game.gameDate).toLocaleString(undefined, { timeZoneName: 'short' })
