@@ -73,19 +73,32 @@
 - **Git Commit**: b1fdc15 - "Critical Fix: Restore password change functionality for all users"
 - **Verification**: ✅ Admin and demo users can now successfully change passwords
 
-### 5. Admin Game Creation Intermittent Failure
-- **Status**: Open
-- **Priority**: High
+### 5. Admin Game Management Functions Failure (Consolidated)
+- **Status**: Under Investigation
+- **Priority**: Critical
 - **Reported By**: Live Testing
 - **Date**: June 10, 2025
-- **Description**: Admin game creation fails intermittently in live demo mode with "error creating game" message
-- **Behavior**: 
+- **Description**: Core admin game management functionality is failing intermittently and completely broken in live environment
+- **Symptoms**: 
+  - "Error creating game" message appears intermittently
+  - Cannot open games for betting
+  - Cannot schedule new games consistently  
+  - Game status management not functioning
   - Works sometimes, fails other times with inconsistent results
+- **Behavior**:
   - Only occurs in live admin demo mode
-  - Same operation succeeds locally but fails unpredictably on live server
-- **Impact**: Admin cannot reliably create new games, affecting content management workflow
+  - Same operations succeed locally but fail unpredictably on live server
+  - Intermittent nature suggests potential race condition, timeout, or server resource issue
+- **Impact**: Complete loss of reliable game management capabilities for administrators
 - **Environment**: Live server only (not reproducible in local development)
-- **Additional Notes**: Intermittent nature suggests potential race condition, timeout, or server resource issue
+- **Investigation Findings**: Server log analysis completed (June 10, 2025)
+  - **Memory Constraint**: Server has only 957MB total RAM with 78MB available
+  - **MySQL Usage**: MySQL consuming 40.4% of RAM (396MB)
+  - **Log Analysis**: POST requests to `/api/admin/games` are reaching server but no specific error logs for game creation
+  - **Resource Issue**: Low memory availability likely causing intermittent database timeouts and connection failures
+  - **Error Pattern**: "Invalid bet ID" errors appearing in logs, suggesting database connectivity issues
+- **Root Cause Identified**: Server memory constraints causing intermittent database operation failures
+- **Additional Notes**: Consolidated from bugs #5 and #7 - same root cause affecting all admin game management functions
 
 ### 6. Mobile View Overflow in Admin Games Management
 - **Status**: Open
@@ -100,20 +113,6 @@
 - **Impact**: Admin cannot properly manage games on mobile devices, affecting mobile administration capabilities
 - **Environment**: Mobile views in admin mode
 - **Additional Notes**: Responsive design issues specifically affecting admin panel mobile usability
-
-### 7. Admin Game Management Functions Broken
-- **Status**: Open
-- **Priority**: Critical
-- **Reported By**: Live Testing
-- **Date**: June 10, 2025
-- **Description**: Core admin game management functionality is no longer working
-- **Broken Functions**:
-  - Cannot open games for betting
-  - Cannot schedule new games
-  - Game status management not functioning
-- **Impact**: Complete loss of game management capabilities for administrators
-- **Environment**: Admin mode (affects core administrative workflow)
-- **Additional Notes**: This represents a critical failure of core admin functionality
 
 ## UI/UX Bugs
 
