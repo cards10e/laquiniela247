@@ -300,10 +300,12 @@ const translations = {
       // Status legends and descriptions
       week_status: "Week Status",
       betting_status: "Betting Status", 
+      auto_status: "Auto-Scheduled",
       match_status: "Match Status",
       status_legend: "Status Legend",
       week_status_desc: "Controls whether users can bet on games in this week",
       betting_status_desc: "Individual game betting availability",
+      auto_status_desc: "Automatically scheduled to open based on game dates",
       match_status_desc: "Current state of the actual game/match",
       // Clearer status descriptions
       match_scheduled: "Match Scheduled",
@@ -643,10 +645,12 @@ const translations = {
       // Status legends and descriptions
       week_status: "Estado de Jornada",
       betting_status: "Estado de Apuestas", 
+      auto_status: "Auto-Programado",
       match_status: "Estado del Partido",
       status_legend: "Leyenda de Estados",
       week_status_desc: "Controla si los usuarios pueden apostar en juegos de esta jornada",
       betting_status_desc: "Disponibilidad de apuestas del juego individual",
+      auto_status_desc: "Programado automáticamente para abrirse basándose en fechas de juegos",
       match_status_desc: "Estado actual del partido/juego",
       // Clearer status descriptions
       match_scheduled: "Partido Programado",

@@ -1026,7 +1026,7 @@ export default function AdminPage() {
                     {/* Status Legend */}
                     <div className="mt-4 p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
                       <h4 className="text-sm font-semibold mb-2">{t('admin.status_legend')}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                         <div className="p-2 rounded bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
                           <span className="font-medium text-success-800 dark:text-success-400">{t('admin.week_status')}:</span>
                           <p className="text-success-600 dark:text-success-300 mt-1">{t('admin.week_status_desc')}</p>
@@ -1034,6 +1034,10 @@ export default function AdminPage() {
                         <div className="p-2 rounded bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
                           <span className="font-medium text-primary-800 dark:text-primary-400">{t('admin.betting_status')}:</span>
                           <p className="text-primary-600 dark:text-primary-300 mt-1">{t('admin.betting_status_desc')}</p>
+                        </div>
+                        <div className="p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                          <span className="font-medium text-blue-800 dark:text-blue-400">{t('admin.auto_status')}:</span>
+                          <p className="text-blue-600 dark:text-blue-300 mt-1">{t('admin.auto_status_desc')}</p>
                         </div>
                         <div className="p-2 rounded bg-secondary-100 dark:bg-secondary-700 border border-secondary-300 dark:border-secondary-600">
                           <span className="font-medium text-secondary-800 dark:text-secondary-300">{t('admin.match_status')}:</span>
