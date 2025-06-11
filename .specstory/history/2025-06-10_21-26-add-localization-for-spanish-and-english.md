@@ -3178,6 +3178,506 @@ Now let me update the CHANGELOG with our internationalization and admin improvem
 
 ---
 
+```diff
+  
+  All notable changes to this project will be documented in this file.
++ 
++ ## [2.0.5] - 2025-06-13
++ ### 🌍 Complete Internationalization & Enhanced Admin UX
++ - **Full Spanish/English Localization**: Admin panel is now completely internationalized with comprehensive translation support
++   - **Automatic Betting Management** → **Gestión Automática de Apuestas**
++   - **Game Status Updates** → **Actualizaciones de Estado de Juegos**
++   - All admin interface text, labels, buttons, and messages properly localized
++   - Consistent terminology across entire application
++ 
++ ### 🚀 Intelligent Automatic Game Management
++ - **Smart Automatic Game Status Updates**: Games now automatically transition between states based on actual match times
++   - **Scheduled** → **Live** (at game start time) → **Completed** (2.5 hours after start)
++   - New `/admin/games/auto-update-status` endpoint for manual status sync
++   - Real-time status calculation using actual game dates instead of manual intervention
++ - **Enhanced Betting Window Automation**: Improved automatic betting window management with clearer status indicators
++   - Auto-opens betting for games scheduled within 7 days
++   - Automatic deadline setting 2 hours before first game of each week
++   - Smart status detection for weeks ready for betting activation
++ 
++ ### 🎨 Improved Admin Interface Design
++ - **Color-Coded Status Legend**: Status legend now uses same colors as actual status badges for visual consistency
++   - 🟢 **Week Status** (green) - Controls betting availability for entire week
++   - 🔴 **Betting Status** (pink/primary) - Individual game betting windows
++   - ⚪ **Match Status** (grey) - Current state of actual games
++ - **Enhanced Visual Hierarchy**: Clear distinction between different status types with emoji indicators and descriptions
++ - **Intuitive Status Flow**: Clear explanation of status relationships and admin actions needed
++ 
++ ### 🔧 Backend Enhancements
++ - **Smart Game Status Calculation**: New `computeAutoGameStatus()` function for automatic status management
++ - **Batch Status Updates**: Efficient bulk status updates for multiple games
++ - **Enhanced Error Handling**: Better error responses and user feedback for admin operations
++ - **Type Safety**: Improved TypeScript interfaces for admin game management
++ 
++ ### Technical Improvements
++ - Added comprehensive translation keys for all admin interface elements
++ - Enhanced admin API endpoints with proper status management
++ - Improved component architecture for better maintainability
++ - Better responsive design for admin interface elements
+  
+  ## [2.0.4] - 2025-06-10
+```
+
+---
+
+Now let me update the README to reflect our latest changes:
+
+---
+
+```diff
+  A modern web application for managing and participating in sports predictions.
+  
+- ## 🚀 Version 2.0.4 - Code Simplification & UX Consistency
++ ## 🚀 Version 2.0.5 - Complete Internationalization & Enhanced Admin UX
++ 
++ ### 🌍 Full Spanish/English Localization
++ - **Complete Admin Internationalization**: Admin panel now fully supports both Spanish and English with comprehensive translations
++ - **Automatic Game Management**: Smart automatic status updates based on real match times (Scheduled → Live → Completed)
++ - **Enhanced Admin Interface**: Color-coded status legend and improved visual hierarchy for better admin experience
++ - **Intelligent Automation**: Automatic betting window management with clear status indicators and action requirements
++ 
++ ### 🎨 Visual Design Improvements
++ - **Consistent Color Coding**: Status legend now matches actual badge colors (green for week status, pink for betting status, grey for match status)
++ - **Enhanced UX Flow**: Clear explanation of status relationships and when admin intervention is needed
++ - **Smart Status Detection**: Automatic identification of weeks and games ready for action
+  
+  ### 🧹 Enhanced User Experience & Simplified Architecture
+```
+
+```diff
+  - **Code Quality**: Eliminated conditional logic and dual code paths for improved maintainability
+  - **Consistent UX**: All user types (demo, admin, regular) follow the same betting rules and constraints
+- 
+- ### Previous: Version 2.0.3 - Critical Security Fix & Enhanced Stability
+  
+  ### 🔒 Password Change Functionality Fixed
+```
+
+```diff
+  - **Root Cause**: Frontend was sending PUT requests while backend only accepted POST requests
+  - **Security Restored**: All authenticated users can now successfully change their passwords
+- 
+- ### Previous: Version 2.0.2 - Multi-Currency Support & Enhanced UX
+  
+  ### 🌍 Multi-Currency Support
+```
+
+```diff
+  - **Cleaner Interface**: Removed unnecessary input boxes, improved visual hierarchy
+  - **Touch-Friendly Controls**: Optimized button sizes and spacing for mobile devices
+- 
+- ### Previous: Version 2.0.1 - Security & UX Improvements
+  
+  ### 🔒 Enhanced Security & Clean Authentication
+```
+
+```diff
+  - **Streamlined Dashboard**: Temporarily removed Quick Actions for cleaner interface
+  - **Development Optimization**: Enhanced development experience with temporary rate limiting adjustments
+- 
+- ### Previous: Version 2.0.0 - Major Betting Interface Overhaul
+  
+  ### 🎯 Enhanced Betting Experience
+```
+
+---
+
+Now let me add all the changes to git and commit them:
+
+---
+
+```bash
+git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+Model provided invalid arguments to terminal tool.
+
+---
+
+```bash
+git commit -m "feat: Complete internationalization and enhanced admin UX - Full Spanish/English localization, intelligent automatic game management, improved admin interface design, and backend enhancements"
+```
+
+```
+<ed admin interface design, and backend enhancements"
+[fix-admin-mobile-overflow df4e329] feat: Complete internationalization and enhanced admin UX - Full Spanish
+/English localization, intelligent automatic game management, improved admin interface design, and backend e
+nhancements
+ 9 files changed, 7996 insertions(+), 60 deletions(-)
+ create mode 100644 .specstory/history/2025-06-10_21-26-add-localization-for-spanish-and-english.md
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let me push the changes to the GitHub branch:
+
+---
+
+```bash
+git push origin fix-admin-mobile-overflow
+```
+
+```
+batman@saturn laquiniela247 % git push origin fix-admin-mobile-overflow
+Enumerating objects: 80, done.
+Counting objects: 100% (80/80), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (60/60), done.
+Writing objects: 100% (60/60), 99.46 KiB | 8.29 MiB/s, done.
+Total 60 (delta 44), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (44/44), completed with 17 local objects.
+remote: 
+remote: Create a pull request for 'fix-admin-mobile-overflow' on GitHub by visiting:
+remote:      https://github.com/cards10e/laquiniela247/pull/new/fix-admin-mobile-overflow
+remote: 
+To https://github.com/cards10e/laquiniela247.git
+ * [new branch]      fix-admin-mobile-overflow -> fix-admin-mobile-overflow
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! ✅ **All changes have been successfully committed and pushed to GitHub.**
+
+## 📋 Summary of Documentation Updates:
+
+### **CHANGELOG.md** - Added Version 2.0.5:
+- 🌍 **Complete Internationalization** - Full Spanish/English admin localization
+- 🚀 **Intelligent Automatic Game Management** - Smart status updates based on match times
+- 🎨 **Improved Admin Interface Design** - Color-coded legend and visual hierarchy
+- 🔧 **Backend Enhancements** - New APIs and better error handling
+
+### **README.md** - Updated Version Header:
+- Updated to reflect Version 2.0.5 achievements
+- Added highlights of internationalization and admin UX improvements
+- Documented the automatic game management features
+- Noted visual design consistency improvements
+
+---
+
+## 🚀 **Ready for Mobile-First Admin UX Implementation**
+
+Now I'm ready to implement the mobile-first admin UX improvements we discussed, following the careful plan to enhance the admin interface without breaking any existing functionality. 
+
+**Next steps will focus on:**
+1. ✅ **Step 1**: Update translation keys for better UX messaging
+2. ✅ **Step 2**: Add smart status indicators with counts/states
+3. ✅ **Step 3**: Enhance auto-management cards with mobile-first design
+4. ✅ **Step 4**: Simplify games list for better mobile experience
+
+Would you like me to proceed with **Step 1** - updating the translation keys to be more user-focused and action-oriented?
+
+---
+
+_**User**_
+
+can you show me a mockup of what the ui will look like for the existing games items? you can just use .md file language if thats easier
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+Absolutely! Let me create a visual mockup showing the current vs. proposed UI for the existing games section. I'll use markdown to illustrate the layout changes.
+
+---
+
+```diff
+- 
++ # Admin Games List - UI Mockup
++ 
++ ## 🔴 CURRENT STATE (Complex, Mobile-Unfriendly)
++ 
++ ```
++ ┌─────────────────────────────────────────────────────────────┐
++ │ Existing Games                                              │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ Status Legend                                           │ │
++ │ │ [🟢 Week Status: desc...] [🔴 Betting: desc...] [⚪ Match] │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ │                                                             │
++ │ Week 24                                    [🟢 Open]        │
++ │                                                             │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ 🏠 Toluca FC  vs  Tigres UANL 🦁                        │ │
++ │ │ [📅 6/13 12:00] [🟢 Open] [🔴 Open for betting]         │ │
++ │ │ [⚪ Match Scheduled] [🗑️ Delete]                         │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ │                                                             │
++ │ Week 25                        [🟡 Open now (2)]           │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ 🏠 Club América  vs  Club Necaxa 🔴                     │ │
++ │ │ [📅 6/20 12:00] [🔵 Auto: 6/13] [⚪ Match Scheduled]    │ │
++ │ │ [🗑️ Delete] [⚙️ Override]                               │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ └─────────────────────────────────────────────────────────────┘
++ ```
++ 
++ ### Problems:
++ - ❌ **Too many badges** (5-6 per game on mobile)
++ - ❌ **Information overload** - hard to scan quickly
++ - ❌ **Small touch targets** - buttons too close together
++ - ❌ **Complex status logic** - multiple overlapping states
++ - ❌ **Mobile unfriendly** - horizontal scrolling on small screens
++ 
++ ---
++ 
++ ## 🟢 PROPOSED STATE (Clean, Mobile-First)
++ 
++ ```
++ ┌─────────────────────────────────────────────────────────────┐
++ │ Game Management                                             │
++ │                                                             │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ 📊 Quick Status                                         │ │
++ │ │ 🟢 2 weeks open  🟡 3 need attention  ⚪ 5 scheduled    │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ │                                                             │
++ │ Week 24 • Open for betting                    ✅           │
++ │                                                             │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ 🏠 Toluca FC  vs  Tigres UANL 🦁              [🟢 Live] │ │
++ │ │ 📅 Jun 13, 12:00 PM                                     │ │
++ │ │ ┌─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐ │ │
++ │ │   🎯 Betting: Open  ⏰ Match: Live            [•••]    │ │
++ │ │ └─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘ │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ │                                                             │
++ │ Week 25 • Needs attention                     ⚠️ [Fix]     │
++ │                                                             │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ 🏠 Club América  vs  Club Necaxa 🔴         [🟡 Ready] │ │
++ │ │ 📅 Jun 20, 12:00 PM • Auto-opens Jun 18                │ │
++ │ │                                                         │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ │                                                             │
++ │ Week 26 • Future                             💤           │
++ │                                                             │
++ │ ┌─────────────────────────────────────────────────────────┐ │
++ │ │ 🏠 Pumas UNAM  vs  Cruz Azul ⭐           [⚪ Scheduled] │ │
++ │ │ 📅 Jun 27, 8:00 PM                                      │ │
++ │ │                                                         │ │
++ │ └─────────────────────────────────────────────────────────┘ │
++ └─────────────────────────────────────────────────────────────┘
++ ```
++ 
++ ---
++ 
++ ## 📱 MOBILE VIEW (< 768px)
++ 
++ ```
++ ┌─────────────────────────────┐
++ │ Game Management             │
++ │                             │
++ │ 📊 Status Summary           │
++ │ 🟢 2 open  🟡 3 ready       │
++ │ ⚪ 5 future                 │
++ │                             │
++ │ ┌─────────────────────────┐ │
++ │ │ Week 24 • Open    ✅   │ │
++ │ └─────────────────────────┘ │
++ │                             │
++ │ ┌─────────────────────────┐ │
++ │ │ 🏠 Toluca vs Tigres 🦁  │ │
++ │ │ 📅 Jun 13, 12:00 PM     │ │
++ │ │                   [🟢] │ │
++ │ │ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐ │ │
++ │ │  Betting: Open         │ │
++ │ │  Match: Live      [•••]│ │
++ │ │ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘ │ │
++ │ └─────────────────────────┘ │
++ │                             │
++ │ ┌─────────────────────────┐ │
++ │ │ Week 25 • Ready   [Fix] │ │
++ │ └─────────────────────────┘ │
++ │                             │
++ │ ┌─────────────────────────┐ │
++ │ │ 🏠 América vs Necaxa 🔴 │ │
++ │ │ 📅 Jun 20, 12:00 PM     │ │
++ │ │ Auto: Jun 18      [🟡] │ │
++ │ └─────────────────────────┘ │
++ └─────────────────────────────┘
++ ```
++ 
++ ---
++ 
++ ## 🎯 KEY IMPROVEMENTS
++ 
++ ### **1. Information Hierarchy**
++ ```
++ PRIMARY:    Team matchup + date/time
++ SECONDARY:  Current status (one clear badge)
++ TERTIARY:   Detailed statuses (expandable)
++ ACTIONS:    Single primary action per item
++ ```
++ 
++ ### **2. Progressive Disclosure**
++ ```
++ ALWAYS VISIBLE:  Teams, date, primary status
++ EXPAND ON TAP:   Detailed betting/match status
++ MENU ON TAP:     Actions (delete, override, etc.)
++ ```
++ 
++ ### **3. Status Simplification**
++ ```
++ 🟢 Live/Active    - Game is happening now
++ 🟡 Ready/Warning  - Needs admin attention  
++ 🔴 Problem        - Issue requiring fix
++ ⚪ Scheduled      - Future/automatic
++ 💤 Inactive       - No action needed
++ ```
++ 
++ ### **4. Touch-Friendly Design**
++ ```
++ MINIMUM TOUCH TARGET:  44px × 44px
++ BUTTON SPACING:        8px minimum
++ TAP ZONES:            Large, obvious areas
++ SWIPE ACTIONS:        Secondary operations
++ ```
++ 
++ ### **5. Smart Grouping**
++ ```
++ WEEK HEADERS:   Clear visual separation
++ STATUS COUNTS:  Overview at top
++ ACTION ITEMS:   Prioritized by urgency
++ BULK ACTIONS:   Week-level operations
++ ```
++ 
++ ---
++ 
++ ## 🔄 INTERACTION PATTERNS
++ 
++ ### **Tap Game Card:**
++ ```
++ ┌─────────────────────────────┐
++ │ 🏠 Toluca vs Tigres 🦁 [🟢] │
++ │ 📅 Jun 13, 12:00 PM         │ ← Tap anywhere to expand
++ │ ▼ Details                   │
++ │ ┌─────────────────────────┐ │
++ │ │ 🎯 Betting: Open        │ │ ← Expanded details
++ │ │ ⏰ Match: Live          │ │
++ │ │ 📊 Bets: 47 placed      │ │
++ │ │ [Update Score] [Delete] │ │ ← Action buttons
++ │ └─────────────────────────┘ │
++ └─────────────────────────────┘
++ ```
++ 
++ ### **Tap Week Header:**
++ ```
++ ┌─────────────────────────────┐
++ │ Week 25 • Ready    [Fix] ← │ ← Tap "Fix" for week actions
++ │ ▼ Actions                   │
++ │ ┌─────────────────────────┐ │
++ │ │ [Open Betting - 2hrs]   │ │ ← Quick deadline options
++ │ │ [Open Betting - 6hrs]   │ │
++ │ │ [Open Betting - 12hrs]  │ │
++ │ │ [Cancel]                │ │
++ │ └─────────────────────────┘ │
++ └─────────────────────────────┘
++ ```
++ 
++ This approach **dramatically simplifies** the interface while maintaining all functionality through progressive disclosure and smart interaction patterns. Would you like me to implement this step by step? 
+```
+
+---
+
+Perfect! I've created a comprehensive UI mockup that shows the dramatic transformation from the current complex interface to a clean, mobile-first design.
+
+## 🎯 **Key UX Improvements Highlighted:**
+
+### **Visual Complexity Reduction:**
+- **Before**: 5-6 status badges per game creating visual chaos
+- **After**: 1 primary status badge with progressive disclosure for details
+
+### **Mobile-First Approach:**
+- **Touch-friendly targets** (44px minimum)
+- **Simplified information hierarchy** 
+- **Progressive disclosure** - tap to reveal details
+- **Clear visual grouping** by week and status
+
+### **Smart Status System:**
+- **🟢 Live/Active** - Game happening now
+- **🟡 Ready/Warning** - Needs admin attention  
+- **🔴 Problem** - Issue requiring immediate fix
+- **⚪ Scheduled** - Future/automatic
+- **💤 Inactive** - No action needed
+
+### **Information Architecture:**
+- **Primary**: Team matchup + date (always visible)
+- **Secondary**: Current status (single clear badge)
+- **Tertiary**: Detailed statuses (expandable on tap)
+- **Actions**: Single primary action per item
+
+### **Interaction Patterns:**
+- **Tap game card** → Expand details and actions
+- **Tap week header** → Show week-level actions
+- **Large touch zones** for mobile usability
+- **Clear visual feedback** for all states
+
+This design maintains **100% of existing functionality** while making it **dramatically more usable on mobile devices**. The progressive disclosure pattern means power users can still access all the detailed information and actions, but casual users aren't overwhelmed.
+
+**Would you like me to start implementing this design step by step, beginning with the translation keys and status calculation logic?**
+
+---
+
+_**User**_
+
+okay great!!! lets merge all changes into main once confirmed, pls delete this branch. Once that is done, pls create an aptly named feature branch for the proposed changes above, switch to it
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+Perfect! Let me merge all our internationalization and admin improvements into main, then create a fresh feature branch for the mobile-first redesign.
+
+---
+
+```bash
+git status
+```
+
+```
+batman@saturn laquiniela247 % git status
+On branch fix-admin-mobile-overflow
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .specstory/history/2025-06-10_21-26-add-localization-for-spanish-and-english.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        UI_MOCKUP_GAMES.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+batman@saturn laquiniela247 %
+```
+
+---
+
+Let me add and commit the mockup file first:
+
+---
+
 
 
 ---
