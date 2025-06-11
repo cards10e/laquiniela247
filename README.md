@@ -2,18 +2,26 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.5 - Complete Internationalization & Enhanced Admin UX
+## 🚀 Version 2.0.6 - Admin Panel Consistency & Comprehensive Documentation
 
-### 🌍 Full Spanish/English Localization
-- **Complete Admin Internationalization**: Admin panel now fully supports both Spanish and English with comprehensive translations
-- **Automatic Game Management**: Smart automatic status updates based on real match times (Scheduled → Live → Completed)
-- **Enhanced Admin Interface**: Color-coded status legend and improved visual hierarchy for better admin experience
-- **Intelligent Automation**: Automatic betting window management with clear status indicators and action requirements
+### 🎨 Unified Admin Panel Experience
+- **Consistent Tab Styling**: All admin panel tabs now display matching red styling when active for perfect visual consistency
+- **Enhanced Navigation Context**: Each tab shows its own red section title above navigation for better hierarchy and orientation
+- **Professional Interface**: Complete alignment with design system using primary color scheme across all admin sections
 
-### 🎨 Visual Design Improvements
-- **Consistent Color Coding**: Status legend now matches actual badge colors (green for week status, pink for betting status, grey for match status)
-- **Enhanced UX Flow**: Clear explanation of status relationships and when admin intervention is needed
-- **Smart Status Detection**: Automatic identification of weeks and games ready for action
+### 📚 Comprehensive Admin Documentation  
+- **Complete Admin Guide**: Added detailed `ADMIN_GAME_MANAGEMENT_GUIDE.md` covering every aspect of the Games Management interface
+- **Technical Deep-Dive**: Real-time calculation engine documentation with precise timing details for Game Status Sync
+- **Step-by-Step Workflows**: Complete instructions for betting window management and automatic game status updates
+- **Troubleshooting Guide**: Solutions for all common scenarios with symptoms, prevention, and best practices
+- **Mobile vs Desktop**: Complete interface differences and optimization strategies for both platforms
+
+### 🤖 Automatic Game Status Management
+- **Real-Time Status Logic**: Documented automatic game state transitions with precise timing
+  - **SCHEDULED → LIVE**: Exactly at game start time
+  - **LIVE → COMPLETED**: 2.5 hours (150 minutes) after game start  
+- **95% Automation**: Eliminates manual status management while preserving admin override capabilities
+- **Smart Detection**: System automatically identifies games needing status updates and batches updates for efficiency
 
 ### 🧹 Enhanced User Experience & Simplified Architecture
 - **Authentic Demo Experience**: Demo users now experience real betting mechanics identical to production users
@@ -61,6 +69,7 @@ A modern web application for managing and participating in sports predictions.
 - Advanced betting system with Single Bets and La Quiniela modes
 - **Multi-currency support** (MXN, USD, Bitcoin) with persistent user preferences
 - Admin panel for managing games, teams, and users
+- **Complete admin documentation** (`ADMIN_GAME_MANAGEMENT_GUIDE.md`) with detailed workflows and troubleshooting
 - Real-time game updates and bet tracking
 - **Mobile-optimized responsive design** with dark mode support
 - Multi-language support (English/Spanish)

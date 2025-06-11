@@ -1,6 +1,5 @@
 #!/bin/bash
-# NOTE: FIREBASE_CREDENTIALS in .env.prod must be just the filename (e.g., firebase-credentials.prod.json),
-# and the file must exist in the storage/ directory. Do NOT use a storage/ prefix in the env value.
+
 set -e
 
 # --- CONFIG ---

@@ -466,11 +466,27 @@ export default function AdminPage() {
               </h1>
             </div>
 
-            {/* Performance Overview Section Title */}
+            {/* Section Titles for Active Tabs */}
             {activeTab === 'overview' && (
               <div className="mb-8">
                 <h2 className="section-title">
                   {t('dashboard.performance_overview')}
+                </h2>
+              </div>
+            )}
+            
+            {activeTab === 'users' && (
+              <div className="mb-8">
+                <h2 className="section-title">
+                  {t('admin.user_management')}
+                </h2>
+              </div>
+            )}
+            
+            {activeTab === 'games' && (
+              <div className="mb-8">
+                <h2 className="section-title">
+                  {t('admin.game_management')}
                 </h2>
               </div>
             )}

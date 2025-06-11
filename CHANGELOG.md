@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.6] - 2025-06-11
+### 🎨 Admin Panel Consistency & Documentation
+- **Unified Tab Styling**: All admin panel tabs now display consistent red styling when active
+  - ✅ **Performance Overview** - Red section title + red active tab styling
+  - ✅ **User Management** - Red section title + red active tab styling  
+  - ✅ **Game Management** - Red section title + red active tab styling
+  - **Visual Consistency**: Perfect alignment with design system using primary color scheme
+- **Enhanced Admin Experience**: Each tab now shows its own red section title above navigation for better context and hierarchy
+
+### 📚 Comprehensive Admin Documentation
+- **Complete Admin Guide**: Added comprehensive `ADMIN_GAME_MANAGEMENT_GUIDE.md` covering every aspect of the Games Management interface
+  - **Detailed Technical Explanations**: Real-time calculation engine for Game Status Sync with precise timing details
+  - **Step-by-Step Instructions**: Complete workflows for betting window management and game status updates
+  - **Troubleshooting Guide**: Solutions for all common scenarios with symptoms, solutions, and prevention
+  - **Best Practices**: Daily/weekly routines and efficiency tips for optimal admin workflow
+  - **Mobile vs Desktop**: Complete interface differences and optimization strategies
+- **Real-Time Status Logic**: Documented automatic game state transitions:
+  - **SCHEDULED → LIVE**: Exactly at game start time
+  - **LIVE → COMPLETED**: 2.5 hours (150 minutes) after game start
+  - **95% Automation**: Eliminates manual status management while preserving admin override capabilities
+
+### Technical Improvements
+- Enhanced admin interface visual hierarchy with consistent section titles
+- Improved user experience with clearer navigation context
+- Complete documentation coverage eliminating admin confusion
+- Mobile-first responsive design considerations documented
+
 ## [2.0.5] - 2025-06-13
 ### 🌍 Complete Internationalization & Enhanced Admin UX
 - **Full Spanish/English Localization**: Admin panel is now completely internationalized with comprehensive translation support
