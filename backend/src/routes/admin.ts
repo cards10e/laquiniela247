@@ -192,6 +192,31 @@ router.put('/users/:id', asyncHandler(async (req: AuthenticatedRequest, res: exp
   });
 }));
 
+// Helper function to compute automatic game status based on match time
+const computeAutoGameStatus = (game: any) => {
+  const now = new Date();
+  const gameDate = new Date(game.matchDate);
+  const minutesUntilGame = (gameDate.getTime() - now.getTime()) / (1000 * 60);
+  const minutesSinceGameStart = (now.getTime() - gameDate.getTime()) / (1000 * 60);
+  
+  // If game ended more than 150 minutes ago (2.5 hours), it should be completed
+  if (minutesSinceGameStart > 150) {
+    return 'COMPLETED';
+  }
+  
+  // If game started (within 150 minutes), it should be live
+  if (minutesSinceGameStart >= 0 && minutesSinceGameStart <= 150) {
+    return 'LIVE';
+  }
+  
+  // If game hasn't started yet, it's scheduled
+  if (minutesUntilGame > 0) {
+    return 'SCHEDULED';
+  }
+  
+  return game.status || 'SCHEDULED';
+};
+
 // Helper function to compute betting status for games
 const computeBettingStatus = (game: any, week: any) => {
   const now = new Date();
@@ -276,11 +301,68 @@ router.get('/games', asyncHandler(async (req: AuthenticatedRequest, res: express
     skip: offset
   });
 
-  // Enhance games with computed betting status
-  const enhancedGames = games.map(game => ({
-    ...game,
-    bettingStatus: computeBettingStatus(game, game.week)
-  }));
+  // Auto-update game statuses based on time before sending response
+  const gamesToUpdate = [];
+  for (const game of games) {
+    const autoStatus = computeAutoGameStatus(game);
+    if (autoStatus !== game.status) {
+      gamesToUpdate.push({ id: game.id, newStatus: autoStatus });
+    }
+  }
+
+  let enhancedGames;
+
+  // Batch update games that need status changes
+  if (gamesToUpdate.length > 0) {
+    await Promise.all(
+      gamesToUpdate.map(({ id, newStatus }) =>
+        prisma.game.update({
+          where: { id },
+          data: { status: newStatus }
+        })
+      )
+    );
+    
+    // Refetch games with updated statuses
+    const updatedGames = await prisma.game.findMany({
+      where,
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        week: {
+          select: {
+            id: true,
+            weekNumber: true,
+            season: true,
+            status: true,
+            bettingDeadline: true
+          }
+        },
+        _count: {
+          select: {
+            bets: true
+          }
+        }
+      },
+      orderBy: {
+        matchDate: 'desc'
+      },
+      take: limit,
+      skip: offset
+    });
+
+    // Enhance updated games with computed betting status
+    enhancedGames = updatedGames.map(game => ({
+      ...game,
+      bettingStatus: computeBettingStatus(game, game.week)
+    }));
+  } else {
+    // Enhance games with computed betting status (no updates needed)
+    enhancedGames = games.map(game => ({
+      ...game,
+      bettingStatus: computeBettingStatus(game, game.week)
+    }));
+  }
 
   const total = await prisma.game.count({ where });
 
@@ -498,6 +580,51 @@ router.put('/weeks/:id', asyncHandler(async (req: AuthenticatedRequest, res: exp
   res.json({
     message: 'Week updated successfully',
     week: updatedWeek,
+  });
+}));
+
+// POST /api/admin/games/auto-update-status - Auto-update all game statuses based on time
+router.post('/games/auto-update-status', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  const now = new Date();
+  
+  // Get all games that might need status updates
+  const games = await prisma.game.findMany({
+    where: {
+      status: {
+        in: ['SCHEDULED', 'LIVE']
+      }
+    },
+    include: {
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } }
+    }
+  });
+
+  const statusUpdates = [];
+  
+  for (const game of games) {
+    const autoStatus = computeAutoGameStatus(game);
+    if (autoStatus !== game.status) {
+      statusUpdates.push({
+        gameId: game.id,
+        oldStatus: game.status,
+        newStatus: autoStatus,
+        gameName: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+        matchDate: game.matchDate
+      });
+      
+      // Update the game status
+      await prisma.game.update({
+        where: { id: game.id },
+        data: { status: autoStatus }
+      });
+    }
+  }
+
+  res.json({
+    message: `Auto-updated ${statusUpdates.length} game statuses`,
+    updates: statusUpdates,
+    timestamp: now.toISOString()
   });
 }));
 

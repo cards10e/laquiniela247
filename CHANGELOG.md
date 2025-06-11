@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.5] - 2025-06-13
+### 🌍 Complete Internationalization & Enhanced Admin UX
+- **Full Spanish/English Localization**: Admin panel is now completely internationalized with comprehensive translation support
+  - **Automatic Betting Management** → **Gestión Automática de Apuestas**
+  - **Game Status Updates** → **Actualizaciones de Estado de Juegos**
+  - All admin interface text, labels, buttons, and messages properly localized
+  - Consistent terminology across entire application
+
+### 🚀 Intelligent Automatic Game Management
+- **Smart Automatic Game Status Updates**: Games now automatically transition between states based on actual match times
+  - **Scheduled** → **Live** (at game start time) → **Completed** (2.5 hours after start)
+  - New `/admin/games/auto-update-status` endpoint for manual status sync
+  - Real-time status calculation using actual game dates instead of manual intervention
+- **Enhanced Betting Window Automation**: Improved automatic betting window management with clearer status indicators
+  - Auto-opens betting for games scheduled within 7 days
+  - Automatic deadline setting 2 hours before first game of each week
+  - Smart status detection for weeks ready for betting activation
+
+### 🎨 Improved Admin Interface Design
+- **Color-Coded Status Legend**: Status legend now uses same colors as actual status badges for visual consistency
+  - 🟢 **Week Status** (green) - Controls betting availability for entire week
+  - 🔴 **Betting Status** (pink/primary) - Individual game betting windows
+  - ⚪ **Match Status** (grey) - Current state of actual games
+- **Enhanced Visual Hierarchy**: Clear distinction between different status types with emoji indicators and descriptions
+- **Intuitive Status Flow**: Clear explanation of status relationships and admin actions needed
+
+### 🔧 Backend Enhancements
+- **Smart Game Status Calculation**: New `computeAutoGameStatus()` function for automatic status management
+- **Batch Status Updates**: Efficient bulk status updates for multiple games
+- **Enhanced Error Handling**: Better error responses and user feedback for admin operations
+- **Type Safety**: Improved TypeScript interfaces for admin game management
+
+### Technical Improvements
+- Added comprehensive translation keys for all admin interface elements
+- Enhanced admin API endpoints with proper status management
+- Improved component architecture for better maintainability
+- Better responsive design for admin interface elements
+
 ## [2.0.4] - 2025-06-10
 ### 🧹 Code Simplification & UX Consistency
 - **Endless Betting Mode Removal**: Completely removed the endless betting feature for demo users

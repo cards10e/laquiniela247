@@ -2,7 +2,18 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.4 - Code Simplification & UX Consistency
+## 🚀 Version 2.0.5 - Complete Internationalization & Enhanced Admin UX
+
+### 🌍 Full Spanish/English Localization
+- **Complete Admin Internationalization**: Admin panel now fully supports both Spanish and English with comprehensive translations
+- **Automatic Game Management**: Smart automatic status updates based on real match times (Scheduled → Live → Completed)
+- **Enhanced Admin Interface**: Color-coded status legend and improved visual hierarchy for better admin experience
+- **Intelligent Automation**: Automatic betting window management with clear status indicators and action requirements
+
+### 🎨 Visual Design Improvements
+- **Consistent Color Coding**: Status legend now matches actual badge colors (green for week status, pink for betting status, grey for match status)
+- **Enhanced UX Flow**: Clear explanation of status relationships and when admin intervention is needed
+- **Smart Status Detection**: Automatic identification of weeks and games ready for action
 
 ### 🧹 Enhanced User Experience & Simplified Architecture
 - **Authentic Demo Experience**: Demo users now experience real betting mechanics identical to production users
@@ -10,15 +21,11 @@ A modern web application for managing and participating in sports predictions.
 - **Code Quality**: Eliminated conditional logic and dual code paths for improved maintainability
 - **Consistent UX**: All user types (demo, admin, regular) follow the same betting rules and constraints
 
-### Previous: Version 2.0.3 - Critical Security Fix & Enhanced Stability
-
 ### 🔒 Password Change Functionality Fixed
 - **Critical Bug Fix**: Resolved HTTP method mismatch that completely broke password change functionality
 - **Universal Impact**: Fix applies to all user types (demo users, admin users, regular users)
 - **Root Cause**: Frontend was sending PUT requests while backend only accepted POST requests
 - **Security Restored**: All authenticated users can now successfully change their passwords
-
-### Previous: Version 2.0.2 - Multi-Currency Support & Enhanced UX
 
 ### 🌍 Multi-Currency Support
 - **Currency Toggle**: Choose between MXN (Mexican Pesos), USD (US Dollars), and Bitcoin (BTC)
@@ -32,15 +39,11 @@ A modern web application for managing and participating in sports predictions.
 - **Cleaner Interface**: Removed unnecessary input boxes, improved visual hierarchy
 - **Touch-Friendly Controls**: Optimized button sizes and spacing for mobile devices
 
-### Previous: Version 2.0.1 - Security & UX Improvements
-
 ### 🔒 Enhanced Security & Clean Authentication
 - **Secure Authentication Flow**: Fixed redirect behavior to prevent exposure of protected URLs when logged out
 - **Clean Login Experience**: Users now see clean `/login` URLs without query parameters or page remnants
 - **Streamlined Dashboard**: Temporarily removed Quick Actions for cleaner interface
 - **Development Optimization**: Enhanced development experience with temporary rate limiting adjustments
-
-### Previous: Version 2.0.0 - Major Betting Interface Overhaul
 
 ### 🎯 Enhanced Betting Experience
 - **Consistent Bet Summary**: Both Single Bets and La Quiniela tabs now feature comprehensive bet summaries

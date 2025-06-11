@@ -172,14 +172,30 @@ export default function AdminPage() {
     try {
       const response = await axiosInstance.post('/admin/weeks/auto-open');
       if (response.data.openedWeeks.length > 0) {
-        toast.success(`Auto-opened ${response.data.openedWeeks.length} weeks for betting`);
+        toast.success(t('admin.auto_open_success', { count: response.data.openedWeeks.length }));
         fetchAdminData(); // Refresh data
       } else {
-        toast.success('No weeks ready for auto-opening');
+        toast.success(t('admin.no_weeks_ready_auto_open'));
       }
     } catch (error) {
       console.error('Failed to auto-open weeks:', error);
       toast.error('Failed to auto-open weeks');
+    }
+  };
+
+  // Auto-update game statuses utility function
+  const handleAutoUpdateGameStatuses = async () => {
+    try {
+      const response = await axiosInstance.post('/admin/games/auto-update-status');
+      if (response.data.updates.length > 0) {
+        toast.success(t('admin.auto_open_success', { count: response.data.updates.length }).replace('weeks', 'game statuses'));
+        fetchAdminData(); // Refresh data
+      } else {
+        toast.success(t('admin.all_statuses_updated'));
+      }
+    } catch (error) {
+      console.error('Failed to auto-update game statuses:', error);
+      toast.error('Failed to auto-update game statuses');
     }
   };
 
@@ -271,6 +287,19 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Failed to update game result:', error);
       toast.error(t('admin.game_result_update_failed'));
+    }
+  };
+
+  const handleUpdateGameStatus = async (gameId: number, status: string) => {
+    try {
+      await axiosInstance.put(`/admin/games/${gameId}`, {
+        status
+      });
+      toast.success(`Game status updated to ${status.toLowerCase()}`);
+      fetchAdminData();
+    } catch (error) {
+      console.error('Failed to update game status:', error);
+      toast.error('Failed to update game status');
     }
   };
 
@@ -636,27 +665,52 @@ export default function AdminPage() {
             {/* Games Tab */}
             {activeTab === 'games' && (
               <div className="space-y-8">
-                {/* Auto-Open Control */}
-                <div className="card">
-                  <div className="card-header">
-                    <h2 className="card-title">Gestión Automática de Apuestas</h2>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex-1">
-                      <p className="text-secondary-600 dark:text-secondary-400 mb-2">
-                        Abre automáticamente las apuestas para juegos programados dentro de 7 días.
-                      </p>
-                      <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                        Las apuestas se cierran automáticamente 2 horas antes del primer juego de cada jornada.
-                      </p>
+                {/* Auto-Management Controls */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Auto-Open Betting Control */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h2 className="card-title">{t('admin.automatic_betting_management')}</h2>
                     </div>
-                    <button
-                      onClick={handleAutoOpenWeeks}
-                      className="btn-secondary whitespace-nowrap"
-                    >
-                      <span className="hidden sm:inline">Verificar y Abrir Ahora</span>
-                      <span className="sm:hidden">Auto-Abrir</span>
-                    </button>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex-1">
+                        <p className="text-secondary-600 dark:text-secondary-400 mb-2">
+                          {t('admin.auto_betting_description')}
+                        </p>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                          {t('admin.auto_betting_deadline_info')}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleAutoOpenWeeks}
+                        className="btn-secondary"
+                      >
+                        {t('admin.verify_and_open_now')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Auto-Update Game Status Control */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h2 className="card-title">{t('admin.auto_game_status_management')}</h2>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex-1">
+                        <p className="text-secondary-600 dark:text-secondary-400 mb-2">
+                          {t('admin.auto_game_status_description')}
+                        </p>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                          {t('admin.auto_game_status_info')}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleAutoUpdateGameStatuses}
+                        className="btn-secondary"
+                      >
+                        {t('admin.update_game_statuses')}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -769,6 +823,24 @@ export default function AdminPage() {
                 <div className="card">
                   <div className="card-header">
                     <h2 className="card-title">{t('admin.existing_games')}</h2>
+                    {/* Status Legend */}
+                    <div className="mt-4 p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
+                      <h4 className="text-sm font-semibold mb-2">{t('admin.status_legend')}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div className="p-2 rounded bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
+                          <span className="font-medium text-success-800 dark:text-success-400">{t('admin.week_status')}:</span>
+                          <p className="text-success-600 dark:text-success-300 mt-1">{t('admin.week_status_desc')}</p>
+                        </div>
+                        <div className="p-2 rounded bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+                          <span className="font-medium text-primary-800 dark:text-primary-400">{t('admin.betting_status')}:</span>
+                          <p className="text-primary-600 dark:text-primary-300 mt-1">{t('admin.betting_status_desc')}</p>
+                        </div>
+                        <div className="p-2 rounded bg-secondary-100 dark:bg-secondary-700 border border-secondary-300 dark:border-secondary-600">
+                          <span className="font-medium text-secondary-800 dark:text-secondary-300">{t('admin.match_status')}:</span>
+                          <p className="text-secondary-600 dark:text-secondary-400 mt-1">{t('admin.match_status_desc')}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-4">
                     {games.length === 0 ? (
@@ -831,20 +903,20 @@ export default function AdminPage() {
                                     if (week?.status?.toLowerCase() === 'open') {
                                       return (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
-                                          Abierta
+                                          {t('admin.status_open_short')}
                                         </span>
                                       );
                                     } else if (readyGames.length > 0) {
                                       return (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
-                                          {readyGames.length} Listo{readyGames.length > 1 ? 's' : ''}
+                                          {t('admin.ready_count', { count: readyGames.length })}
                                         </span>
                                       );
                                     } else if (scheduledGames.length > 0 && scheduledGames[0].bettingStatus?.autoOpenDate) {
                                       const autoDate = new Date(scheduledGames[0].bettingStatus.autoOpenDate);
                                       return (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                                          Auto: {autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}
+                                          {t('admin.auto_date_format', { date: autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) })}
                                         </span>
                                       );
                                     }
@@ -862,8 +934,8 @@ export default function AdminPage() {
                                   if (isWeekOpen) {
                                     return (
                                       <span className="text-xs text-success-600 dark:text-success-400 font-medium">
-                                        <span className="hidden sm:inline">Abierta para apuestas</span>
-                                        <span className="sm:hidden">Abierta</span>
+                                        <span className="hidden sm:inline">{t('admin.status_open_betting')}</span>
+                                        <span className="sm:hidden">{t('admin.status_open_short')}</span>
                                       </span>
                                     );
                                   }
@@ -875,8 +947,8 @@ export default function AdminPage() {
                                         type="button"
                                         onClick={() => setOpenDeadlineWeekId(Number(weekId))}
                                       >
-                                        <span className="hidden sm:inline">Abrir ahora ({readyGames.length})</span>
-                                        <span className="sm:hidden">Abrir ({readyGames.length})</span>
+                                        <span className="hidden sm:inline">{t('admin.open_now_count', { count: readyGames.length })}</span>
+                                        <span className="sm:hidden">{t('admin.open_now_count', { count: readyGames.length })}</span>
                                       </button>
                                     );
                                   }
@@ -943,8 +1015,9 @@ export default function AdminPage() {
                                   </div>
                                   {/* Badges/buttons right */}
                                   <div className="flex flex-wrap items-center gap-1">
+                                    {/* Game Date/Time */}
                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
-                                      {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
+                                      📅 {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
                                         ? new Date(game.gameDate).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) + 
                                           ' ' + new Date(game.gameDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
                                         : t('admin.tbd')}
@@ -966,19 +1039,19 @@ export default function AdminPage() {
                                       
                                       // Mobile-friendly text for status badges
                                       if (bettingStatus.status === 'open') {
-                                        displayText = 'Abierta';
+                                        displayText = t('admin.status_open_short');
                                       } else if (bettingStatus.status === 'ready') {
-                                        displayText = 'Listo';
+                                        displayText = t('admin.status_ready_short');
                                       } else if (bettingStatus.status === 'scheduled' && bettingStatus.autoOpenDate) {
                                         const autoDate = new Date(bettingStatus.autoOpenDate);
-                                        displayText = `Auto: ${autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}`;
+                                        displayText = t('admin.auto_date_format', { date: autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) });
                                       } else if (bettingStatus.status === 'past') {
-                                        displayText = 'Finalizado';
+                                        displayText = t('admin.status_finished_short');
                                       }
                                       
                                       return (
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}>
-                                          {displayText}
+                                          🎯 {displayText}
                                         </span>
                                       );
                                     })()}
@@ -996,12 +1069,13 @@ export default function AdminPage() {
                                       ) {
                                         return (
                                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400">
-                                            {t('dashboard.open_for_betting')}
+                                            🎯 {t('dashboard.open_for_betting')}
                                           </span>
                                         );
                                       }
                                       return null;
                                     })()}
+                                    {/* Match Status */}
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                       game.status === 'completed'
                                         ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
@@ -1010,15 +1084,27 @@ export default function AdminPage() {
                                         : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
                                     }`}>
                                       {(() => {
-                                        const statusKey = `admin.${game.status.toLowerCase()}`;
+                                        const emoji = game.status === 'completed' ? '✅' : game.status === 'live' ? '🔴' : '⏰';
+                                        const statusKey = `admin.match_${game.status.toLowerCase()}`;
                                         const translatedStatus = t(statusKey);
-                                        const fallbackStatus = t('admin.scheduled');
-                                        return translatedStatus === statusKey ? fallbackStatus : translatedStatus;
+                                        const fallbackStatus = t('admin.match_scheduled');
+                                        return `${emoji} ${translatedStatus === statusKey ? fallbackStatus : translatedStatus}`;
                                       })()}
                                     </span>
+                                    {/* Manual Override (only for corrections) */}
+                                    {(game.status === 'scheduled' || game.status === 'live') && (
+                                      <button
+                                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                                        onClick={() => handleUpdateGameStatus(game.id, game.status === 'scheduled' ? 'LIVE' : 'COMPLETED')}
+                                        title="Manual Override (for corrections only)"
+                                      >
+                                        ⚡ Override
+                                      </button>
+                                    )}
                                     <button
                                       className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400"
                                       onClick={() => handleDeleteGame(game.id)}
+                                      title="Delete Game"
                                     >
                                       🗑️
                                     </button>
