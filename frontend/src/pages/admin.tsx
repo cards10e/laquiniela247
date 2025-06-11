@@ -108,6 +108,9 @@ export default function AdminPage() {
   const [openDeadlineWeekId, setOpenDeadlineWeekId] = React.useState<number | null>(null);
   const [deadlineLoading, setDeadlineLoading] = React.useState(false);
 
+  // NEW: State for expandable game cards (mobile-first UX)
+  const [expandedGames, setExpandedGames] = useState<Set<number>>(new Set());
+
   const [axiosInstance] = useState(() => {
     return axios.create({
       baseURL: '/api',
@@ -315,14 +318,51 @@ export default function AdminPage() {
   };
 
   const formatCurrency = (value: number, lang: string) => {
-    const isSpanish = lang === 'es';
-    return new Intl.NumberFormat(isSpanish ? 'es-MX' : 'en-US', {
-      style: 'currency',
-      currency: isSpanish ? 'MXN' : 'USD',
-      currencyDisplay: 'symbol',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+    if (!value || isNaN(value)) return lang === 'es' ? '$0' : '$0';
+    
+    if (lang === 'es') {
+      return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(value);
+    } else {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(value);
+    }
+  };
+
+  // NEW: Helper functions for mobile-first game cards
+  const toggleGameExpansion = (gameId: number) => {
+    const newExpanded = new Set(expandedGames);
+    if (newExpanded.has(gameId)) {
+      newExpanded.delete(gameId);
+    } else {
+      newExpanded.add(gameId);
+    }
+    setExpandedGames(newExpanded);
+  };
+
+  const getGamePrimaryStatus = (game: Game) => {
+    // Determine the single most important status to show
+    if (game.status === 'live') {
+      return { text: t('admin.match_live'), emoji: '🔴', color: 'bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400' };
+    }
+    if (game.status === 'completed') {
+      return { text: t('admin.match_completed'), emoji: '✅', color: 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' };
+    }
+    if (game.bettingStatus?.status === 'open') {
+      return { text: t('admin.betting_available'), emoji: '🎯', color: 'bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400' };
+    }
+    if (game.bettingStatus?.status === 'ready') {
+      return { text: t('admin.status_ready_short'), emoji: '🟡', color: 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' };
+    }
+    return { text: t('admin.match_scheduled'), emoji: '⚪', color: 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300' };
   };
 
   // Generate weeks for the next two months
@@ -1154,124 +1194,148 @@ export default function AdminPage() {
                                 </button>
                               </div>
                             )}
-                            {weekGames.map((game) => (
-                              <div key={game.id} className="p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-secondary-50 dark:bg-secondary-900/30 mb-2">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
-                                  {/* Teams/logos left */}
-                                  <div className="flex items-center gap-4 mb-2 sm:mb-0">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      {game.homeTeamLogo && (
-                                        <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-8 h-8 rounded-full object-cover" />
-                                      )}
-                                      <span className="font-medium truncate max-w-[120px]">{game.homeTeamName || t('admin.tbd')}</span>
-                                    </div>
-                                    <span className="mx-2 text-secondary-500">{t('admin.vs')}</span>
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <span className="font-medium truncate max-w-[120px]">{game.awayTeamName || t('admin.tbd')}</span>
-                                      {game.awayTeamLogo && (
-                                        <img src={game.awayTeamLogo} alt={game.awayTeamName} className="w-8 h-8 rounded-full object-cover" />
-                                      )}
-                                    </div>
-                                  </div>
-                                  {/* Badges/buttons right */}
-                                  <div className="flex flex-wrap items-center gap-1">
-                                    {/* Game Date/Time */}
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
-                                      📅 {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
-                                        ? new Date(game.gameDate).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) + 
-                                          ' ' + new Date(game.gameDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
-                                        : t('admin.tbd')}
-                                    </span>
-                                    {/* Smart Betting Status Badge */}
-                                    {(() => {
-                                      if (!game.bettingStatus) return null;
-                                      
-                                      const bettingStatus = game.bettingStatus;
-                                      const statusColors = {
-                                        'open': 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400',
-                                        'ready': 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400',
-                                        'scheduled': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-                                        'past': 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                                      };
-                                      
-                                      const colorClass = statusColors[bettingStatus.status] || statusColors['past'];
-                                      let displayText = bettingStatus.description;
-                                      
-                                      // Mobile-friendly text for status badges
-                                      if (bettingStatus.status === 'open') {
-                                        displayText = t('admin.status_open_short');
-                                      } else if (bettingStatus.status === 'ready') {
-                                        displayText = t('admin.status_ready_short');
-                                      } else if (bettingStatus.status === 'scheduled' && bettingStatus.autoOpenDate) {
-                                        const autoDate = new Date(bettingStatus.autoOpenDate);
-                                        displayText = t('admin.auto_date_format', { date: autoDate.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) });
-                                      } else if (bettingStatus.status === 'past') {
-                                        displayText = t('admin.status_finished_short');
-                                      }
-                                      
-                                      return (
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}>
-                                          🎯 {displayText}
-                                        </span>
-                                      );
-                                    })()}
-                                    {/* Show 'Open' badge if the week is open and the game is scheduled */}
-                                    {(() => {
-                                      const week = weeks.find(w => w.weekNumber === game.weekId);
-                                      if (
-                                        week &&
-                                        week.status &&
-                                        week.status.toLowerCase() === 'open' &&
-                                        game.status &&
-                                        game.status.toLowerCase() === 'scheduled' &&
-                                        week.bettingDeadline &&
-                                        new Date() < new Date(week.bettingDeadline)
-                                      ) {
-                                        return (
-                                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400">
-                                            🎯 {t('dashboard.open_for_betting')}
+                            {weekGames.map((game) => {
+                              const isExpanded = expandedGames.has(game.id);
+                              const primaryStatus = getGamePrimaryStatus(game);
+                              
+                              return (
+                                <div key={game.id} className="border border-secondary-200 dark:border-secondary-700 rounded-lg bg-secondary-50 dark:bg-secondary-900/30 mb-2 overflow-hidden">
+                                  {/* Mobile-First: Simplified Main Card (Always Visible) */}
+                                  <div 
+                                    className="p-3 lg:p-4 cursor-pointer lg:cursor-default"
+                                    onClick={() => window.innerWidth < 1024 ? toggleGameExpansion(game.id) : undefined}
+                                  >
+                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+                                      {/* Teams Section */}
+                                      <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          {game.homeTeamLogo && (
+                                            <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0" />
+                                          )}
+                                          <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px]">{game.homeTeamName || t('admin.tbd')}</span>
+                                        </div>
+                                        <span className="text-secondary-500 text-sm flex-shrink-0">{t('admin.vs')}</span>
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px]">{game.awayTeamName || t('admin.tbd')}</span>
+                                          {game.awayTeamLogo && (
+                                            <img src={game.awayTeamLogo} alt={game.awayTeamName} className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0" />
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Primary Status & Date */}
+                                      <div className="flex items-center justify-between lg:justify-end gap-2 flex-shrink-0">
+                                        <div className="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-2">
+                                          {/* Date */}
+                                          <span className="text-xs text-secondary-600 dark:text-secondary-400 lg:order-1">
+                                            📅 {game.gameDate && !isNaN(new Date(game.gameDate).getTime())
+                                              ? new Date(game.gameDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + 
+                                                ', ' + new Date(game.gameDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
+                                              : t('admin.tbd')}
                                           </span>
-                                        );
-                                      }
-                                      return null;
-                                    })()}
-                                    {/* Match Status */}
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                      game.status === 'completed'
-                                        ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
-                                        : game.status === 'live'
-                                        ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
-                                        : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                                    }`}>
-                                      {(() => {
-                                        const emoji = game.status === 'completed' ? '✅' : game.status === 'live' ? '🔴' : '⏰';
-                                        const statusKey = `admin.match_${game.status.toLowerCase()}`;
-                                        const translatedStatus = t(statusKey);
-                                        const fallbackStatus = t('admin.match_scheduled');
-                                        return `${emoji} ${translatedStatus === statusKey ? fallbackStatus : translatedStatus}`;
-                                      })()}
-                                    </span>
-                                    {/* Manual Override (only for corrections) */}
-                                    {(game.status === 'scheduled' || game.status === 'live') && (
-                                      <button
-                                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                                        onClick={() => handleUpdateGameStatus(game.id, game.status === 'scheduled' ? 'LIVE' : 'COMPLETED')}
-                                        title="Manual Override (for corrections only)"
-                                      >
-                                        ⚡ Override
-                                      </button>
-                                    )}
-                                    <button
-                                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400"
-                                      onClick={() => handleDeleteGame(game.id)}
-                                      title="Delete Game"
-                                    >
-                                      🗑️
-                                    </button>
+                                          {/* Primary Status Badge */}
+                                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${primaryStatus.color} lg:order-0`}>
+                                            {primaryStatus.emoji} {primaryStatus.text}
+                                          </span>
+                                        </div>
+                                        
+                                        {/* Mobile: Expand Indicator, Desktop: Actions */}
+                                        <div className="flex items-center gap-1">
+                                          <div className="lg:hidden">
+                                            <span className="text-xs text-secondary-500">
+                                              {isExpanded ? '▼' : '▶'}
+                                            </span>
+                                          </div>
+                                          {/* Desktop: Show action buttons directly */}
+                                          <div className="hidden lg:flex lg:items-center lg:gap-1">
+                                            {(game.status === 'scheduled' || game.status === 'live') && (
+                                              <button
+                                                className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleUpdateGameStatus(game.id, game.status === 'scheduled' ? 'LIVE' : 'COMPLETED');
+                                                }}
+                                                title={t('admin.manual_override')}
+                                              >
+                                                ⚡
+                                              </button>
+                                            )}
+                                            <button
+                                              className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400 hover:bg-error-200 dark:hover:bg-error-900/40 transition-colors"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteGame(game.id);
+                                              }}
+                                              title={t('admin.delete_game')}
+                                            >
+                                              🗑️
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
+
+                                  {/* Progressive Disclosure: Detailed Info & Actions (Mobile: Expandable, Desktop: Hidden by default) */}
+                                  {(isExpanded || window.innerWidth >= 1024) && (
+                                    <div className="px-3 pb-3 lg:hidden border-t border-secondary-200 dark:border-secondary-700 bg-secondary-25 dark:bg-secondary-950/50">
+                                      <div className="pt-3 space-y-2">
+                                        {/* Detailed Status Information */}
+                                        <div className="text-xs space-y-1">
+                                          {/* Betting Status Detail */}
+                                          {game.bettingStatus && (
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-secondary-600 dark:text-secondary-400">🎯 {t('admin.betting_status')}:</span>
+                                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                                game.bettingStatus.status === 'open' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
+                                                game.bettingStatus.status === 'ready' ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' :
+                                                game.bettingStatus.status === 'scheduled' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                                                'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                                              }`}>
+                                                {game.bettingStatus.description}
+                                              </span>
+                                            </div>
+                                          )}
+                                          {/* Match Status Detail */}
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-secondary-600 dark:text-secondary-400">⏰ {t('admin.match_status')}:</span>
+                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                              game.status === 'completed' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
+                                              game.status === 'live' ? 'bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400' :
+                                              'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                                            }`}>
+                                              {(() => {
+                                                const statusKey = `admin.match_${game.status.toLowerCase()}`;
+                                                const translatedStatus = t(statusKey);
+                                                return translatedStatus === statusKey ? t('admin.match_scheduled') : translatedStatus;
+                                              })()}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-2 pt-2">
+                                          {(game.status === 'scheduled' || game.status === 'live') && (
+                                            <button
+                                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors min-h-[44px]"
+                                              onClick={() => handleUpdateGameStatus(game.id, game.status === 'scheduled' ? 'LIVE' : 'COMPLETED')}
+                                            >
+                                              ⚡ {t('admin.manual_override')}
+                                            </button>
+                                          )}
+                                          <button
+                                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded text-sm font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400 hover:bg-error-200 dark:hover:bg-error-900/40 transition-colors min-h-[44px]"
+                                            onClick={() => handleDeleteGame(game.id)}
+                                          >
+                                            🗑️ {t('admin.delete_game')}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         );
                       })
