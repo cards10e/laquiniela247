@@ -4,6 +4,7 @@ import { useI18n } from '@/context/I18nContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import TeamLogo from '@/components/TeamLogo';
 import axios from 'axios';
 
 interface BetHistory {
@@ -48,10 +49,11 @@ export default function HistoryPage() {
   const fetchBettingHistory = async () => {
     try {
       const response = await axios.get('/api/bets/history');
-      setBets(response.data);
-    } catch (error) {
-      console.error('Failed to fetch betting history:', error);
-      // Set mock data for demo
+      
+      // If no betting history exists, use mock data for demo
+      if (!response.data || response.data.length === 0) {
+        console.log('No betting history found, using demo data');
+        // Set enhanced mock data for demo with full prediction details
       setBets([
         {
           id: 1,
@@ -78,6 +80,30 @@ export default function HistoryPage() {
               prediction: 'away',
               result: 'draw',
               correct: false
+            },
+            {
+              gameId: 3,
+              homeTeamName: 'Tigres UANL',
+              awayTeamName: 'Monterrey',
+              prediction: 'home',
+              result: 'home',
+              correct: true
+            },
+            {
+              gameId: 4,
+              homeTeamName: 'León',
+              awayTeamName: 'Santos Laguna',
+              prediction: 'draw',
+              result: 'draw',
+              correct: true
+            },
+            {
+              gameId: 5,
+              homeTeamName: 'Toluca',
+              awayTeamName: 'Atlas',
+              prediction: 'home',
+              result: 'home',
+              correct: true
             }
           ]
         },
@@ -90,7 +116,40 @@ export default function HistoryPage() {
           totalPredictions: 10,
           winnings: 0,
           date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          predictions: []
+          predictions: [
+            {
+              gameId: 6,
+              homeTeamName: 'Pachuca',
+              awayTeamName: 'Necaxa',
+              prediction: 'home',
+              result: 'away',
+              correct: false
+            },
+            {
+              gameId: 7,
+              homeTeamName: 'Atlético San Luis',
+              awayTeamName: 'FC Juárez',
+              prediction: 'draw',
+              result: 'home',
+              correct: false
+            },
+            {
+              gameId: 8,
+              homeTeamName: 'Querétaro',
+              awayTeamName: 'Mazatlán',
+              prediction: 'away',
+              result: 'away',
+              correct: true
+            },
+            {
+              gameId: 9,
+              homeTeamName: 'Tijuana',
+              awayTeamName: 'Puebla',
+              prediction: 'home',
+              result: 'draw',
+              correct: false
+            }
+          ]
         },
         {
           id: 3,
@@ -98,10 +157,175 @@ export default function HistoryPage() {
           amount: 50,
           status: 'pending',
           correctPredictions: 0,
-          totalPredictions: 10,
+          totalPredictions: 6,
           winnings: 0,
           date: new Date().toISOString(),
-          predictions: []
+          predictions: [
+            {
+              gameId: 10,
+              homeTeamName: 'Club América',
+              awayTeamName: 'Club Necaxa',
+              prediction: 'home',
+              result: undefined,
+              correct: undefined
+            },
+            {
+              gameId: 11,
+              homeTeamName: 'Tijuana',
+              awayTeamName: 'León FC',
+              prediction: 'away',
+              result: undefined,
+              correct: undefined
+            },
+            {
+              gameId: 12,
+              homeTeamName: 'Guadalajara',
+              awayTeamName: 'Cruz Azul',
+              prediction: 'draw',
+              result: undefined,
+              correct: undefined
+            }
+          ]
+        }
+      ]);
+      } else {
+        setBets(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch betting history:', error);
+      // Fallback to mock data on error as well
+      setBets([
+        {
+          id: 1,
+          weekNumber: 14,
+          amount: 100,
+          status: 'won',
+          correctPredictions: 8,
+          totalPredictions: 10,
+          winnings: 250,
+          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          predictions: [
+            {
+              gameId: 1,
+              homeTeamName: 'América',
+              awayTeamName: 'Chivas',
+              prediction: 'home',
+              result: 'home',
+              correct: true
+            },
+            {
+              gameId: 2,
+              homeTeamName: 'Cruz Azul',
+              awayTeamName: 'Pumas',
+              prediction: 'away',
+              result: 'draw',
+              correct: false
+            },
+            {
+              gameId: 3,
+              homeTeamName: 'Tigres UANL',
+              awayTeamName: 'Monterrey',
+              prediction: 'home',
+              result: 'home',
+              correct: true
+            },
+            {
+              gameId: 4,
+              homeTeamName: 'León',
+              awayTeamName: 'Santos Laguna',
+              prediction: 'draw',
+              result: 'draw',
+              correct: true
+            },
+            {
+              gameId: 5,
+              homeTeamName: 'Toluca',
+              awayTeamName: 'Atlas',
+              prediction: 'home',
+              result: 'home',
+              correct: true
+            }
+          ]
+        },
+        {
+          id: 2,
+          weekNumber: 13,
+          amount: 75,
+          status: 'lost',
+          correctPredictions: 4,
+          totalPredictions: 10,
+          winnings: 0,
+          date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+          predictions: [
+            {
+              gameId: 6,
+              homeTeamName: 'Pachuca',
+              awayTeamName: 'Necaxa',
+              prediction: 'home',
+              result: 'away',
+              correct: false
+            },
+            {
+              gameId: 7,
+              homeTeamName: 'Atlético San Luis',
+              awayTeamName: 'FC Juárez',
+              prediction: 'draw',
+              result: 'home',
+              correct: false
+            },
+            {
+              gameId: 8,
+              homeTeamName: 'Querétaro',
+              awayTeamName: 'Mazatlán',
+              prediction: 'away',
+              result: 'away',
+              correct: true
+            },
+            {
+              gameId: 9,
+              homeTeamName: 'Tijuana',
+              awayTeamName: 'Puebla',
+              prediction: 'home',
+              result: 'draw',
+              correct: false
+            }
+          ]
+        },
+        {
+          id: 3,
+          weekNumber: 15,
+          amount: 50,
+          status: 'pending',
+          correctPredictions: 0,
+          totalPredictions: 6,
+          winnings: 0,
+          date: new Date().toISOString(),
+          predictions: [
+            {
+              gameId: 10,
+              homeTeamName: 'Club América',
+              awayTeamName: 'Club Necaxa',
+              prediction: 'home',
+              result: undefined,
+              correct: undefined
+            },
+            {
+              gameId: 11,
+              homeTeamName: 'Tijuana',
+              awayTeamName: 'León FC',
+              prediction: 'away',
+              result: undefined,
+              correct: undefined
+            },
+            {
+              gameId: 12,
+              homeTeamName: 'Guadalajara',
+              awayTeamName: 'Cruz Azul',
+              prediction: 'draw',
+              result: undefined,
+              correct: undefined
+            }
+          ]
         }
       ]);
     } finally {
@@ -311,8 +535,12 @@ export default function HistoryPage() {
                             }`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <div className="font-medium text-secondary-900 dark:text-secondary-100">
-                                {prediction.homeTeamName} vs {prediction.awayTeamName}
+                              <div className="flex items-center space-x-2 font-medium text-secondary-900 dark:text-secondary-100">
+                                <TeamLogo teamName={prediction.homeTeamName} className="w-5 h-5" alt={prediction.homeTeamName} />
+                                <span>{prediction.homeTeamName}</span>
+                                <span className="text-secondary-500">vs</span>
+                                <span>{prediction.awayTeamName}</span>
+                                <TeamLogo teamName={prediction.awayTeamName} className="w-5 h-5" alt={prediction.awayTeamName} />
                               </div>
                               {prediction.correct !== undefined && (
                                 <div className={`text-lg ${

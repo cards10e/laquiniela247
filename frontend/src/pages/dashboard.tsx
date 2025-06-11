@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import TeamLogo from '@/components/TeamLogo';
 import axios from 'axios';
 
 interface UserProfile {
@@ -310,25 +311,23 @@ export default function DashboardPage() {
                       <div key={game.id} className="match-card">
                         <div className="flex items-center justify-between w-full mb-2">
                           <div className="flex items-center space-x-2">
-                            {game.homeTeamLogo && (
-                              <img 
-                                src={game.homeTeamLogo} 
-                                alt={game.homeTeamName}
-                                className="team-logo"
-                              />
-                            )}
+                            <TeamLogo 
+                              teamName={game.homeTeamName}
+                              logoUrl={game.homeTeamLogo}
+                              className="w-8 h-8 rounded-full object-cover"
+                              alt={game.homeTeamName}
+                            />
                             <span className="text-sm font-medium">{game.homeTeamName}</span>
                           </div>
                           <span className="text-xs text-secondary-500 dark:text-secondary-400">vs</span>
                           <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium">{game.awayTeamName}</span>
-                            {game.awayTeamLogo && (
-                              <img 
-                                src={game.awayTeamLogo} 
-                                alt={game.awayTeamName}
-                                className="team-logo"
-                              />
-                            )}
+                            <TeamLogo 
+                              teamName={game.awayTeamName}
+                              logoUrl={game.awayTeamLogo}
+                              className="w-8 h-8 rounded-full object-cover"
+                              alt={game.awayTeamName}
+                            />
                           </div>
                         </div>
                         <div className="text-xs text-secondary-500 dark:text-secondary-400">

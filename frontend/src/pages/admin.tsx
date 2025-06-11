@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { addDays, startOfWeek, format, isAfter, isBefore } from 'date-fns';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import TeamLogo from '@/components/TeamLogo';
 import React from 'react';
 
 interface User {
@@ -1229,17 +1230,23 @@ export default function AdminPage() {
                                       {/* Teams Section */}
                                       <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
                                         <div className="flex items-center gap-2 min-w-0">
-                                          {game.homeTeamLogo && (
-                                            <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0" />
-                                          )}
+                                                                    <TeamLogo 
+                            teamName={game.homeTeamName || ''}
+                            logoUrl={game.homeTeamLogo}
+                            className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0"
+                            alt={game.homeTeamName}
+                          />
                                           <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px]">{game.homeTeamName || t('admin.tbd')}</span>
                                         </div>
                                         <span className="text-secondary-500 text-sm flex-shrink-0">{t('admin.vs')}</span>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px]">{game.awayTeamName || t('admin.tbd')}</span>
-                                          {game.awayTeamLogo && (
-                                            <img src={game.awayTeamLogo} alt={game.awayTeamName} className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0" />
-                                          )}
+                                                                    <TeamLogo 
+                            teamName={game.awayTeamName || ''}
+                            logoUrl={game.awayTeamLogo}
+                            className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0"
+                            alt={game.awayTeamName}
+                          />
                                         </div>
                                       </div>
 

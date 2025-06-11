@@ -252,6 +252,117 @@ router.get('/week/:weekNumber', asyncHandler(async (req: AuthenticatedRequest, r
   });
 }));
 
+// GET /api/bets/history - Get user's betting history
+router.get('/history', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  const userId = req.user!.id;
+
+  // Get user's bets grouped by week with detailed information
+  const bets = await prisma.bet.findMany({
+    where: { userId },
+    include: {
+      game: {
+        include: {
+          homeTeam: { select: { name: true, shortName: true } },
+          awayTeam: { select: { name: true, shortName: true } },
+          week: { select: { weekNumber: true, season: true } }
+        }
+      },
+      week: { select: { weekNumber: true, season: true } }
+    },
+    orderBy: [
+      { week: { weekNumber: 'desc' } },
+      { createdAt: 'desc' }
+    ]
+  });
+
+  // Group bets by week and calculate statistics
+  const weeklyBets = new Map();
+  const transactions = await prisma.transaction.findMany({
+    where: { 
+      userId,
+      type: 'ENTRY_FEE'
+    },
+    include: {
+      week: { select: { weekNumber: true } }
+    }
+  });
+
+  bets.forEach(bet => {
+    const weekNumber = bet.week.weekNumber;
+    if (!weeklyBets.has(weekNumber)) {
+      weeklyBets.set(weekNumber, {
+        id: weekNumber,
+        weekNumber: weekNumber,
+        amount: 0,
+        status: 'pending',
+        correctPredictions: 0,
+        totalPredictions: 0,
+        winnings: 0,
+        date: bet.createdAt,
+        predictions: []
+      });
+    }
+
+    const weekData = weeklyBets.get(weekNumber);
+    weekData.totalPredictions++;
+    
+    if (bet.isCorrect === true) {
+      weekData.correctPredictions++;
+    }
+
+         weekData.predictions.push({
+       gameId: bet.gameId,
+       homeTeamName: bet.game.homeTeam.name,
+       awayTeamName: bet.game.awayTeam.name,
+       prediction: bet.prediction.toLowerCase(),
+       result: bet.game.homeScore !== null && bet.game.awayScore !== null ? 
+         (bet.game.homeScore > bet.game.awayScore ? 'home' : 
+          bet.game.homeScore < bet.game.awayScore ? 'away' : 'draw') : undefined,
+       correct: bet.isCorrect
+     });
+
+    // Update bet date to latest
+    if (bet.createdAt > weekData.date) {
+      weekData.date = bet.createdAt;
+    }
+  });
+
+     // Add transaction amounts and calculate winnings
+   transactions.forEach(transaction => {
+     const weekNumber = transaction.week?.weekNumber;
+     if (weekNumber && weeklyBets.has(weekNumber)) {
+       const weekData = weeklyBets.get(weekNumber);
+       weekData.amount += Math.abs(Number(transaction.amount));
+     }
+   });
+
+     // Determine final status and winnings
+   Array.from(weeklyBets.values()).forEach(weekData => {
+     if (weekData.totalPredictions > 0) {
+       const hasIncomplete = weekData.predictions.some((p: any) => p.correct === null);
+       if (hasIncomplete) {
+         weekData.status = 'pending';
+       } else {
+         const correctPercentage = weekData.correctPredictions / weekData.totalPredictions;
+         if (correctPercentage >= 0.6) {
+           weekData.status = 'won';
+           weekData.winnings = Math.floor(weekData.amount * (1 + correctPercentage));
+         } else if (correctPercentage >= 0.4) {
+           weekData.status = 'partial';
+           weekData.winnings = Math.floor(weekData.amount * 0.5);
+         } else {
+           weekData.status = 'lost';
+           weekData.winnings = 0;
+         }
+       }
+     }
+   });
+
+  const historyArray = Array.from(weeklyBets.values()).sort((a, b) => b.weekNumber - a.weekNumber);
+  
+  res.json(historyArray);
+}));
+
 // GET /api/bets/:id - Get specific bet
 router.get('/:id', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const betId = parseInt(req.params.id);

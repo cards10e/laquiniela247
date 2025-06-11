@@ -6,6 +6,7 @@ import { useCurrency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { CurrencySelector } from '@/components/ui/CurrencySelector';
+import TeamLogo from '@/components/TeamLogo';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 
@@ -398,17 +399,23 @@ export default function BetPage() {
                               {/* Teams/logos left */}
                               <div className="flex items-center gap-4 mb-2 sm:mb-0">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  {game.homeTeamLogo && (
-                                    <img src={game.homeTeamLogo} alt={game.homeTeamName} className="w-8 h-8 rounded-full object-cover" />
-                                  )}
+                                  <TeamLogo 
+                                    teamName={game.homeTeamName}
+                                    logoUrl={game.homeTeamLogo}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                    alt={game.homeTeamName}
+                                  />
                                   <span className="font-medium truncate max-w-[120px]">{game.homeTeamName}</span>
                                 </div>
                                 <span className="mx-2 text-secondary-500">{t('admin.vs')}</span>
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className="font-medium truncate max-w-[120px]">{game.awayTeamName}</span>
-                                  {game.awayTeamLogo && (
-                                    <img src={game.awayTeamLogo} alt={game.awayTeamName} className="w-8 h-8 rounded-full object-cover" />
-                                  )}
+                                  <TeamLogo 
+                                    teamName={game.awayTeamName}
+                                    logoUrl={game.awayTeamLogo}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                    alt={game.awayTeamName}
+                                  />
                                 </div>
                               </div>
                               {/* Badges/buttons right */}
@@ -532,17 +539,23 @@ export default function BetPage() {
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                             <div className="flex items-center space-x-4 mb-4 sm:mb-0">
                               <div className="flex items-center space-x-2">
-                                {game.homeTeamLogo && (
-                                  <img src={game.homeTeamLogo} alt={game.homeTeamName} className="team-logo" />
-                                )}
+                                <TeamLogo 
+                                  teamName={game.homeTeamName}
+                                  logoUrl={game.homeTeamLogo}
+                                  className="team-logo"
+                                  alt={game.homeTeamName}
+                                />
                                 <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
                               </div>
                               <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
                               <div className="flex items-center space-x-2">
                                 <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
-                                {game.awayTeamLogo && (
-                                  <img src={game.awayTeamLogo} alt={game.awayTeamName} className="team-logo" />
-                                )}
+                                <TeamLogo 
+                                  teamName={game.awayTeamName}
+                                  logoUrl={game.awayTeamLogo}
+                                  className="team-logo"
+                                  alt={game.awayTeamName}
+                                />
                               </div>
                             </div>
                             <div className="text-sm text-secondary-600 dark:text-secondary-400">
@@ -683,17 +696,23 @@ export default function BetPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                       <div className="flex items-center space-x-4 mb-4 sm:mb-0">
                         <div className="flex items-center space-x-2">
-                          {game.homeTeamLogo && (
-                            <img src={game.homeTeamLogo} alt={game.homeTeamName} className="team-logo" />
-                          )}
+                          <TeamLogo 
+                            teamName={game.homeTeamName}
+                            logoUrl={game.homeTeamLogo}
+                            className="team-logo"
+                            alt={game.homeTeamName}
+                          />
                           <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
                         </div>
                         <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
                         <div className="flex items-center space-x-2">
                           <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
-                          {game.awayTeamLogo && (
-                            <img src={game.awayTeamLogo} alt={game.awayTeamName} className="team-logo" />
-                          )}
+                          <TeamLogo 
+                            teamName={game.awayTeamName}
+                            logoUrl={game.awayTeamLogo}
+                            className="team-logo"
+                            alt={game.awayTeamName}
+                          />
                         </div>
                       </div>
                       <div className="text-sm text-secondary-600 dark:text-secondary-400">
