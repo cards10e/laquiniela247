@@ -665,51 +665,166 @@ export default function AdminPage() {
             {/* Games Tab */}
             {activeTab === 'games' && (
               <div className="space-y-8">
-                {/* Auto-Management Controls */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Auto-Open Betting Control */}
+                {/* Auto-Management Controls - Enhanced with Mobile-First UX */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                  {/* Betting Window Control */}
                   <div className="card">
                     <div className="card-header">
-                      <h2 className="card-title">{t('admin.automatic_betting_management')}</h2>
+                      <h2 className="card-title text-base lg:text-lg">{t('admin.betting_window_control')}</h2>
                     </div>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex-1">
-                        <p className="text-secondary-600 dark:text-secondary-400 mb-2">
-                          {t('admin.auto_betting_description')}
-                        </p>
-                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                          {t('admin.auto_betting_deadline_info')}
+                    <div className="flex flex-col gap-3 lg:gap-4">
+                      {/* Status Indicator */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          {(() => {
+                            const readyWeeks = weeks.filter(week => {
+                              const readyGames = games.filter(game => 
+                                game.weekId === week.weekNumber && 
+                                game.bettingStatus?.status === 'ready'
+                              );
+                              return readyGames.length > 0;
+                            });
+                            const openWeeks = weeks.filter(week => week.status?.toLowerCase() === 'open');
+                            
+                            if (readyWeeks.length > 0) {
+                              return (
+                                <>
+                                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
+                                    📊 {t('admin.weeks_need_attention', { count: readyWeeks.length })}
+                                  </span>
+                                  <span className="text-xs text-secondary-600 dark:text-secondary-400">
+                                    {openWeeks.length > 0 && `• ${t('admin.weeks_open', { count: openWeeks.length })}`}
+                                  </span>
+                                </>
+                              );
+                            } else if (openWeeks.length > 0) {
+                              return (
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
+                                  ✅ {t('admin.weeks_open', { count: openWeeks.length })}
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
+                                  💤 {t('admin.all_current')}
+                                </span>
+                              );
+                            }
+                          })()}
+                        </div>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          {t('admin.betting_window_description')}
                         </p>
                       </div>
-                      <button
-                        onClick={handleAutoOpenWeeks}
-                        className="btn-secondary"
-                      >
-                        {t('admin.verify_and_open_now')}
-                      </button>
+                      
+                      {/* Action Button */}
+                      {(() => {
+                        const readyWeeks = weeks.filter(week => {
+                          const readyGames = games.filter(game => 
+                            game.weekId === week.weekNumber && 
+                            game.bettingStatus?.status === 'ready'
+                          );
+                          return readyGames.length > 0;
+                        });
+                        
+                        if (readyWeeks.length > 0) {
+                          return (
+                            <button
+                              onClick={handleAutoOpenWeeks}
+                              className="btn-warning w-full lg:w-auto min-h-[44px]"
+                            >
+                              🎯 {t('admin.open_betting_windows', { count: readyWeeks.length })}
+                            </button>
+                          );
+                        } else {
+                          return (
+                            <button
+                              onClick={handleAutoOpenWeeks}
+                              className="btn-secondary w-full lg:w-auto min-h-[44px]"
+                              disabled
+                            >
+                              ✅ {t('admin.all_current')}
+                            </button>
+                          );
+                        }
+                      })()}
                     </div>
                   </div>
 
-                  {/* Auto-Update Game Status Control */}
+                  {/* Game Status Sync */}
                   <div className="card">
                     <div className="card-header">
-                      <h2 className="card-title">{t('admin.auto_game_status_management')}</h2>
+                      <h2 className="card-title text-base lg:text-lg">{t('admin.game_status_sync')}</h2>
                     </div>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex-1">
-                        <p className="text-secondary-600 dark:text-secondary-400 mb-2">
-                          {t('admin.auto_game_status_description')}
-                        </p>
-                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                          {t('admin.auto_game_status_info')}
+                    <div className="flex flex-col gap-3 lg:gap-4">
+                      {/* Status Indicator */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          {(() => {
+                            // Calculate games that might need status updates based on current time
+                            const now = new Date();
+                            const gamesNeedingUpdate = games.filter(game => {
+                              const gameTime = new Date(game.gameDate);
+                              const gameEndTime = new Date(gameTime.getTime() + 2.5 * 60 * 60 * 1000);
+                              
+                              if (game.status === 'scheduled' && now >= gameTime) return true;
+                              if (game.status === 'live' && now >= gameEndTime) return true;
+                              return false;
+                            });
+                            
+                            if (gamesNeedingUpdate.length > 0) {
+                              return (
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
+                                  🔄 {t('admin.games_need_updates', { count: gamesNeedingUpdate.length })}
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
+                                  ✅ {t('admin.all_statuses_updated')}
+                                </span>
+                              );
+                            }
+                          })()}
+                        </div>
+                        <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                          {t('admin.game_status_sync_description')}
                         </p>
                       </div>
-                      <button
-                        onClick={handleAutoUpdateGameStatuses}
-                        className="btn-secondary"
-                      >
-                        {t('admin.update_game_statuses')}
-                      </button>
+                      
+                      {/* Action Button */}
+                      {(() => {
+                        const now = new Date();
+                        const gamesNeedingUpdate = games.filter(game => {
+                          const gameTime = new Date(game.gameDate);
+                          const gameEndTime = new Date(gameTime.getTime() + 2.5 * 60 * 60 * 1000);
+                          
+                          if (game.status === 'scheduled' && now >= gameTime) return true;
+                          if (game.status === 'live' && now >= gameEndTime) return true;
+                          return false;
+                        });
+                        
+                        if (gamesNeedingUpdate.length > 0) {
+                          return (
+                            <button
+                              onClick={handleAutoUpdateGameStatuses}
+                              className="btn-warning w-full lg:w-auto min-h-[44px]"
+                            >
+                              🔄 {t('admin.sync_game_statuses')}
+                            </button>
+                          );
+                        } else {
+                          return (
+                            <button
+                              onClick={handleAutoUpdateGameStatuses}
+                              className="btn-secondary w-full lg:w-auto min-h-[44px]"
+                              disabled
+                            >
+                              ✅ {t('admin.all_current')}
+                            </button>
+                          );
+                        }
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -817,6 +932,51 @@ export default function AdminPage() {
                     </div>
                     <button type="submit" className="btn-primary">{t('admin.create_game')}</button>
                   </form>
+                </div>
+
+                {/* Quick Status Summary - NEW: Mobile-friendly overview */}
+                <div className="card lg:hidden">
+                  <div className="card-header">
+                    <h3 className="card-title text-base">{t('admin.status_summary')}</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-sm">
+                    {(() => {
+                      const openWeeks = weeks.filter(week => week.status?.toLowerCase() === 'open').length;
+                      const readyWeeks = weeks.filter(week => {
+                        const readyGames = games.filter(game => 
+                          game.weekId === week.weekNumber && 
+                          game.bettingStatus?.status === 'ready'
+                        );
+                        return readyGames.length > 0;
+                      }).length;
+                      const scheduledGames = games.filter(game => game.status === 'scheduled').length;
+                      
+                      return (
+                        <>
+                          {openWeeks > 0 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
+                              🟢 {t('admin.weeks_open', { count: openWeeks })}
+                            </span>
+                          )}
+                          {readyWeeks > 0 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
+                              🟡 {t('admin.weeks_need_attention', { count: readyWeeks })}
+                            </span>
+                          )}
+                          {scheduledGames > 0 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
+                              ⚪ {t('admin.games_scheduled', { count: scheduledGames })}
+                            </span>
+                          )}
+                          {openWeeks === 0 && readyWeeks === 0 && scheduledGames === 0 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300">
+                              💤 {t('admin.all_current')}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 {/* Games List */}

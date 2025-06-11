@@ -3678,9 +3678,249 @@ Let me add and commit the mockup file first:
 
 ---
 
+```bash
+git add UI_MOCKUP_GAMES.md && git commit -m "docs: Add comprehensive UI mockup for mobile-first admin games redesign"
+```
+
+```
+batman@saturn laquiniela247 % git add UI_MOCKUP_GAMES.md && git commit -m "docs: Add comprehensive UI mockup
+ for mobile-first admin games git add UI_MOCKUP_GAMES.md && git commit -m "docs: Add comprehensive UI mockup
+ for mobile-first admin games redesign"
+[fix-admin-mobile-overflow bf32710] docs: Add comprehensive UI mockup for mobile-first admin games redesign
+ 1 file changed, 193 insertions(+)
+ create mode 100644 UI_MOCKUP_GAMES.md
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let me handle the modified specstory file and switch to main:
+
+---
+
+```bash
+git add . && git commit -m "docs: Update specstory history" && git push origin fix-admin-mobile-overflow
+```
+
+```
+batman@saturn laquiniela247 % git add . && git commit -m "docs: Update specstory history" && git push origin
+ fix-admin-mobile-overflow    git add . && git commit -m "docs: Update specstory history" && git push origin
+ fix-admin-mobile-overflow
+[fix-admin-mobile-overflow af43c26] docs: Update specstory history
+ 1 file changed, 500 insertions(+)
+Enumerating objects: 12, done.
+Counting objects: 100% (12/12), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (8/8), 7.76 KiB | 3.88 MiB/s, done.
+Total 8 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 3 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   df4e329..af43c26  fix-admin-mobile-overflow -> fix-admin-mobile-overflow
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let me switch to main and merge the branch:
+
+---
+
+```bash
+git checkout main
+```
+
+```
+batman@saturn laquiniela247 % git checkout main
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git pull origin main
+```
+
+```
+batman@saturn laquiniela247 % git pull origin main
+From https://github.com/cards10e/laquiniela247
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git merge fix-admin-mobile-overflow
+```
+
+```
+batman@saturn laquiniela247 % git merge fix-admin-mobile-overflow
+Updating cd8b7a7..af43c26
+error: The following untracked working tree files would be overwritten by merge:
+        .specstory/history/2025-06-10_21-26-add-localization-for-spanish-and-english.md
+Please move or remove them before you merge.
+Aborting
+batman@saturn laquiniela247 %
+```
+
+---
+
+Let me handle the conflicting file and retry the merge:
+
+---
+
+Cancelled
+
+---
+
+_**User**_
+
+pls skip the .specstory!!
+
+---
+
+_**Assistant**_
+
 
 
 ---
+
+Got it! Let me remove the conflicting .specstory file and proceed with the merge:
+
+---
+
+```bash
+rm -f .specstory/history/2025-06-10_21-26-add-localization-for-spanish-and-english.md
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+```bash
+git merge fix-admin-mobile-overflow
+```
+
+```
+batman@saturn laquiniela247 % git merge fix-admin-mobile-overflow
+Updating cd8b7a7..af43c26
+Fast-forward
+ .../2025-06-10_13-41-implement-currency-toggle-and-ui-adjustments.md | 4408 ++++++++++++++++++++++++++++++
+ .../2025-06-10_21-26-add-localization-for-spanish-and-english.md     | 3688 +++++++++++++++++++++++++
+ BUGS.md                                                              |   26 +-
+ CHANGELOG.md                                                         |   38 +
+ README.md                                                            |   21 +-
+ UI_MOCKUP_GAMES.md                                                   |  193 ++
+ backend/src/routes/admin.ts                                          |  242 +-
+ dump.sql                                                             |    4 +-
+ frontend/src/context/I18nContext.tsx                                 |   94 +-
+ frontend/src/pages/admin.tsx                                         |  290 +-
+ frontend/src/pages/bet.tsx                                           |   13 +-
+ package-lock.json                                                    |    4 +-
+ 12 files changed, 8962 insertions(+), 59 deletions(-)
+ create mode 100644 .specstory/history/2025-06-10_21-26-add-localization-for-spanish-and-english.md
+ create mode 100644 UI_MOCKUP_GAMES.md
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! Now let me push the merged changes to main:
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/cards10e/laquiniela247.git
+   cd8b7a7..af43c26  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let me delete the old branch and create a new feature branch for the mobile-first redesign:
+
+---
+
+```bash
+git branch -d fix-admin-mobile-overflow && git push origin --delete fix-admin-mobile-overflow
+```
+
+```
+batman@saturn laquiniela247 % git branch -d fix-admin-mobile-overflow && git push origin --delete fix-admin-
+mobile-overflow               git branch -d fix-admin-mobile-overflow && git push origin --delete fix-admin-
+mobile-overflow
+Deleted branch fix-admin-mobile-overflow (was af43c26).
+To https://github.com/cards10e/laquiniela247.git
+ - [deleted]         fix-admin-mobile-overflow
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let me create and switch to a new feature branch for the mobile-first admin redesign:
+
+---
+
+```bash
+git checkout -b feature/mobile-first-admin-redesign
+```
+
+```
+batman@saturn laquiniela247 % git checkout -b feature/mobile-first-admin-redesign
+Switched to a new branch 'feature/mobile-first-admin-redesign'
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! ✅ **All tasks completed successfully:**
+
+## 🎉 **Merge & Branch Management Complete**
+
+### **✅ What was accomplished:**
+
+1. **📋 Committed final changes** - Added UI mockup and updated documentation
+2. **🔀 Merged to main** - All internationalization and admin improvements now in main branch  
+3. **🗑️ Cleaned up** - Deleted the old `fix-admin-mobile-overflow` branch (both local and remote)
+4. **🌿 New feature branch** - Created and switched to `feature/mobile-first-admin-redesign`
+
+### **🚀 Ready for Mobile-First Implementation**
+
+We're now on a fresh feature branch specifically for implementing the mobile-first admin redesign. The current state includes:
+
+- ✅ **Complete internationalization** (Spanish/English)
+- ✅ **Automatic game management** system  
+- ✅ **Enhanced admin interface** with color-coded status legend
+- ✅ **UI mockup documentation** for the proposed changes
+- ✅ **All existing functionality** preserved and working
+
+**Current branch:** `feature/mobile-first-admin-redesign`  
+**Next step:** Implement the mobile-first UI improvements from the mockup
+
+**Ready to start implementing the progressive disclosure and simplified interface design?** 🎯
+
+---
+
+_**User**_
+
+yes pls auto proceed but DO NOT BREAK the exsiting functionality in the game management or /admin page!!! ONLY focus on the above chnages
+
+---
+
+_**Assistant**_
 
 
 
