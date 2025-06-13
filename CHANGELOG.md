@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.9] - 2025-06-13
+### 🎨 USDT Symbol Enhancement
+- **Improved USDT Display**: Enhanced USDT currency symbol from bulky `USDT 200.00` to clean `T$200.00`
+  - **Better Visual Alignment**: Compact 2-character prefix matches format consistency with `US$200.00`
+  - **Enhanced UX**: Reduced horizontal space usage and improved readability across all currency displays
+  - **Maintains Clarity**: `T$` clearly identifies Tether/USDT while looking professional
+  - **Cross-Platform Consistency**: Applied to all betting interfaces, history pages, and financial displays
+
+### 🔧 Technical Details
+- **Minimal Impact**: Single-line change in `getCurrencySymbol()` function
+- **Zero Breaking Changes**: All existing currency conversion logic preserved
+- **Automatic Propagation**: Enhancement applies across entire application ecosystem
+
 ## [2.0.8] - 2025-06-13
 ### 💰 Currency System Enhancement & Promise Rendering Fix
 - **USDT Integration**: Successfully replaced Bitcoin (BTC) with USDT (Tether) in the currency system

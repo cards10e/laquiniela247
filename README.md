@@ -2,6 +2,15 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.9 - USDT Symbol Enhancement
+
+### 🎨 Improved Currency Display
+- **Enhanced USDT Symbol**: Upgraded from bulky `USDT 200.00` to clean `T$200.00` format
+  - **Visual Consistency**: All currencies now have balanced 2-3 character prefixes (`$`, `US$`, `T$`)
+  - **Better UX**: Compact display reduces visual clutter and improves readability
+  - **Professional Look**: Clean symbols maintain clarity while optimizing space usage
+- **Maintained Functionality**: Complete currency conversion system preserved with zero breaking changes
+
 ## 🚀 Version 2.0.8 - Currency System Enhancement & Promise Rendering Fix
 
 ### 💰 USDT Integration & Distinguished Currency Symbols

@@ -39,7 +39,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       case 'USD':
         return 'US$';     // US dollar gets US$ prefix to distinguish
       case 'USDT':
-        return 'USDT ';   // USDT uses ticker symbol with space
+        return 'T$';      // USDT uses compact T$ prefix
       default:
         return '$';
     }
