@@ -223,13 +223,23 @@ const computeBettingStatus = (game: any, week: any) => {
   const gameDate = new Date(game.matchDate);
   const daysTillGame = (gameDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
   
-  // If week is already open, betting is active
-  if (week && week.status === 'OPEN') {
+  // If week is open AND betting deadline hasn't passed, betting is active
+  if (week && week.status === 'OPEN' && week.bettingDeadline && new Date(week.bettingDeadline) > now) {
     return {
       status: 'open',
       autoOpenDate: null,
       canOpenNow: false,
       description: 'Abierta para apuestas'
+    };
+  }
+  
+  // If week is open but betting deadline has passed, betting is closed
+  if (week && week.status === 'OPEN' && week.bettingDeadline && new Date(week.bettingDeadline) <= now) {
+    return {
+      status: 'closed',
+      autoOpenDate: null,
+      canOpenNow: false,
+      description: 'Cerrada para apuestas'
     };
   }
   

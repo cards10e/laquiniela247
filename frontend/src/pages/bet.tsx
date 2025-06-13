@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
-import { useCurrency } from '@/context/CurrencyContext';
+import { useCurrency, Currency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { CurrencySelector } from '@/components/ui/CurrencySelector';
@@ -20,11 +20,14 @@ interface Game {
   status: 'scheduled' | 'live' | 'completed';
   homeScore?: number;
   awayScore?: number;
-  weekId?: number; // Added for admin view
+  weekId?: number;
   userBet?: {
     prediction: PredictionType;
     isCorrect: boolean | null;
   };
+  bettingClosed?: boolean;
+  bettingDeadline?: string;
+  weekStatus?: string;
 }
 
 interface Week {
@@ -39,6 +42,53 @@ type PredictionType = 'home' | 'away' | 'draw';
 interface Prediction {
   gameId: number;
   prediction: PredictionType;
+}
+
+interface FormattedAmountProps {
+  amount: number;
+  originalCurrency?: Currency;
+  className?: string;
+}
+
+function FormattedAmount({ amount, originalCurrency, className }: FormattedAmountProps) {
+  const { formatAmount } = useCurrency();
+  const [formattedValue, setFormattedValue] = useState<string>('$0.00');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadFormattedAmount = async () => {
+      try {
+        setIsLoading(true);
+        const formatted = await formatAmount(amount, originalCurrency);
+        if (isMounted) {
+          setFormattedValue(formatted);
+        }
+      } catch (error) {
+        console.error('Error formatting amount:', error);
+        if (isMounted) {
+          setFormattedValue(`$${amount.toFixed(2)}`); // fallback
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadFormattedAmount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [amount, originalCurrency, formatAmount]);
+
+  if (isLoading) {
+    return <span className={className}>...</span>;
+  }
+
+  return <span className={className}>{formattedValue}</span>;
 }
 
 export default function BetPage() {
@@ -99,43 +149,75 @@ export default function BetPage() {
 
   const fetchBettingData = async () => {
     try {
-      const [weekRes, gamesRes] = await Promise.all([
-        axios.get('/api/weeks/current'),
-        axios.get('/api/games/current-week')
-      ]);
-      console.log('[Bet Debug] /api/weeks/current response:', weekRes.data);
-      console.log('[Bet Debug] /api/games/current-week response:', gamesRes.data);
-      // Debug: log raw games array
-      console.log('[Bet Debug] Raw games array:', gamesRes.data.games);
-      // Map backend games to frontend shape with defensive checks
-      const mappedGames = (gamesRes.data.games || []).map((game: any) => {
-        if (!game.homeTeam || !game.awayTeam) {
-          console.warn('[Bet Debug] Skipping game with missing team:', game);
-          return null;
+      // Try to get current week first, but fallback to all games if no current week
+      let weekData = null;
+      let gamesData = null;
+      
+      try {
+        const [weekRes, gamesRes] = await Promise.all([
+          axios.get('/api/weeks/current'),
+          axios.get('/api/games/current-week')
+        ]);
+        weekData = weekRes.data;
+        gamesData = gamesRes.data;
+      } catch (currentWeekError) {
+        console.log('[Bet Debug] No current active week, fetching all recent games');
+        // Fallback: get all games and weeks for display
+        const [weeksRes, allGamesRes] = await Promise.all([
+          axios.get('/api/weeks?limit=5'),
+          axios.get('/api/games?limit=20')
+        ]);
+        gamesData = allGamesRes.data;
+        // Find the most recent week with games
+        const weeksWithGames = weeksRes.data.weeks.filter((week: any) => week._count?.games > 0);
+        if (weeksWithGames.length > 0) {
+          weekData = { week: weeksWithGames[0], canBet: false };
         }
-        return {
-          id: game.id,
-          homeTeamName: game.homeTeam?.name || '',
-          awayTeamName: game.awayTeam?.name || '',
-          homeTeamLogo: game.homeTeam?.logoUrl || '',
-          awayTeamLogo: game.awayTeam?.logoUrl || '',
-          gameDate: game.matchDate || '',
-          status: (game.status || '').toLowerCase(),
-          homeScore: game.homeScore,
-          awayScore: game.awayScore,
-          userBet: game.userBet
-        };
-      }).filter(Boolean);
-      console.log('[Bet Debug] Mapped games array:', mappedGames);
-      setCurrentWeek({
-        ...weekRes.data.week,
-        status: (weekRes.data.week.status || '').toLowerCase()
-      });
-      setGames(mappedGames);
-      // Log final games state after mapping
-      setTimeout(() => {
-        console.log('[Final Games]', mappedGames);
-      }, 1000);
+      }
+      
+      if (gamesData && gamesData.games) {
+        console.log('[Bet Debug] Games response:', gamesData);
+        // Map backend games to frontend shape with defensive checks
+        const mappedGames = (gamesData.games || []).map((game: any) => {
+          if (!game.homeTeam || !game.awayTeam) {
+            console.warn('[Bet Debug] Skipping game with missing team:', game);
+            return null;
+          }
+          
+          // Determine betting status for this game
+          let bettingClosed = false;
+          if (game.week && game.week.bettingDeadline) {
+            bettingClosed = new Date() >= new Date(game.week.bettingDeadline);
+          }
+          
+          return {
+            id: game.id,
+            homeTeamName: game.homeTeam?.name || '',
+            awayTeamName: game.awayTeam?.name || '',
+            homeTeamLogo: game.homeTeam?.logoUrl || '',
+            awayTeamLogo: game.awayTeam?.logoUrl || '',
+            gameDate: game.matchDate || '',
+            status: (game.status || '').toLowerCase(),
+            homeScore: game.homeScore,
+            awayScore: game.awayScore,
+            userBet: game.userBet,
+            weekId: game.weekNumber || game.week?.weekNumber,
+            bettingClosed: bettingClosed,
+            bettingDeadline: game.week?.bettingDeadline,
+            weekStatus: game.week?.status
+          };
+        }).filter(Boolean);
+        console.log('[Bet Debug] Mapped games array:', mappedGames);
+        setGames(mappedGames);
+      }
+      
+      if (weekData && weekData.week) {
+        setCurrentWeek({
+          ...weekData.week,
+          status: (weekData.week.status || '').toLowerCase(),
+          canBet: weekData.canBet || false
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch betting data:', error);
       // Set mock data for demo
@@ -336,7 +418,21 @@ export default function BetPage() {
 
   // Check if user can bet on this game
   const canBetOnGame = (game: Game) => {
-    return !game.userBet;
+    // Can't bet if user already has a bet
+    if (game.userBet) return false;
+    
+    // Can't bet if betting is closed for this game
+    if (game.bettingClosed) return false;
+    
+    // Can't bet if current week doesn't allow betting
+    if (!currentWeek || currentWeek.status !== 'open') return false;
+    
+    // Check if betting deadline has passed for the current week
+    if (currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)) {
+      return false;
+    }
+    
+    return true;
   };
 
   if (loading) {
@@ -491,24 +587,42 @@ export default function BetPage() {
             </h2>
           </div>
           
-          <div className="bg-primary-600 text-white rounded-lg p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="subsection-title text-white mb-2">
-                  {t('dashboard.week')} {currentWeek.weekNumber}
-                </h2>
-                <span className="inline-block bg-warning-600 text-secondary-900 px-3 py-1 rounded-full text-sm font-medium">
-                  {t('dashboard.open_for_betting')}
-                </span>
-              </div>
-              <div className="mt-4 sm:mt-0 bg-secondary-900 text-white px-4 py-2 rounded-lg">
-                <div className="text-sm opacity-90">{t('dashboard.betting_closes_in')}</div>
-                <div className="font-bold text-lg">
-                  {timeUntilDeadline(currentWeek.bettingDeadline)}
+          {currentWeek && (
+            <div className={`text-white rounded-lg p-6 mb-6 ${
+              currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline) 
+                ? 'bg-error-600' 
+                : 'bg-primary-600'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="subsection-title text-white mb-2">
+                    {t('dashboard.week')} {currentWeek.weekNumber}
+                  </h2>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)
+                      ? 'bg-error-800 text-error-100'
+                      : 'bg-warning-600 text-secondary-900'
+                  }`}>
+                    {currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)
+                      ? t('betting.betting_closed_short')
+                      : t('dashboard.open_for_betting')
+                    }
+                  </span>
+                </div>
+                <div className="mt-4 sm:mt-0 bg-secondary-900 text-white px-4 py-2 rounded-lg">
+                  <div className="text-sm opacity-90">
+                    {currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)
+                      ? t('betting.betting_closed_at')
+                      : t('dashboard.betting_closes_in')
+                    }
+                  </div>
+                  <div className="font-bold text-lg">
+                    {timeUntilDeadline(currentWeek.bettingDeadline)}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
           {/* Tabs */}
           <div className="flex mb-8 border-b-2 border-secondary-200 dark:border-secondary-700">
             <button
@@ -586,7 +700,7 @@ export default function BetPage() {
                                 <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
                               </button>
                             </div>
-                          ) : (
+                          ) : game.userBet ? (
                             <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
@@ -607,6 +721,20 @@ export default function BetPage() {
                                   {game.userBet.isCorrect ? t('betting.correct') : t('betting.incorrect')}
                                 </span>
                               )}
+                            </div>
+                          ) : (
+                            <div className="mb-2 p-3 bg-error-50 dark:bg-error-900/20 rounded-lg text-center">
+                              <span className="font-semibold text-error-700 dark:text-error-300">
+                                🔒 {t('betting.betting_closed_short')}
+                              </span>
+                              <div className="text-sm text-error-600 dark:text-error-400 mt-1">
+                                {game.bettingDeadline && (
+                                  t('betting.betting_closed_on', {
+                                    date: new Date(game.bettingDeadline).toLocaleDateString(),
+                                    time: new Date(game.bettingDeadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                  })
+                                )}
+                              </div>
                             </div>
                           )}
                           {/* Bet Amount and Place Bet */}
@@ -661,7 +789,7 @@ export default function BetPage() {
                           {t('betting.bet_amount')}
                         </span>
                         <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                          {formatAmount(singleBetSummary.totalAmount)}
+                          <FormattedAmount amount={singleBetSummary.totalAmount} />
                         </span>
                       </div>
                     </div>
@@ -669,7 +797,9 @@ export default function BetPage() {
                     <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
-                        <span className="text-success-700 dark:text-success-300 font-bold text-lg">{formatAmount(singleBetSummary.potentialWinnings)}</span>
+                        <span className="text-success-700 dark:text-success-300 font-bold text-lg">
+                          <FormattedAmount amount={singleBetSummary.potentialWinnings} />
+                        </span>
                       </div>
                     </div>
                     {singleBetSummary.totalBets === 0 && (
@@ -773,7 +903,7 @@ export default function BetPage() {
                     <div className="flex items-center gap-2">
                       <CurrencySelector size="sm" className="w-14 text-xs" />
                       <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-                        {formatAmount(getEffectiveBetAmount())}
+                        <FormattedAmount amount={getEffectiveBetAmount()} />
                       </span>
                     </div>
                   ) : (
@@ -803,7 +933,9 @@ export default function BetPage() {
                 <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
-                    <span className="text-success-700 dark:text-success-300 font-bold text-lg">{formatAmount(calculatePotentialWinnings())}</span>
+                    <span className="text-success-700 dark:text-success-300 font-bold text-lg">
+                      <FormattedAmount amount={calculatePotentialWinnings()} />
+                    </span>
                   </div>
                 </div>
                 {/* Submit Button */}

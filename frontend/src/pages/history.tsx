@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
-import { useCurrency } from '@/context/CurrencyContext';
+import { useCurrency, Currency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import TeamLogo from '@/components/TeamLogo';
@@ -27,6 +27,53 @@ interface BetHistory {
 }
 
 type FilterType = 'all' | 'won' | 'lost' | 'pending';
+
+interface FormattedAmountProps {
+  amount: number;
+  originalCurrency?: Currency;
+  className?: string;
+}
+
+function FormattedAmount({ amount, originalCurrency, className }: FormattedAmountProps) {
+  const { formatAmount } = useCurrency();
+  const [formattedValue, setFormattedValue] = useState<string>('$0.00');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadFormattedAmount = async () => {
+      try {
+        setIsLoading(true);
+        const formatted = await formatAmount(amount, originalCurrency);
+        if (isMounted) {
+          setFormattedValue(formatted);
+        }
+      } catch (error) {
+        console.error('Error formatting amount:', error);
+        if (isMounted) {
+          setFormattedValue(`$${amount.toFixed(2)}`); // fallback
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadFormattedAmount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [amount, originalCurrency, formatAmount]);
+
+  if (isLoading) {
+    return <span className={className}>...</span>;
+  }
+
+  return <span className={className}>{formattedValue}</span>;
+}
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -473,7 +520,7 @@ export default function HistoryPage() {
                             {t('history.amount')}
                           </div>
                           <div className="font-medium text-secondary-900 dark:text-secondary-100">
-                            {formatAmount(bet.amount)}
+                            <FormattedAmount amount={bet.amount} />
                           </div>
                         </div>
                         
@@ -500,7 +547,7 @@ export default function HistoryPage() {
                               ? 'text-success-600 dark:text-success-400' 
                               : 'text-secondary-600 dark:text-secondary-400'
                           }`}>
-                            {formatAmount(bet.winnings)}
+                            <FormattedAmount amount={bet.winnings} />
                           </div>
                         </div>
                         
@@ -621,7 +668,7 @@ export default function HistoryPage() {
                   {t('history.total_wagered')}
                 </div>
                 <div className="performance-card-value">
-                  {formatAmount(filteredBets.reduce((sum, bet) => sum + bet.amount, 0))}
+                  <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
                 </div>
               </div>
               
@@ -630,7 +677,7 @@ export default function HistoryPage() {
                   {t('history.total_winnings')}
                 </div>
                 <div className="performance-card-value">
-                  {formatAmount(filteredBets.reduce((sum, bet) => sum + bet.winnings, 0))}
+                  <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
                 </div>
               </div>
             </div>

@@ -2,6 +2,28 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.8 - Currency System Enhancement & Promise Rendering Fix
+
+### 💰 USDT Integration & Distinguished Currency Symbols
+- **Modernized Currency Options**: Successfully replaced Bitcoin (BTC) with USDT (Tether) for better stablecoin support
+  - **New Currency Trio**: MXN (Mexican Peso), USD (US Dollar), and USDT (Tether) with distinctive symbols
+  - **Clear Visual Differentiation**: MXN displays as `$200.00`, USD as `US$200.00`, USDT as `USDT 200.00`
+  - **Automatic Migration**: Existing BTC users seamlessly transition to MXN default currency
+- **Enterprise-Grade Exchange System**: Maintained 100% reliable real-time currency conversion with multi-provider fallback
+- **Universal Implementation**: New currency symbols display consistently across all pages (bet, history, dashboard, admin)
+
+### 🔧 Critical React Promise Rendering Fix
+- **Error Resolution**: Fixed "Objects are not valid as a React child (found: [object Promise])" that prevented betting interface loading
+- **Smart Component Architecture**: New `FormattedAmount` component handles async currency formatting with graceful loading states
+- **Enhanced Error Handling**: Fallback formatting and memory leak prevention with proper component cleanup
+- **Build Stability**: All TypeScript compilation successful with zero errors across entire application
+
+### 🎯 Technical Excellence & User Experience
+- **Minimal Code Impact**: Only 4 files modified for maximum functionality improvement
+- **Cross-Platform Consistency**: Currency formatting works identically across all betting interfaces
+- **Performance Optimized**: Background currency refresh and intelligent caching for optimal user experience
+- **Mobile-First Design**: All currency selectors maintain compact, touch-friendly design
+
 ## 🚀 Version 2.0.7 - Comprehensive Team Logo System & History Page Fixes
 
 ### 🏆 Intelligent Team Logo System

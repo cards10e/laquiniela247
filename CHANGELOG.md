@@ -2,6 +2,70 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.8] - 2025-06-13
+### 💰 Currency System Enhancement & Promise Rendering Fix
+- **USDT Integration**: Successfully replaced Bitcoin (BTC) with USDT (Tether) in the currency system
+  - **Currency Options**: Now supports MXN, USD, and USDT instead of MXN, USD, BTC
+  - **Dropdown Update**: All currency selectors across the application now show USDT instead of BTC
+  - **Exchange Rate Support**: USDT conversion rates integrated into the enterprise-grade exchange rate service
+  - **Automatic Migration**: Users with BTC selected automatically fall back to MXN default
+  
+### 🎯 Distinguished Currency Symbols
+- **Clear Currency Differentiation**: Implemented distinctive symbols for each currency to eliminate user confusion
+  - **MXN (Mexican Peso)**: Clean `$200.00` symbol (default currency gets primary treatment)
+  - **USD (US Dollar)**: `US$200.00` with US prefix to distinguish from peso
+  - **USDT (Tether)**: `USDT 200.00` using crypto ticker convention
+- **Universal Application**: New symbols display consistently across all pages (bet, history, dashboard, admin)
+- **Enhanced UX**: Users can instantly identify which currency they're viewing/using
+
+### 🔧 Critical Promise Rendering Fix
+- **React Error Resolution**: Fixed "Objects are not valid as a React child (found: [object Promise])" error
+  - **Root Cause**: Async `formatAmount()` function returning Promises being rendered directly in JSX
+  - **Solution**: Created `FormattedAmount` component to handle async currency formatting properly
+  - **Implementation**: Replaced all direct `{formatAmount(amount)}` calls with `<FormattedAmount amount={amount} />`
+- **Enhanced Error Handling**: Added graceful loading states and fallback formatting
+  - **Loading State**: Shows "..." while currency conversion is in progress
+  - **Error Resilience**: Falls back to basic formatting if conversion fails
+  - **Memory Safety**: Proper cleanup prevents memory leaks with unmounted components
+
+### 🌍 Real-time Currency Conversion Preservation
+- **Enterprise-Grade System**: Maintained 100% reliable currency conversion with multi-layer fallback
+  - **Multi-Provider**: ExchangeRate-API, Fixer.io with backup providers
+  - **Intelligent Caching**: Fresh (5 min), Stale (30 min), Expired (2 hour) strategies
+  - **Circuit Breaker**: Failure thresholds with graceful degradation
+  - **Background Refresh**: Automatic rate updates for optimal user experience
+- **TypeScript Safety**: All currency types properly updated throughout the codebase
+
+### Technical Improvements
+- **Minimal Code Impact**: Only 4 files modified for maximum functionality (CurrencySelector, CurrencyContext, I18nContext, exchangeRateService)
+- **Component Architecture**: New reusable FormattedAmount component handles all async currency formatting
+- **Build Verification**: All TypeScript compilation successful with no errors
+- **Cross-Page Consistency**: Currency symbols and formatting consistent across bet, history, dashboard, and admin pages
+
+### Added
+- `FormattedAmount` component for handling async currency formatting
+- USDT translation keys in English and Spanish (`usdt: "USDT"`)
+- Distinctive currency symbol system for clear user differentiation
+- Proper async/await handling for real-time currency conversion
+
+### Changed
+- Currency type definition from `'MXN' | 'USD' | 'BTC' | 'USDT'` to `'MXN' | 'USD' | 'USDT'`
+- Currency dropdown displays USDT instead of BTC across all interfaces
+- Currency symbols: MXN uses `$`, USD uses `US$`, USDT uses `USDT ` prefix
+- All direct formatAmount calls replaced with FormattedAmount component
+
+### Fixed
+- React Promise rendering error that prevented proper betting interface loading
+- Currency symbol confusion where all currencies showed identical `$` symbol
+- Async formatting issues causing build errors and runtime crashes
+- Memory leaks in currency formatting with proper component cleanup
+
+### Removed
+- Bitcoin (BTC) support from currency system
+- Bitcoin-specific formatting (8 decimal places, ₿ symbol)
+- BTC exchange rates from fallback rate configuration
+- Direct Promise rendering in JSX components
+
 ## [2.0.7] - 2025-01-19
 ### 🏆 Comprehensive Team Logo System & History Page Fixes
 - **Intelligent Team Logo Fallback System**: Implemented robust 3-level fallback hierarchy for team logos across all pages

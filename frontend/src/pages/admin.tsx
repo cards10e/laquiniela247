@@ -43,7 +43,7 @@ interface Game {
   homeTeamLogo?: string;
   awayTeamLogo?: string;
   bettingStatus?: {
-    status: 'open' | 'ready' | 'scheduled' | 'past';
+    status: 'open' | 'ready' | 'scheduled' | 'past' | 'closed';
     autoOpenDate: string | null;
     canOpenNow: boolean;
     description: string;
@@ -1120,13 +1120,21 @@ export default function AdminPage() {
                                   {(() => {
                                     const readyGames = weekGames.filter(game => game.bettingStatus?.status === 'ready');
                                     const scheduledGames = weekGames.filter(game => game.bettingStatus?.status === 'scheduled');
+                                    const openGames = weekGames.filter(game => game.bettingStatus?.status === 'open');
+                                    const closedGames = weekGames.filter(game => game.bettingStatus?.status === 'closed');
                                     
-                                    if (week?.status?.toLowerCase() === 'open') {
+                                    if (openGames.length > 0) {
                                       return (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
                                           {t('admin.status_open_short')}
                                         </span>
                                       );
+                                                                         } else if (closedGames.length > 0) {
+                                       return (
+                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400">
+                                           {t('admin.status_closed_short')}
+                                         </span>
+                                       );
                                     } else if (readyGames.length > 0) {
                                       return (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
@@ -1150,15 +1158,23 @@ export default function AdminPage() {
                                 {/* Auto-Open Button for Ready Games */}
                                 {(() => {
                                   const readyGames = weekGames.filter(game => game.bettingStatus?.status === 'ready');
-                                  const isWeekOpen = week?.status?.toLowerCase() === 'open';
+                                  const openGames = weekGames.filter(game => game.bettingStatus?.status === 'open');
+                                  const closedGames = weekGames.filter(game => game.bettingStatus?.status === 'closed');
                                   
-                                  if (isWeekOpen) {
+                                  if (openGames.length > 0) {
                                     return (
                                       <span className="text-xs text-success-600 dark:text-success-400 font-medium">
                                         <span className="hidden sm:inline">{t('admin.status_open_betting')}</span>
                                         <span className="sm:hidden">{t('admin.status_open_short')}</span>
                                       </span>
                                     );
+                                                                     } else if (closedGames.length > 0) {
+                                     return (
+                                       <span className="text-xs text-error-600 dark:text-error-400 font-medium">
+                                         <span className="hidden sm:inline">{t('admin.status_closed_betting')}</span>
+                                         <span className="sm:hidden">{t('admin.status_closed_short')}</span>
+                                       </span>
+                                     );
                                   }
                                   
                                   if (readyGames.length > 0 && openDeadlineWeekId !== Number(weekId)) {

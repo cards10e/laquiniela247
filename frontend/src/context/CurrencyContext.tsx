@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { exchangeRateService } from '../services/exchangeRateService';
 
-export type Currency = 'MXN' | 'USD' | 'BTC';
+export type Currency = 'MXN' | 'USD' | 'USDT';
 
 interface CurrencyContextType {
   currency: Currency;
   setCurrency: (currency: Currency) => void;
-  formatAmount: (amount: number) => string;
+  formatAmount: (amount: number, originalCurrency?: Currency) => Promise<string>;
   getCurrencySymbol: () => string;
+  convertAmount: (amount: number, from: Currency, to: Currency) => Promise<{ amount: number; rate: number; source: string }>;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | null>(null);
@@ -17,9 +19,12 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   // Load saved currency from localStorage on mount
   useEffect(() => {
     const savedCurrency = localStorage.getItem('selectedCurrency') as Currency;
-    if (savedCurrency && ['MXN', 'USD', 'BTC'].includes(savedCurrency)) {
+    if (savedCurrency && ['MXN', 'USD', 'USDT'].includes(savedCurrency)) {
       setCurrency(savedCurrency);
     }
+    
+    // Start background exchange rate refresh
+    exchangeRateService.startBackgroundRefresh();
   }, []);
 
   // Save currency to localStorage when it changes
@@ -30,26 +35,38 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const getCurrencySymbol = () => {
     switch (currency) {
       case 'MXN':
-        return '$';
+        return '$';       // Mexican peso keeps the $ symbol
       case 'USD':
-        return '$';
-      case 'BTC':
-        return '₿';
+        return 'US$';     // US dollar gets US$ prefix to distinguish
+      case 'USDT':
+        return 'USDT ';   // USDT uses ticker symbol with space
       default:
         return '$';
     }
   };
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = async (amount: number, originalCurrency?: Currency): Promise<string> => {
+    let displayAmount = amount;
+    
+    // Convert if different currency specified
+    if (originalCurrency && originalCurrency !== currency) {
+      try {
+        const conversion = await exchangeRateService.convertCurrency(amount, originalCurrency, currency);
+        displayAmount = conversion.amount;
+      } catch (error) {
+        console.warn('Currency conversion failed, showing original amount:', error);
+        // Fallback to original amount if conversion fails
+      }
+    }
+    
     const symbol = getCurrencySymbol();
     
-    if (currency === 'BTC') {
-      // Bitcoin formatting with more decimal places
-      return `${symbol}${amount.toFixed(8)}`;
-    } else {
-      // Fiat currency formatting
-      return `${symbol}${amount.toFixed(2)}`;
-    }
+    // All supported currencies use fiat/stablecoin formatting (2 decimal places)
+    return `${symbol}${displayAmount.toFixed(2)}`;
+  };
+
+  const convertAmount = async (amount: number, from: Currency, to: Currency) => {
+    return await exchangeRateService.convertCurrency(amount, from, to);
   };
 
   return (
@@ -59,6 +76,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrency,
         formatAmount,
         getCurrencySymbol,
+        convertAmount,
       }}
     >
       {children}

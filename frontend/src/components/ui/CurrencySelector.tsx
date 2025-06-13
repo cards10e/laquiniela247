@@ -10,7 +10,7 @@ export function CurrencySelector({ className = '', size = 'md' }: CurrencySelect
   const { currency, setCurrency } = useCurrency();
   const { t } = useI18n();
 
-  const currencies: Currency[] = ['MXN', 'USD', 'BTC'];
+  const currencies: Currency[] = ['MXN', 'USD', 'USDT'];
 
   const sizeClasses = {
     sm: 'text-xs px-1 py-1',
