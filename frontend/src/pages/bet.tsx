@@ -130,8 +130,7 @@ export default function BetPage() {
   const fetchAdminGamesData = async () => {
     try {
       setLoading(true);
-      // Add cache-busting parameter to ensure fresh data
-      const response = await axios.get(`/api/admin/games?_t=${Date.now()}`);
+      const response = await axios.get('/api/admin/games');
       const adminGames = response.data.games.map((game: any) => ({
         id: game.id,
         homeTeamName: game.homeTeam?.name || 'TBD',

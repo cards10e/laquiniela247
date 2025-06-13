@@ -138,7 +138,7 @@ export default function AdminPage() {
         axiosInstance.get('/admin/dashboard'),
         axiosInstance.get('/admin/users'),
         axiosInstance.get('/weeks'),
-        axiosInstance.get(`/admin/games?_t=${Date.now()}`)
+        axiosInstance.get('/admin/games')
       ]);
 
       setStats(statsRes.data.overview || statsRes.data);

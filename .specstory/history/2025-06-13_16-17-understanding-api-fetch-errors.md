@@ -9494,7 +9494,15 @@ pls update our changelog, readme, and push all changes to git/github
 
 _**Assistant**_
 
+I'll update the changelog, README, and push all changes to git/github.
 
+---
+
+Read file: CHANGELOG.md
+
+---
+
+Now let me add the new version entry to the changelog:
 
 ---
 
@@ -9502,7 +9510,15 @@ _**Assistant**_
 
 ---
 
+Now let me update the README to reflect the latest version:
 
+---
+
+Read file: README.md
+
+---
+
+Let me update the version in the README:
 
 ---
 
@@ -9510,7 +9526,158 @@ _**Assistant**_
 
 ---
 
+Now let me commit and push all changes to git:
 
+---
+
+```bash
+cd /Users/batman/laquiniela247 && git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+Model provided invalid arguments to terminal tool.
+
+---
+
+```bash
+git commit -m "v2.0.15: UX improvements - localized status text & mobile optimization - Fixed hardcoded Live status text to use proper I18n translations - Removed disruptive 30-second auto-refresh intervals - Fixed duplicate Match Status display in mobile admin panel - Enhanced mobile UX and performance"
+```
+
+```
+<le admin panel - Enhanced mobile UX and performance"
+[main f682c25] v2.0.15: UX improvements - localized status text & mobile optimization - Fixed hardcoded Live
+ status text to use proper I18n translations - Removed disruptive 30-second auto-refresh intervals - Fixed d
+uplicate Match Status display in mobile admin panel - Enhanced mobile UX and performance
+ 6 files changed, 1104 insertions(+), 39 deletions(-)
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git tag v2.0.15
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Enumerating objects: 25, done.
+Counting objects: 100% (25/25), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (13/13), done.
+Writing objects: 100% (13/13), 12.13 KiB | 3.03 MiB/s, done.
+Total 13 (delta 11), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (11/11), completed with 11 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   ad4177c..f682c25  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git push origin v2.0.15
+```
+
+```
+batman@saturn laquiniela247 % git push origin v2.0.15
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/cards10e/laquiniela247.git
+ * [new tag]         v2.0.15 -> v2.0.15
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! All changes have been successfully committed and pushed to GitHub. Here's a summary of what was completed:
+
+## ✅ **Successfully Updated & Pushed v2.0.15**
+
+### 📝 **Documentation Updates**
+- **CHANGELOG.md**: Added comprehensive v2.0.15 entry documenting:
+  - Localized game status text fixes
+  - Mobile UX improvements (removed constant refreshing)
+  - Duplicate status display cleanup
+  - Performance and technical improvements
+
+- **README.md**: Updated to reflect v2.0.15 as the latest version with:
+  - Internationalization fixes for status badges
+  - Mobile optimization improvements
+  - Performance enhancements
+
+### 🔄 **Git Operations Completed**
+- ✅ **Staged all changes**: `git add .`
+- ✅ **Committed with detailed message**: Comprehensive commit describing all UX improvements
+- ✅ **Created version tag**: `git tag v2.0.15`
+- ✅ **Pushed to main branch**: All code changes now live on GitHub
+- ✅ **Pushed version tag**: v2.0.15 tag available on GitHub releases
+
+### 🎯 **Changes Included in v2.0.15**
+1. **Localization Fixes**: Status text now uses proper I18n translations
+2. **Mobile UX**: Removed disruptive 30-second auto-refresh intervals
+3. **Interface Cleanup**: Fixed duplicate status display in mobile admin panel
+4. **Performance**: Reduced API calls and improved mobile battery life
+5. **Documentation**: Updated changelog and README with latest improvements
+
+The repository is now fully up-to-date with all the UX improvements, and users will experience a much smoother mobile interface without the constant refreshing issues!
+
+---
+
+_**User**_
+
+pushed changes to live server and cannot load the /admin page: api/admin/games?_t=1749850511389:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 ()
+
+
+---
+
+_**Assistant**_
+
+The admin page is failing to load because the `/api/admin/games` endpoint is returning a 400 error. This is likely related to the cache-busting parameter `_t=1749850511389` that we're still using in the API calls, even though we removed the automatic refresh intervals.
+
+Let me check the admin page code to see where this API call is being made and fix the issue:
+
+---
+
+<details>
+            <summary>Grep search for "_t=.*Date\.now|admin/games.*_t" • **2** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/frontend/src/pages/bet.tsx` | L133 | `const response = await axios.get(`/api/admin/games?_t=${Date.now()}`);` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L140 | `axiosInstance.get(`/admin/games?_t=${Date.now()}`)` |
+
+</details>
+
+---
+
+Found the issue! The admin page is still using the cache-busting parameter `_t=${Date.now()}` in the API call. Let me check what the backend expects and fix this:
+
+---
+
+Read file: frontend/src/pages/admin.tsx
+
+---
+
+I can see the issue! The cache-busting parameter `_t=${Date.now()}` is still being used in the admin API call. The backend might not be expecting this parameter or it could be causing a validation error. Let me remove it:
 
 ---
 
@@ -9518,7 +9685,15 @@ _**Assistant**_
 
 ---
 
+Now let me also check and fix the bet page cache-busting parameter:
 
+---
+
+
+
+---
+
+Let me also update the comment since we're no longer using cache-busting:
 
 ---
 
