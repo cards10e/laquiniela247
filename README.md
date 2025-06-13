@@ -2,6 +2,15 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.11 - Critical Status Consistency Fix
+
+### 🔧 Unified Game Status System
+- **Fixed Critical Inconsistency**: Resolved issue where admin panel and bet page showed different game statuses
+  - **Problem**: Admin showed "Scheduled" while bet page showed "Live" for same games
+  - **Solution**: Unified automatic status calculation across all API endpoints
+  - **Impact**: Both admin and user interfaces now display identical, real-time accurate statuses
+- **Enhanced Reliability**: Automatic status transitions (Scheduled → Live → Completed) work consistently across entire application
+
 ## 🚀 Version 2.0.10 - Unified Live Status Styling
 
 ### 🎨 Consistent Interface Design

@@ -6,6 +6,31 @@ import { optionalAuthMiddleware, AuthenticatedRequest } from '../middleware/auth
 
 const router = express.Router();
 
+// Helper function to compute automatic game status based on match time
+const computeAutoGameStatus = (game: any) => {
+  const now = new Date();
+  const gameDate = new Date(game.matchDate);
+  const minutesUntilGame = (gameDate.getTime() - now.getTime()) / (1000 * 60);
+  const minutesSinceGameStart = (now.getTime() - gameDate.getTime()) / (1000 * 60);
+  
+  // If game ended more than 150 minutes ago (2.5 hours), it should be completed
+  if (minutesSinceGameStart > 150) {
+    return 'COMPLETED';
+  }
+  
+  // If game started (within 150 minutes), it should be live
+  if (minutesSinceGameStart >= 0 && minutesSinceGameStart <= 150) {
+    return 'LIVE';
+  }
+  
+  // If game hasn't started yet, it's scheduled
+  if (minutesUntilGame > 0) {
+    return 'SCHEDULED';
+  }
+  
+  return game.status || 'SCHEDULED';
+};
+
 // Validation schemas
 const getGamesSchema = z.object({
   week: z.string().optional(),
@@ -165,8 +190,65 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     }
   });
   console.log('[DEBUG] Found games:', games.length);
+  
+  // Auto-update game statuses based on time before sending response
+  const gamesToUpdate = [];
+  for (const game of games) {
+    const autoStatus = computeAutoGameStatus(game);
+    if (autoStatus !== game.status) {
+      gamesToUpdate.push({ id: game.id, newStatus: autoStatus });
+    }
+  }
+
+  let updatedGames = games;
+
+  // Batch update games that need status changes
+  if (gamesToUpdate.length > 0) {
+    await Promise.all(
+      gamesToUpdate.map(({ id, newStatus }) =>
+        prisma.game.update({
+          where: { id },
+          data: { status: newStatus }
+        })
+      )
+    );
+    
+    // Refetch games with updated statuses
+    updatedGames = await prisma.game.findMany({
+      where: {
+        weekNumber: currentWeek.weekNumber
+      },
+      include: {
+        homeTeam: {
+          select: {
+            id: true,
+            name: true,
+            shortName: true,
+            logoUrl: true
+          }
+        },
+        awayTeam: {
+          select: {
+            id: true,
+            name: true,
+            shortName: true,
+            logoUrl: true
+          }
+        },
+        _count: {
+          select: {
+            bets: true
+          }
+        }
+      },
+      orderBy: {
+        matchDate: 'asc'
+      }
+    });
+  }
+  
   // If user is authenticated, include their bets
-  let gamesWithUserBets = games;
+  let gamesWithUserBets = updatedGames;
   if (req.user) {
     const userBets = await prisma.bet.findMany({
       where: {
@@ -178,7 +260,7 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       acc[bet.gameId] = bet;
       return acc;
     }, {} as Record<number, any>);
-    gamesWithUserBets = games.map(game => {
+    gamesWithUserBets = updatedGames.map(game => {
       const bet = betsByGameId[game.id];
       return {
         ...game,

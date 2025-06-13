@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.11] - 2025-06-13
+### 🔧 Critical Fix: Unified Game Status Consistency
+- **Fixed Status Inconsistency**: Resolved critical issue where admin panel and bet page showed different game statuses
+  - **Root Cause**: Admin panel used `/api/admin/games` with automatic status updates, bet page used `/api/games/current-week` without updates
+  - **Solution**: Added `computeAutoGameStatus()` function to `/api/games/current-week` endpoint
+  - **Result**: Both interfaces now show identical, real-time accurate game statuses
+  - **Status Logic**: Scheduled → Live (at game time) → Completed (2.5 hours later)
+
+### 🎯 Technical Implementation
+- **Unified Status Calculation**: Both endpoints now use identical automatic status update logic
+- **Real-Time Accuracy**: Game statuses automatically reflect actual match timing
+- **Database Consistency**: Status updates are batched and applied before API responses
+- **Zero Breaking Changes**: All existing functionality preserved
+
+### 🚀 User Experience Impact
+- **Admin Consistency**: Admins see accurate live game indicators matching user interface
+- **Betting Accuracy**: Users see correct game statuses for betting decisions
+- **Real-Time Updates**: No more manual status sync required during game times
+- **Professional Reliability**: Eliminates confusion from inconsistent status displays
+
 ## [2.0.10] - 2025-06-13
 ### 🎨 Unified Live Status Styling
 - **Consistent Live Game Display**: Unified "Live" status styling between admin panel and bet page
