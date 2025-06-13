@@ -128,6 +128,16 @@ export default function AdminPage() {
     fetchTeams();
   }, []);
 
+  // Add periodic refresh for live game status updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Refresh every 30 seconds to keep live game statuses updated
+      fetchAdminData();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchAdminData = async () => {
     try {
       setLoading(true);
@@ -135,7 +145,7 @@ export default function AdminPage() {
         axiosInstance.get('/admin/dashboard'),
         axiosInstance.get('/admin/users'),
         axiosInstance.get('/weeks'),
-        axiosInstance.get('/admin/games')
+        axiosInstance.get(`/admin/games?_t=${Date.now()}`)
       ]);
 
       setStats(statsRes.data.overview || statsRes.data);
@@ -150,13 +160,14 @@ export default function AdminPage() {
         homeTeamName: game.homeTeamName || game.homeTeam?.name || 'TBD',
         awayTeamName: game.awayTeamName || game.awayTeam?.name || 'TBD',
         gameDate: game.gameDate || game.matchDate || '',
-        status: game.status || 'SCHEDULED',
+        status: (game.status || 'SCHEDULED').toLowerCase(), // Ensure lowercase for consistency
         homeTeamLogo: game.homeTeam?.logoUrl || '',
         awayTeamLogo: game.awayTeam?.logoUrl || '',
         bettingStatus: game.bettingStatus, // Include computed betting status from backend
       });
 
       const normalizedGames = (gamesRes.data.games || []).map(normalizeGame);
+      console.log('[Admin Panel Debug] Fetched games:', normalizedGames.map((g: Game) => ({ id: g.id, status: g.status, weekId: g.weekId, gameDate: g.gameDate })));
       setGames(normalizedGames);
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
@@ -294,18 +305,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleUpdateGameStatus = async (gameId: number, status: string) => {
-    try {
-      await axiosInstance.put(`/admin/games/${gameId}`, {
-        status
-      });
-      toast.success(`Game status updated to ${status.toLowerCase()}`);
-      fetchAdminData();
-    } catch (error) {
-      console.error('Failed to update game status:', error);
-      toast.error('Failed to update game status');
-    }
-  };
+
 
   const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
     try {
@@ -351,18 +351,23 @@ export default function AdminPage() {
 
   const getGamePrimaryStatus = (game: Game) => {
     // Determine the single most important status to show
-    if (game.status === 'live') {
-      return { text: t('admin.match_live'), emoji: '🔴', color: 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' };
-    }
+    // PRIORITY 1: Match status (live/completed) - most important for ongoing games
     if (game.status === 'completed') {
       return { text: t('admin.match_completed'), emoji: '✅', color: 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' };
     }
+    if (game.status === 'live') {
+      return { text: t('admin.match_live'), emoji: '🔴', color: 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' };
+    }
+    
+    // PRIORITY 2: Betting status (only for scheduled games)
     if (game.bettingStatus?.status === 'open') {
       return { text: t('admin.betting_available'), emoji: '🎯', color: 'bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400' };
     }
     if (game.bettingStatus?.status === 'ready') {
       return { text: t('admin.status_ready_short'), emoji: '🟡', color: 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' };
     }
+    
+    // PRIORITY 3: Default scheduled status
     return { text: t('admin.match_scheduled'), emoji: '⚪', color: 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300' };
   };
 
@@ -1277,9 +1282,11 @@ export default function AdminPage() {
                                               : t('admin.tbd')}
                                           </span>
                                           {/* Primary Status Badge */}
-                                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${primaryStatus.color} lg:order-0`}>
-                                            {primaryStatus.emoji} {primaryStatus.text}
-                                          </span>
+                                          <div className="flex flex-wrap gap-2">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${primaryStatus.color}`}>
+                                              {primaryStatus.emoji} {primaryStatus.text}
+                                            </span>
+                                          </div>
                                         </div>
                                         
                                         {/* Mobile: Expand Indicator, Desktop: Actions */}
@@ -1289,20 +1296,8 @@ export default function AdminPage() {
                                               {isExpanded ? '▼' : '▶'}
                                             </span>
                                           </div>
-                                          {/* Desktop: Show action buttons directly */}
+                                          {/* Desktop: Show delete button only */}
                                           <div className="hidden lg:flex lg:items-center lg:gap-1">
-                                            {(game.status === 'scheduled' || game.status === 'live') && (
-                                              <button
-                                                className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleUpdateGameStatus(game.id, game.status === 'scheduled' ? 'LIVE' : 'COMPLETED');
-                                                }}
-                                                title={t('admin.manual_override')}
-                                              >
-                                                ⚡
-                                              </button>
-                                            )}
                                             <button
                                               className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400 hover:bg-error-200 dark:hover:bg-error-900/40 transition-colors"
                                               onClick={(e) => {
@@ -1358,14 +1353,6 @@ export default function AdminPage() {
 
                                         {/* Action Buttons */}
                                         <div className="flex gap-2 pt-2">
-                                          {(game.status === 'scheduled' || game.status === 'live') && (
-                                            <button
-                                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors min-h-[44px]"
-                                              onClick={() => handleUpdateGameStatus(game.id, game.status === 'scheduled' ? 'LIVE' : 'COMPLETED')}
-                                            >
-                                              ⚡ {t('admin.manual_override')}
-                                            </button>
-                                          )}
                                           <button
                                             className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded text-sm font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400 hover:bg-error-200 dark:hover:bg-error-900/40 transition-colors min-h-[44px]"
                                             onClick={() => handleDeleteGame(game.id)}

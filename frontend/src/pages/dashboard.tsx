@@ -330,8 +330,21 @@ export default function DashboardPage() {
                             />
                           </div>
                         </div>
-                        <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                          {new Date(game.gameDate).toLocaleDateString()}
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-secondary-500 dark:text-secondary-400">
+                            {new Date(game.gameDate).toLocaleDateString()}
+                          </div>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            game.status === 'completed'
+                              ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
+                              : game.status === 'live'
+                              ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
+                              : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                          }`}>
+                            {game.status === 'completed' ? 'Completed' : 
+                             game.status === 'live' ? 'Live' : 
+                             'Scheduled'}
+                          </span>
                         </div>
                       </div>
                     );

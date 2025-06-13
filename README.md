@@ -2,6 +2,28 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.14 - Dashboard Enhancement & Admin Simplification
+
+### 🎯 Dashboard Status Badges
+- **Live Game Indicators**: Dashboard now shows real-time status badges on game cards
+  - **Clean Text Labels**: "Live", "Completed", and "Scheduled" with professional color coding
+  - **Instant Visibility**: Users can see game status without navigating to betting page
+  - **Consistent Design**: Matches admin panel styling for unified user experience
+- **Minimal Implementation**: 5-minute enhancement leveraging existing status infrastructure
+
+### 🧹 Simplified Admin Interface (Microsoft DE Principles)
+- **Streamlined Status Management**: Removed redundant manual override buttons
+  - **Single Source of Truth**: "Game Status Sync" button handles all status updates efficiently
+  - **Reduced Complexity**: Eliminated cognitive overhead of choosing between multiple status update methods
+  - **Cleaner Interface**: Removed 50+ lines of redundant UI code for better maintainability
+- **Enhanced Reliability**: Consolidated status management reduces inconsistency risk
+
+### 🔧 Build System Improvements
+- **Fixed TypeScript Path Aliases**: Resolved module resolution preventing application startup
+- **Enhanced Status Logic**: Fixed admin panel status priority (match status over betting status)
+- **Real-Time Updates**: Added 30-second periodic refresh for live status changes
+- **Cache Busting**: Ensures fresh status data with timestamp parameters
+
 ## 🚀 Version 2.0.11 - Critical Status Consistency Fix
 
 ### 🔧 Unified Game Status System

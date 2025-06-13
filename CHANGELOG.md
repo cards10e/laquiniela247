@@ -551,4 +551,65 @@ All notable changes to this project will be documented in this file.
 - Admin: Restrict minute selection for game creation to :00, :15, :30, :45 and use dropdowns for hour/minute.
 - Admin: Group existing games by week in the games list.
 - Admin: Show a localized message when no games are scheduled (translation key added to I18nContext.tsx).
-- Translation: Fixed translation loading to use I18nContext.tsx, not JSON files. 
+- Translation: Fixed translation loading to use I18nContext.tsx, not JSON files.
+
+## [2.0.14] - 2025-06-13
+### 🎯 Dashboard Status Enhancement & Admin Interface Simplification
+- **Dashboard Status Badges**: Added live game status indicators to dashboard game cards
+  - **Clean Status Display**: Shows "Live", "Completed", and "Scheduled" badges on dashboard game previews
+  - **Consistent Styling**: Uses identical color scheme as admin panel (orange for Live, green for Completed, gray for Scheduled)
+  - **Minimal Implementation**: 5-minute change leveraging existing status data and CSS components
+  - **Enhanced UX**: Users can instantly see game status without navigating to betting page
+
+### 🧹 Admin Interface Simplification (Microsoft DE Principles)
+- **Removed Manual Override Buttons**: Eliminated redundant individual game status override controls
+  - **Simplified Decision Making**: Removed cognitive overhead of choosing between manual override vs bulk sync
+  - **Single Source of Truth**: "Game Status Sync" button now handles all status updates efficiently
+  - **Cleaner Interface**: Removed 50+ lines of redundant UI code and logic
+  - **Better Maintainability**: Consolidated status management into single, reliable system
+
+### 🔧 Build System Enhancement
+- **Fixed TypeScript Path Aliases**: Resolved module resolution issues preventing application startup
+  - **Root Cause**: TypeScript compiler wasn't resolving `@/routes/auth` imports in compiled JavaScript
+  - **Solution**: Added `tsc-alias` package to transform path aliases after compilation
+  - **Build Process**: Updated to `tsc && tsc-alias` for proper module resolution
+  - **Deployment Ready**: Application now starts successfully with resolved import paths
+
+### 🎨 Status Display Consistency
+- **Unified Status Logic**: Fixed priority ordering in admin panel status display
+  - **Match Status Priority**: Live/Completed games now correctly override betting status
+  - **Consistent Lowercase**: Normalized all status values to lowercase for reliability
+  - **Real-Time Updates**: Added 30-second periodic refresh for live status changes
+  - **Cache Busting**: Added timestamp parameters to ensure fresh status data
+
+### Technical Improvements
+- **Reduced Code Complexity**: Eliminated duplicate status management patterns
+- **Enhanced Reliability**: Single status update mechanism reduces inconsistency risk
+- **Better Performance**: Removed redundant API calls and UI components
+- **Improved Maintainability**: Centralized status logic easier to debug and enhance
+
+### Added
+- Status badges on dashboard game cards with text labels
+- `tsc-alias` package for TypeScript path resolution
+- Cache-busting parameters for admin data fetching
+- Periodic refresh mechanism for live status updates
+
+### Changed
+- Admin panel status priority logic (match status over betting status)
+- Build process to include path alias transformation
+- Status normalization to consistent lowercase format
+- Dashboard game cards to include status indicators
+
+### Fixed
+- TypeScript path alias resolution in compiled JavaScript
+- Admin panel showing incorrect status priority
+- Module resolution errors preventing application startup
+- Status inconsistency between different interfaces
+
+### Removed
+- Manual override buttons from admin panel (both desktop and mobile)
+- `handleUpdateGameStatus` function (no longer needed)
+- Redundant status management UI components
+- Complex decision-making between override methods
+
+## [2.0.13] - 2025-06-13 

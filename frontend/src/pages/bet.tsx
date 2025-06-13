@@ -124,10 +124,23 @@ export default function BetPage() {
     }
   }, [isAdmin]);
 
+  // Add periodic refresh for live game status updates
+  useEffect(() => {
+    if (!isAdmin) return; // Only for admin users who see all games
+    
+    const interval = setInterval(() => {
+      // Refresh every 30 seconds to keep live game statuses updated
+      fetchAdminGamesData();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isAdmin]);
+
   const fetchAdminGamesData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/games');
+      // Add cache-busting parameter to ensure fresh data
+      const response = await axios.get(`/api/admin/games?_t=${Date.now()}`);
       const adminGames = response.data.games.map((game: any) => ({
         id: game.id,
         homeTeamName: game.homeTeam?.name || 'TBD',
@@ -137,7 +150,10 @@ export default function BetPage() {
         gameDate: game.matchDate,
         status: game.status?.toLowerCase() || 'scheduled',
         weekId: game.weekNumber || game.week?.weekNumber,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
       }));
+      console.log('[Admin Games Debug] Fetched games:', adminGames.map((g: Game) => ({ id: g.id, status: g.status, weekId: g.weekId, gameDate: g.gameDate })));
       setGames(adminGames);
     } catch (error) {
       console.error('Failed to fetch admin games data:', error);

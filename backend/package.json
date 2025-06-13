@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -28,6 +28,7 @@
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^3.6.5",
     "nodemailer": "^6.9.7",
+    "tsconfig-paths": "^4.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -43,6 +44,7 @@
     "prisma": "^5.7.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.6.0",
     "typescript": "^5.8.3"
   },
