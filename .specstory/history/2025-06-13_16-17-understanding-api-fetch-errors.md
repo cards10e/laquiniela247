@@ -10255,6 +10255,245 @@ Read file: backend/prisma/schema.prisma
 
 ---
 
+Found the issue! The Prisma schema defines `GameStatus` as:
+- `SCHEDULED`
+- `LIVE` 
+- `FINISHED`
+
+But the `computeAutoGameStatus()` function is returning `COMPLETED` instead of `FINISHED`. Let me fix this:
+
+---
+
+
+
+---
+
+Now let me also check if there are any other places where we use `COMPLETED` instead of `FINISHED`:
+
+---
+
+<details>
+            <summary>Grep search for "COMPLETED|completed" • **5** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/backend/src/routes/admin.ts` | L27 | `status: z.enum(['SCHEDULED', 'LIVE', 'COMPLETED']).optional(),` |
+| `file:///Users/batman/laquiniela247/backend/src/scripts/seed.ts` | L135 | `console.log('🎉 Database seeding completed successfully!');` |
+| `file:///Users/batman/laquiniela247/backend/src/routes/games.ts` | L15 | `// If game ended more than 150 minutes ago (2.5 hours), it should be completed` |
+| `file:///Users/batman/laquiniela247/backend/src/routes/games.ts` | L17 | `return 'COMPLETED';` |
+| `file:///Users/batman/laquiniela247/backend/src/scripts/deleteFutureGames.ts` | L60 | `console.log('Cleanup completed successfully');` |
+| `file:///Users/batman/laquiniela247/backend/src/routes/bets.ts` | L118 | `status: 'COMPLETED'` |
+| `file:///Users/batman/laquiniela247/backend/src/routes/bets.ts` | L574 | `status: 'COMPLETED', // mock for now` |
+
+</details>
+
+---
+
+I need to fix these other instances too:
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+Let me fix them one by one:
+
+---
+
+Read file: backend/src/routes/bets.ts
+
+---
+
+
+
+---
+
+Now let me find and fix the other instance:
+
+---
+
+Read file: backend/src/routes/bets.ts
+
+---
+
+
+
+---
+
+Wait, I think I made an error. Let me check what the TransactionStatus enum values are:
+
+---
+
+Read file: backend/prisma/schema.prisma
+
+---
+
+I see! For `TransactionStatus`, `COMPLETED` is correct. Let me revert those changes:
+
+---
+
+
+
+---
+
+Let me revert them one by one with more context:
+
+---
+
+
+
+---
+
+Let me check the current state of the file:
+
+---
+
+<details>
+            <summary>Grep search for "status.*FINISHED" • **1** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/backend/src/routes/bets.ts` | L118 | `status: 'FINISHED'` |
+| `file:///Users/batman/laquiniela247/backend/src/routes/bets.ts` | L574 | `status: 'FINISHED', // mock for now` |
+
+</details>
+
+---
+
+Read file: backend/src/routes/bets.ts
+
+---
+
+
+
+---
+
+
+
+---
+
+Now let me build and commit the fix:
+
+---
+
+```bash
+cd backend && npm run build
+```
+
+```
+batman@saturn laquiniela247 % cd backend && npm run build
+
+> laquiniela247-backend@2.0.4 build
+> tsc && tsc-alias
+
+batman@saturn backend %
+```
+
+---
+
+Perfect! Now let me commit and push the fix:
+
+---
+
+```bash
+cd .. && git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+```bash
+git commit -m "fix: Correct GameStatus enum values - COMPLETED to FINISHED - Fixed computeAutoGameStatus returning COMPLETED instead of FINISHED - Updated admin route validation schema to use FINISHED - Fixed games route auto-status calculation - Resolves 400 error on /api/admin/games endpoint"
+```
+
+```
+<n - Resolves 400 error on /api/admin/games endpoint"
+[main a71647f] fix: Correct GameStatus enum values - COMPLETED to FINISHED - Fixed computeAutoGameStatus ret
+urning COMPLETED instead of FINISHED - Updated admin route validation schema to use FINISHED - Fixed games r
+oute auto-status calculation - Resolves 400 error on /api/admin/games endpoint
+ 3 files changed, 559 insertions(+), 5 deletions(-)
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Enumerating objects: 19, done.
+Counting objects: 100% (19/19), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (10/10), 5.87 KiB | 1.96 MiB/s, done.
+Total 10 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   035a1d2..a71647f  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+## ✅ **FIXED: Admin Page 400 Error**
+
+### 🔍 **Root Cause Found**
+The error logs showed: `Invalid value for argument 'status'. Expected GameStatus.`
+
+The issue was that `computeAutoGameStatus()` was returning `"COMPLETED"` but the Prisma schema defines `GameStatus` enum as:
+- `SCHEDULED`
+- `LIVE` 
+- `FINISHED` ← (not `COMPLETED`)
+
+### 🚀 **Solution Applied**
+1. **Fixed `computeAutoGameStatus()` function** in both `admin.ts` and `games.ts`:
+   - Changed `return 'COMPLETED'` → `return 'FINISHED'`
+   
+2. **Updated validation schema** in `admin.ts`:
+   - Changed `z.enum(['SCHEDULED', 'LIVE', 'COMPLETED'])` → `z.enum(['SCHEDULED', 'LIVE', 'FINISHED'])`
+
+3. **Preserved TransactionStatus** (kept `COMPLETED` for transactions as that's correct)
+
+### 📋 **Files Fixed**
+- `backend/src/routes/admin.ts` - Fixed auto-status function and validation
+- `backend/src/routes/games.ts` - Fixed auto-status function  
+- `backend/src/routes/bets.ts` - Kept transaction status as `COMPLETED` (correct)
+
+### 🔄 **Deployed to GitHub**
+- ✅ **Built successfully**: Backend compiles without errors
+- ✅ **Committed**: Detailed fix description
+- ✅ **Pushed**: Latest commit `a71647f` ready for deployment
+
+### 🎯 **Expected Result**
+After deploying this fix to your live server, the admin page should load properly without the 400 error. The `/api/admin/games` endpoint will now correctly handle the `FINISHED` game status enum values.
+
+**Next Step**: Deploy the latest commit to your live server and the admin page should work correctly!
+
+---
+
+_**User**_
+
+can you carefully look at any recent code changes you made to the match status for /admin games management, and /bet??? for week 24 the game is probably over since its almost 3:00pm local time and the match started at 12:00pm. we have 'schdeduled', 'live' statuses but what status does our app support for completed games?
+
+---
+
+_**Assistant**_
+
 
 
 ---

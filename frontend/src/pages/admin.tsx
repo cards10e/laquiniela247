@@ -37,7 +37,7 @@ interface Game {
   homeTeamName: string;
   awayTeamName: string;
   gameDate: string;
-  status: 'scheduled' | 'live' | 'completed';
+  status: 'scheduled' | 'live' | 'finished';
   homeScore?: number;
   awayScore?: number;
   homeTeamLogo?: string;
@@ -344,9 +344,9 @@ export default function AdminPage() {
 
   const getGamePrimaryStatus = (game: Game) => {
     // Determine the single most important status to show
-    // PRIORITY 1: Match status (live/completed) - most important for ongoing games
-    if (game.status === 'completed') {
-      return { text: t('admin.match_completed'), emoji: '✅', color: 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' };
+      // PRIORITY 1: Match status (live/finished) - most important for ongoing games
+  if (game.status === 'finished') {
+    return { text: t('admin.match_completed'), emoji: '✅', color: 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' };
     }
     if (game.status === 'live') {
       return { text: t('admin.match_live'), emoji: '🔴', color: 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' };

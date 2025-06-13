@@ -32,7 +32,7 @@ interface Game {
   homeTeamLogo?: string;
   awayTeamLogo?: string;
   gameDate: string;
-  status: 'scheduled' | 'live' | 'completed';
+  status: 'scheduled' | 'live' | 'finished';
   homeScore?: number;
   awayScore?: number;
   userBet?: string;
@@ -335,13 +335,13 @@ export default function DashboardPage() {
                             {new Date(game.gameDate).toLocaleDateString()}
                           </div>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            game.status === 'completed'
+                            game.status === 'finished'
                               ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
                               : game.status === 'live'
                               ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
                               : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
                           }`}>
-                            {game.status === 'completed' ? t('admin.completed') : 
+                            {game.status === 'finished' ? t('admin.completed') : 
                              game.status === 'live' ? `🔴 ${t('admin.live')}` : 
                              t('admin.scheduled')}
                           </span>
