@@ -1311,24 +1311,7 @@ export default function AdminPage() {
                                   {(isExpanded || window.innerWidth >= 1024) && (
                                     <div className="px-3 pb-3 lg:hidden border-t border-secondary-200 dark:border-secondary-700 bg-secondary-25 dark:bg-secondary-950/50">
                                       <div className="pt-3 space-y-2">
-                                        {/* Detailed Status Information */}
-                                        <div className="text-xs space-y-1">
-                                          {/* Betting Status Detail */}
-                                          {game.bettingStatus && (
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-secondary-600 dark:text-secondary-400">🎯 {t('admin.betting_status')}:</span>
-                                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                                                game.bettingStatus.status === 'open' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
-                                                game.bettingStatus.status === 'ready' ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' :
-                                                game.bettingStatus.status === 'scheduled' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                                                'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                                              }`}>
-                                                {game.bettingStatus.description}
-                                              </span>
-                                            </div>
-                                          )}
-                                                                    {/* Match Status Detail - Removed to avoid duplication with primary status badge above */}
-                                        </div>
+                                        {/* Detailed Status Information - Removed betting status to avoid duplication with primary status badge above */}
 
                                         {/* Action Buttons */}
                                         <div className="flex gap-2 pt-2">

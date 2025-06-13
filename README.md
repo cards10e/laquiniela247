@@ -2,6 +2,16 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.16 - Mobile Admin UX Enhancement
+
+### 📱 Reduced Mobile Admin Clutter
+- **Eliminated Duplicate Status Display**: Cleaned up mobile admin interface by removing redundant betting status information
+  - **Problem**: Mobile admin view showed "Betting Available" status twice - in primary badge and expanded view
+  - **Solution**: Removed duplicate from expanded view while preserving primary status badge
+  - **Impact**: Cleaner, less cluttered mobile admin experience with better information hierarchy
+- **Streamlined Mobile Interface**: Admin users now see focused information without visual redundancy
+- **Maintained All Functionality**: All admin capabilities preserved while improving mobile usability
+
 ## 🚀 Version 2.0.15 - UX Improvements: Localization & Mobile Optimization
 
 ### 🌍 Localized Game Status Text

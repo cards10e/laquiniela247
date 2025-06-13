@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.16] - 2025-01-14
+### 📱 Mobile Admin UX Enhancement
+- **Removed Duplicate Betting Status**: Cleaned up mobile admin interface to eliminate redundant status information
+  - **Problem**: Mobile admin view showed "Betting Available" status twice - once in primary badge and again in expanded view
+  - **Solution**: Removed duplicate betting status from expanded mobile view while preserving primary status badge
+  - **Impact**: Cleaner, less cluttered mobile admin experience with focused information hierarchy
+  - **Location**: Admin panel game cards in mobile view (< 1024px width)
+
+### 🎯 User Experience Improvements
+- **Reduced Visual Clutter**: Mobile admin interface now shows only essential information in expanded view
+- **Maintained Functionality**: All admin capabilities preserved while improving information architecture
+- **Touch-Friendly Design**: Streamlined mobile interface reduces cognitive load for admin users
+- **Consistent Status Display**: Primary status badge remains the single source of truth for betting status
+
+### Fixed
+- Duplicate "Betting Available" status display in mobile admin expanded view
+- Visual clutter in mobile admin interface
+
+### Changed
+- Mobile admin expanded view no longer shows redundant betting status information
+- Simplified mobile admin interface focuses on essential actions and information
+
 ## [2.0.15] - 2025-06-13
 ### 🚀 UX Improvements: Localization & Mobile Optimization
 - **Localized Game Status Text**: Fixed hardcoded "Live" status text to use proper internationalization
