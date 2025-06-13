@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.15] - 2025-06-13
+### 🚀 UX Improvements: Localization & Mobile Optimization
+- **Localized Game Status Text**: Fixed hardcoded "Live" status text to use proper internationalization
+  - **English**: "🔴 Live", "Completed", "Scheduled"
+  - **Spanish**: "🔴 En Vivo", "Completada", "Programado"
+  - **Implementation**: Updated dashboard and bet pages to use `t('admin.live')`, `t('admin.completed')`, `t('admin.scheduled')`
+  - **Consistency**: All status badges now respect user's language preference
+
+### 📱 Mobile UX Critical Fixes
+- **Removed Constant Page Refreshing**: Eliminated 30-second auto-refresh intervals causing poor mobile UX
+  - **Problem**: Both admin and bet pages had `setInterval` calls refreshing data every 30 seconds
+  - **Impact**: Pages were constantly reloading, disrupting user workflow and causing battery drain
+  - **Solution**: Removed automatic refresh while preserving manual refresh capability
+  - **Result**: Smooth, stable mobile experience without interruptions
+
+- **Fixed Duplicate Status Display**: Cleaned up mobile admin panel interface
+  - **Problem**: Mobile expanded view showed "Match Status" twice (primary badge + detailed section)
+  - **Solution**: Removed duplicate "Match Status Detail" from mobile expanded view
+  - **Result**: Cleaner, more focused mobile interface
+
+### 🔧 Technical Improvements
+- **Performance Optimization**: Reduced unnecessary API calls and server load
+- **Battery Life**: Improved mobile device battery consumption
+- **User Experience**: Eliminated disruptive page refreshing during user interactions
+- **Code Cleanup**: Removed redundant status display logic
+
+### Fixed
+- Hardcoded "Live" status text not respecting user language settings
+- Constant 30-second page refreshing causing mobile UX issues
+- Duplicate match status display in admin panel mobile view
+- Excessive API calls from automatic refresh intervals
+
+### Changed
+- Game status text now uses localized translations from I18nContext
+- Removed automatic refresh intervals from admin and bet pages
+- Simplified mobile admin interface by removing duplicate status information
+- Improved mobile performance and user experience
+
 ## [2.0.11] - 2025-06-13
 ### 🔧 Critical Fix: Unified Game Status Consistency
 - **Fixed Status Inconsistency**: Resolved critical issue where admin panel and bet page showed different game statuses

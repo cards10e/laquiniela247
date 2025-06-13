@@ -124,17 +124,8 @@ export default function BetPage() {
     }
   }, [isAdmin]);
 
-  // Add periodic refresh for live game status updates
-  useEffect(() => {
-    if (!isAdmin) return; // Only for admin users who see all games
-    
-    const interval = setInterval(() => {
-      // Refresh every 30 seconds to keep live game statuses updated
-      fetchAdminGamesData();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [isAdmin]);
+  // Removed automatic refresh - users can manually refresh if needed
+  // The constant 30-second refresh was causing UX issues on mobile
 
   const fetchAdminGamesData = async () => {
     try {
@@ -545,7 +536,9 @@ export default function BetPage() {
                                     ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
                                     : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
                                 }`}>
-                                  {game.status.charAt(0).toUpperCase() + game.status.slice(1)}
+                                  {game.status === 'completed' ? t('admin.completed') : 
+                                   game.status === 'live' ? `🔴 ${t('admin.live')}` : 
+                                   t('admin.scheduled')}
                                 </span>
                               </div>
                             </div>

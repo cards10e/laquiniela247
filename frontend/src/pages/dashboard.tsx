@@ -341,9 +341,9 @@ export default function DashboardPage() {
                               ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
                               : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
                           }`}>
-                            {game.status === 'completed' ? 'Completed' : 
-                             game.status === 'live' ? 'Live' : 
-                             'Scheduled'}
+                            {game.status === 'completed' ? t('admin.completed') : 
+                             game.status === 'live' ? `🔴 ${t('admin.live')}` : 
+                             t('admin.scheduled')}
                           </span>
                         </div>
                       </div>

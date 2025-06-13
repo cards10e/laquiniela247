@@ -2,6 +2,31 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.15 - UX Improvements: Localization & Mobile Optimization
+
+### 🌍 Localized Game Status Text
+- **Internationalization Fix**: Game status badges now respect user's language preference
+  - **English**: "🔴 Live", "Completed", "Scheduled" 
+  - **Spanish**: "🔴 En Vivo", "Completada", "Programado"
+  - **Implementation**: Dashboard and bet pages use proper I18n translations instead of hardcoded text
+- **Consistent Experience**: All status displays now adapt to user's selected language
+
+### 📱 Mobile UX Critical Improvements
+- **Eliminated Constant Refreshing**: Removed disruptive 30-second auto-refresh intervals
+  - **Problem**: Pages were constantly reloading every 30 seconds, disrupting user workflow
+  - **Impact**: Poor mobile experience, battery drain, interrupted user interactions
+  - **Solution**: Removed automatic refresh while preserving manual refresh capability
+  - **Result**: Smooth, stable mobile experience without interruptions
+- **Cleaned Mobile Interface**: Fixed duplicate status display in admin panel mobile view
+  - **Removed**: Redundant "Match Status Detail" from expanded mobile view
+  - **Result**: Cleaner, more focused mobile admin interface
+
+### 🔧 Performance & Technical Improvements
+- **Reduced Server Load**: Eliminated unnecessary API calls from automatic refresh intervals
+- **Better Battery Life**: Improved mobile device performance and power consumption
+- **Code Cleanup**: Removed redundant status display logic and refresh mechanisms
+- **Enhanced UX**: Users can now interact with pages without constant interruptions
+
 ## 🚀 Version 2.0.14 - Dashboard Enhancement & Admin Simplification
 
 ### 🎯 Dashboard Status Badges

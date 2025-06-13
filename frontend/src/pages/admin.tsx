@@ -128,15 +128,8 @@ export default function AdminPage() {
     fetchTeams();
   }, []);
 
-  // Add periodic refresh for live game status updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Refresh every 30 seconds to keep live game statuses updated
-      fetchAdminData();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Removed automatic refresh - users can manually refresh if needed
+  // The constant 30-second refresh was causing UX issues on mobile
 
   const fetchAdminData = async () => {
     try {
@@ -1334,21 +1327,7 @@ export default function AdminPage() {
                                               </span>
                                             </div>
                                           )}
-                                          {/* Match Status Detail */}
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-secondary-600 dark:text-secondary-400">⏰ {t('admin.match_status')}:</span>
-                                                                                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                                                game.status === 'completed' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
-                                                game.status === 'live' ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' :
-                                                'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                                              }`}>
-                                              {(() => {
-                                                const statusKey = `admin.match_${game.status.toLowerCase()}`;
-                                                const translatedStatus = t(statusKey);
-                                                return translatedStatus === statusKey ? t('admin.match_scheduled') : translatedStatus;
-                                              })()}
-                                            </span>
-                                          </div>
+                                                                    {/* Match Status Detail - Removed to avoid duplication with primary status badge above */}
                                         </div>
 
                                         {/* Action Buttons */}
