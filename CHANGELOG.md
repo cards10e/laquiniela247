@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.10] - 2025-06-13
+### 🎨 Unified Live Status Styling
+- **Consistent Live Game Display**: Unified "Live" status styling between admin panel and bet page
+  - **Admin Panel Enhancement**: Live games now use warning colors (yellow/orange) instead of error colors (red)
+  - **Visual Consistency**: Both admin and user interfaces show identical Live status styling
+  - **Color Specification**: `bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400`
+  - **Microsoft DE Approach**: Extended existing status system rather than duplicating logic
+
+### 🔧 Technical Implementation
+- **Minimal Code Changes**: Updated `getGamePrimaryStatus()` function and detailed view styling
+- **Zero Breaking Changes**: All existing admin functionality preserved
+- **Cross-Interface Consistency**: Admins and users see identical game status information
+- **Maintainable Architecture**: Single source of truth for Live status styling
+
 ## [2.0.9] - 2025-06-13
 ### 🎨 USDT Symbol Enhancement
 - **Improved USDT Display**: Enhanced USDT currency symbol from bulky `USDT 200.00` to clean `T$200.00`

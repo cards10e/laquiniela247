@@ -2,6 +2,15 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.10 - Unified Live Status Styling
+
+### 🎨 Consistent Interface Design
+- **Unified Live Game Display**: Admin panel and bet page now show identical "Live" status styling
+  - **Visual Consistency**: Warning colors (yellow/orange) used across all interfaces for live games
+  - **Professional UX**: Eliminated visual inconsistencies between admin and user views
+  - **Microsoft DE Architecture**: Extended existing system rather than duplicating logic
+- **Enhanced Admin Experience**: Admins can now quickly identify live games with the same visual cues as users
+
 ## 🚀 Version 2.0.9 - USDT Symbol Enhancement
 
 ### 🎨 Improved Currency Display

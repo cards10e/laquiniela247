@@ -352,7 +352,7 @@ export default function AdminPage() {
   const getGamePrimaryStatus = (game: Game) => {
     // Determine the single most important status to show
     if (game.status === 'live') {
-      return { text: t('admin.match_live'), emoji: '🔴', color: 'bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400' };
+      return { text: t('admin.match_live'), emoji: '🔴', color: 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' };
     }
     if (game.status === 'completed') {
       return { text: t('admin.match_completed'), emoji: '✅', color: 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' };
@@ -1342,11 +1342,11 @@ export default function AdminPage() {
                                           {/* Match Status Detail */}
                                           <div className="flex items-center gap-2">
                                             <span className="text-secondary-600 dark:text-secondary-400">⏰ {t('admin.match_status')}:</span>
-                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                                              game.status === 'completed' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
-                                              game.status === 'live' ? 'bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400' :
-                                              'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                                            }`}>
+                                                                                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                                game.status === 'completed' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
+                                                game.status === 'live' ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400' :
+                                                'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
+                                              }`}>
                                               {(() => {
                                                 const statusKey = `admin.match_${game.status.toLowerCase()}`;
                                                 const translatedStatus = t(statusKey);
