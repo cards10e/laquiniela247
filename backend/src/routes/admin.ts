@@ -25,7 +25,7 @@ const createGameSchema = z.object({
 const updateGameSchema = z.object({
   homeScore: z.number().optional(),
   awayScore: z.number().optional(),
-  status: z.enum(['SCHEDULED', 'LIVE', 'COMPLETED']).optional(),
+  status: z.enum(['SCHEDULED', 'LIVE', 'FINISHED']).optional(),
   matchDate: z.string().optional()
 });
 
@@ -199,9 +199,9 @@ const computeAutoGameStatus = (game: any) => {
   const minutesUntilGame = (gameDate.getTime() - now.getTime()) / (1000 * 60);
   const minutesSinceGameStart = (now.getTime() - gameDate.getTime()) / (1000 * 60);
   
-  // If game ended more than 150 minutes ago (2.5 hours), it should be completed
+  // If game ended more than 150 minutes ago (2.5 hours), it should be finished
   if (minutesSinceGameStart > 150) {
-    return 'COMPLETED';
+    return 'FINISHED';
   }
   
   // If game started (within 150 minutes), it should be live
