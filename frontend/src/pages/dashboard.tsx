@@ -317,11 +317,11 @@ export default function DashboardPage() {
                               className="w-8 h-8 rounded-full object-cover"
                               alt={game.homeTeamName}
                             />
-                            <span className="text-sm font-medium">{game.homeTeamName}</span>
+                            <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
                           </div>
                           <span className="text-xs text-secondary-500 dark:text-secondary-400">vs</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium">{game.awayTeamName}</span>
+                            <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
                             <TeamLogo 
                               teamName={game.awayTeamName}
                               logoUrl={game.awayTeamLogo}

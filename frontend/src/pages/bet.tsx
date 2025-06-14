@@ -155,45 +155,18 @@ export default function BetPage() {
 
   const fetchBettingData = async () => {
     try {
-      // Try to get current week first, but fallback to all games if no current week
-      let weekData = null;
-      let gamesData = null;
+      // Fetch all open weeks and their games from the updated endpoint
+      const gamesRes = await axios.get('/api/games/current-week');
+      const gamesData = gamesRes.data;
       
-      try {
-        const [weekRes, gamesRes] = await Promise.all([
-          axios.get('/api/weeks/current'),
-          axios.get('/api/games/current-week')
-        ]);
-        weekData = weekRes.data;
-        gamesData = gamesRes.data;
-      } catch (currentWeekError) {
-        console.log('[Bet Debug] No current active week, fetching all recent games');
-        // Fallback: get all games and weeks for display
-        const [weeksRes, allGamesRes] = await Promise.all([
-          axios.get('/api/weeks?limit=5'),
-          axios.get('/api/games?limit=20')
-        ]);
-        gamesData = allGamesRes.data;
-        // Find the most recent week with games
-        const weeksWithGames = weeksRes.data.weeks.filter((week: any) => week._count?.games > 0);
-        if (weeksWithGames.length > 0) {
-          weekData = { week: weeksWithGames[0], canBet: false };
-        }
-      }
+      console.log('[Bet Debug] Multi-week games response:', gamesData);
       
       if (gamesData && gamesData.games) {
-        console.log('[Bet Debug] Games response:', gamesData);
         // Map backend games to frontend shape with defensive checks
         const mappedGames = (gamesData.games || []).map((game: any) => {
           if (!game.homeTeam || !game.awayTeam) {
             console.warn('[Bet Debug] Skipping game with missing team:', game);
             return null;
-          }
-          
-          // Determine betting status for this game
-          let bettingClosed = false;
-          if (game.week && game.week.bettingDeadline) {
-            bettingClosed = new Date() >= new Date(game.week.bettingDeadline);
           }
           
           return {
@@ -207,21 +180,22 @@ export default function BetPage() {
             homeScore: game.homeScore,
             awayScore: game.awayScore,
             userBet: game.userBet,
-            weekId: game.weekNumber || game.week?.weekNumber,
-            bettingClosed: bettingClosed,
-            bettingDeadline: game.week?.bettingDeadline,
-            weekStatus: game.week?.status
+            weekId: game.weekNumber,
+            bettingClosed: false, // Handled by backend filtering now
+            bettingDeadline: gamesData.week?.bettingDeadline,
+            weekStatus: 'open' // All games from this endpoint are from open weeks
           };
         }).filter(Boolean);
-        console.log('[Bet Debug] Mapped games array:', mappedGames);
+        console.log('[Bet Debug] Mapped games from all open weeks:', mappedGames);
         setGames(mappedGames);
       }
       
-      if (weekData && weekData.week) {
+      // Set the primary week from the response
+      if (gamesData && gamesData.week) {
         setCurrentWeek({
-          ...weekData.week,
-          status: (weekData.week.status || '').toLowerCase(),
-          canBet: weekData.canBet || false
+          ...gamesData.week,
+          status: (gamesData.week.status || '').toLowerCase(),
+          canBet: gamesData.canBet || false
         });
       }
     } catch (error) {
@@ -507,11 +481,11 @@ export default function BetPage() {
                                     className="w-8 h-8 rounded-full object-cover"
                                     alt={game.homeTeamName}
                                   />
-                                  <span className="font-medium truncate max-w-[120px]">{game.homeTeamName}</span>
+                                  <span className="font-medium truncate max-w-[120px] text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
                                 </div>
                                 <span className="mx-2 text-secondary-500">{t('admin.vs')}</span>
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <span className="font-medium truncate max-w-[120px]">{game.awayTeamName}</span>
+                                  <span className="font-medium truncate max-w-[120px] text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
                                   <TeamLogo 
                                     teamName={game.awayTeamName}
                                     logoUrl={game.awayTeamLogo}

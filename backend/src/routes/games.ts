@@ -133,11 +133,13 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRe
   });
 }));
 
-// GET /api/games/current-week - Get current week games
+// GET /api/games/current-week - Get all open weeks' games
 router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
   const now = new Date();
   console.log('[DEBUG] /api/games/current-week called at', now.toISOString());
-  const currentWeek = await prisma.week.findFirst({
+  
+  // Find ALL open weeks instead of just one
+  const openWeeks = await prisma.week.findMany({
     where: {
       status: 'OPEN',
       bettingDeadline: {
@@ -149,18 +151,25 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       { weekNumber: 'desc' }
     ]
   });
-  if (!currentWeek) {
-    console.log('[DEBUG] No active betting week found');
-    throw createError('No active betting week found', 404);
+  
+  if (openWeeks.length === 0) {
+    console.log('[DEBUG] No active betting weeks found');
+    throw createError('No active betting weeks found', 404);
   }
-  console.log('[DEBUG] Found week:', {
-    weekNumber: currentWeek.weekNumber,
-    status: currentWeek.status,
-    bettingDeadline: currentWeek.bettingDeadline
-  });
+  
+  console.log('[DEBUG] Found open weeks:', openWeeks.map(w => ({
+    weekNumber: w.weekNumber,
+    status: w.status,
+    bettingDeadline: w.bettingDeadline
+  })));
+  
+  // Get games from ALL open weeks
+  const weekNumbers = openWeeks.map(w => w.weekNumber);
   const games = await prisma.game.findMany({
     where: {
-      weekNumber: currentWeek.weekNumber
+      weekNumber: {
+        in: weekNumbers
+      }
     },
     include: {
       homeTeam: {
@@ -216,7 +225,9 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     // Refetch games with updated statuses
     updatedGames = await prisma.game.findMany({
       where: {
-        weekNumber: currentWeek.weekNumber
+        weekNumber: {
+          in: weekNumbers
+        }
       },
       include: {
         homeTeam: {
@@ -247,13 +258,16 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     });
   }
   
-  // If user is authenticated, include their bets
+  // If user is authenticated, include their bets for ALL open weeks
   let gamesWithUserBets = updatedGames;
   if (req.user) {
+    const weekIds = openWeeks.map(w => w.id);
     const userBets = await prisma.bet.findMany({
       where: {
         userId: req.user.id,
-        weekId: currentWeek.id
+        weekId: {
+          in: weekIds
+        }
       }
     });
     const betsByGameId = userBets.reduce((acc, bet) => {
@@ -268,10 +282,14 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       };
     });
   }
+  
+  // Return data with primary week (highest numbered) for compatibility
+  const primaryWeek = openWeeks[0]; // Already sorted by weekNumber desc
   res.json({
-    week: currentWeek,
+    week: primaryWeek,
+    weeks: openWeeks, // Include all open weeks for frontend
     games: gamesWithUserBets,
-    canBet: currentWeek.status === 'OPEN' && new Date() < currentWeek.bettingDeadline
+    canBet: openWeeks.some(w => w.status === 'OPEN' && new Date() < w.bettingDeadline)
   });
 }));
 

@@ -1250,11 +1250,11 @@ export default function AdminPage() {
                             className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover flex-shrink-0"
                             alt={game.homeTeamName}
                           />
-                                          <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px]">{game.homeTeamName || t('admin.tbd')}</span>
+                                          <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px] text-secondary-900 dark:text-secondary-100">{game.homeTeamName || t('admin.tbd')}</span>
                                         </div>
                                         <span className="text-secondary-500 text-sm flex-shrink-0">{t('admin.vs')}</span>
                                         <div className="flex items-center gap-2 min-w-0">
-                                          <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px]">{game.awayTeamName || t('admin.tbd')}</span>
+                                          <span className="font-medium truncate text-sm lg:text-base max-w-[100px] lg:max-w-[120px] text-secondary-900 dark:text-secondary-100">{game.awayTeamName || t('admin.tbd')}</span>
                                                                     <TeamLogo 
                             teamName={game.awayTeamName || ''}
                             logoUrl={game.awayTeamLogo}
