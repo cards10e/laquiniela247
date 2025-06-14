@@ -186,8 +186,16 @@ export default function BetPage() {
             weekStatus: 'open' // All games from this endpoint are from open weeks
           };
         }).filter(Boolean);
+        // Filter out past games - only show games that haven't started yet
+        const now = new Date();
+        const futureGames = mappedGames.filter((game: Game) => {
+          const gameDate = new Date(game.gameDate);
+          return gameDate > now; // Only games in the future
+        });
+        
         console.log('[Bet Debug] Mapped games from all open weeks:', mappedGames);
-        setGames(mappedGames);
+        console.log('[Bet Debug] Future games after filtering:', futureGames);
+        setGames(futureGames);
       }
       
       // Set the primary week from the response
