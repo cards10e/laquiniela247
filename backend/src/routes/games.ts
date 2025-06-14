@@ -139,12 +139,11 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
   console.log('[DEBUG] /api/games/current-week called at', now.toISOString());
   
   // Find ALL open weeks instead of just one
+  // Admin-opened weeks should show regardless of deadline (admin override)
   const openWeeks = await prisma.week.findMany({
     where: {
-      status: 'OPEN',
-      bettingDeadline: {
-        gt: now
-      }
+      status: 'OPEN'
+      // Removed bettingDeadline filter - admin-opened weeks show regardless of deadline
     },
     orderBy: [
       { startDate: 'desc' },
