@@ -65,7 +65,7 @@ export default function DashboardPage() {
       const [profileRes, weekRes, gamesRes, statsRes] = await Promise.all([
         axios.get('/api/users/profile'),
         axios.get('/api/weeks/current'),
-        axios.get('/api/games'),
+        axios.get('/api/games?limit=100'),
         axios.get('/api/users/stats')
       ]);
       console.log('[Dashboard Debug] /api/users/profile response:', profileRes.data);
@@ -94,6 +94,37 @@ export default function DashboardPage() {
         };
       }).filter(Boolean);
       console.log('[Dashboard Debug] Mapped games array:', mappedGames);
+      
+      // Sort games to prioritize upcoming games for dashboard display
+      const sortedGames = mappedGames.sort((a: Game, b: Game) => {
+        const now = new Date();
+        const dateA = new Date(a.gameDate);
+        const dateB = new Date(b.gameDate);
+        
+        // Separate upcoming and past games
+        const aIsUpcoming = dateA > now;
+        const bIsUpcoming = dateB > now;
+        
+        // If one is upcoming and other isn't, prioritize upcoming
+        if (aIsUpcoming && !bIsUpcoming) return -1;
+        if (!aIsUpcoming && bIsUpcoming) return 1;
+        
+        // If both are upcoming, sort by date (earliest first)
+        if (aIsUpcoming && bIsUpcoming) {
+          return dateA.getTime() - dateB.getTime();
+        }
+        
+        // If both are past, sort by date (most recent first)
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      console.log('[Dashboard Debug] Sorted games array:', sortedGames.map((g: Game) => ({ 
+        id: g.id, 
+        date: g.gameDate, 
+        status: g.status,
+        teams: `${g.homeTeamName} vs ${g.awayTeamName}`
+      })));
+      
       // Debug: log raw recent activity array
       console.log('[Dashboard Debug] Raw recent activity:', statsRes.data.recentActivity?.recentBets);
       // Map recent activity with defensive checks (accept weekId or weekNumber, handle raw bet objects)
@@ -142,7 +173,7 @@ export default function DashboardPage() {
         ...weekRes.data.week,
         status: (weekRes.data.week.status || '').toLowerCase()
       });
-      setGames(mappedGames);
+      setGames(sortedGames);
       setRecentActivity(mappedRecentActivity);
       // Log final recent activity state after mapping
       setTimeout(() => {

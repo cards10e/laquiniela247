@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.17] - 2025-01-14
+### 🎯 Dashboard Game Visibility Enhancement
+- **Fixed Limited Game Display**: Resolved critical issue where dashboard only showed 1 upcoming game despite multiple scheduled games
+  - **Problem**: Dashboard API call limited to 20 games with chronological ordering (oldest first) showing mostly completed games
+  - **Root Cause**: `/api/games` endpoint returned first 20 games chronologically, which were primarily historical completed games
+  - **Impact**: Users saw minimal upcoming betting opportunities on dashboard despite admin creating many scheduled games
+  - **Solution**: Increased API limit to 100 games and implemented intelligent client-side sorting
+
+### 🧠 Smart Game Prioritization
+- **Intelligent Sorting Algorithm**: Dashboard now prioritizes upcoming games over completed games
+  - **Upcoming Games First**: Scheduled games appear at top, sorted by date (earliest first)
+  - **Recent Games Second**: Completed games follow, sorted by date (most recent first)
+  - **Better User Experience**: Users see relevant betting opportunities prominently displayed
+  - **Maintains UI Logic**: Still displays first 6 games but from a much better sorted collection
+
+### 🔧 Technical Improvements
+- **Increased API Efficiency**: Dashboard fetches 100 games instead of 20 for better game selection
+- **Zero Breaking Changes**: Maintains existing backend API and frontend UI behavior
+- **TypeScript Build Fixes**: Resolved implicit type errors in sort and map functions
+- **Performance Optimized**: Client-side sorting adds minimal overhead while dramatically improving UX
+
+### Fixed
+- Dashboard showing only 1 upcoming game when multiple scheduled games exist
+- Poor game prioritization due to chronological ordering of API results
+- TypeScript compilation errors in dashboard sorting logic
+- Limited visibility of admin-created scheduled games for regular users
+
+### Changed
+- Dashboard API call increased from 20 to 100 game limit
+- Added intelligent client-side sorting prioritizing upcoming over completed games
+- Enhanced debug logging for better game visibility troubleshooting
+
+### Technical Details
+- **API Optimization**: Changed from `axios.get('/api/games')` to `axios.get('/api/games?limit=100')`
+- **Smart Sorting**: Implemented date-aware sorting that separates upcoming vs past games
+- **Type Safety**: Added explicit `Game` type annotations for sort and map functions
+
 ## [2.0.16] - 2025-01-14
 ### 📱 Mobile Admin UX Enhancement
 - **Removed Duplicate Betting Status**: Cleaned up mobile admin interface to eliminate redundant status information

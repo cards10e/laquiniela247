@@ -2,6 +2,17 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🚀 Version 2.0.17 - Dashboard Game Visibility Enhancement
+
+### 🎯 Smart Game Prioritization
+- **Fixed Limited Game Display**: Resolved critical issue where dashboard showed only 1 upcoming game
+  - **Problem**: API returned first 20 games chronologically (oldest first), showing mostly completed games
+  - **Solution**: Increased limit to 100 games + intelligent client-side sorting
+  - **Impact**: Users now see upcoming betting opportunities prominently on dashboard
+- **Intelligent Sorting**: Upcoming games first (earliest date), then recent completed games
+- **Better UX**: Maintains existing UI but dramatically improves game relevance and visibility
+- **Zero Breaking Changes**: All existing functionality preserved with enhanced game prioritization
+
 ## 🚀 Version 2.0.16 - Mobile Admin UX Enhancement
 
 ### 📱 Reduced Mobile Admin Clutter
