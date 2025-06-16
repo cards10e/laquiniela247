@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.18] - 2025-01-16
+### 🔐 Navigation Security & UX Enhancement
+- **Fixed Demo User Admin Access Confusion**: Removed inappropriate admin panel link from demo user navigation
+  - **Problem**: Demo users saw a "Panel" link in their navigation that led to admin functionality they couldn't access
+  - **Root Cause**: Navigation logic incorrectly granted demo users a link to `/admin` despite having `USER` role, not `ADMIN`
+  - **Security Impact**: No actual security breach - backend properly protected admin endpoints with role validation
+  - **UX Impact**: Demo users experienced confusing navigation that redirected them away from intended functionality
+  - **Solution**: Removed admin panel link entirely from demo user navigation menu
+
+### 🎯 Role-Based Navigation Clarity
+- **Clean Role Separation**: Navigation now properly reflects user permissions without misleading options
+  - **Demo Users**: See only appropriate user-level navigation (Games, Dashboard, History, Profile)
+  - **Regular Users**: Unchanged navigation experience with standard user options
+  - **Admin Users**: Unchanged - retain full admin panel access as intended
+  - **Eliminated Confusion**: No more "dead-end" links that redirect users away from their intended destination
+
+### 🛡️ Security Validation Confirmed
+- **Backend Protection Intact**: All admin endpoints properly protected with `adminMiddleware` requiring `ADMIN` role
+- **Frontend Route Protection**: `ProtectedRoute` component correctly blocks non-admin access to admin pages
+- **Authentication Middleware**: JWT validation and role checking function as designed
+- **No Functional Vulnerabilities**: Demo users never had actual admin access, only confusing UI elements
+
+### Fixed
+- Demo users seeing inappropriate "Panel" link in navigation menu
+- Confusing UX where demo users clicked admin links only to be redirected
+- Navigation inconsistency between user roles and available functionality
+
+### Changed
+- Demo user navigation no longer includes any admin-related links
+- Simplified navigation logic for better role-based access control
+- Enhanced user experience by removing misleading interface elements
+
+### Technical Details
+- **File Modified**: `frontend/src/components/layout/Header.tsx`
+- **Logic Change**: Removed `{ key: 'admin', href: '/admin', label: 'Panel' }` from demo user navigation array
+- **Added**: `{ key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') }` for proper demo user flow
+- **Zero Breaking Changes**: All existing functionality preserved, only UI cleanup performed
+
 ## [2.0.17] - 2025-01-14
 ### 🎯 Dashboard Game Visibility Enhancement
 - **Fixed Limited Game Display**: Resolved critical issue where dashboard only showed 1 upcoming game despite multiple scheduled games

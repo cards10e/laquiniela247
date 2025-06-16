@@ -25,11 +25,11 @@ export function Header({ minimal = false }: HeaderProps) {
 
   const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
 
-  // Special handling for demo users - they get regular user navigation + Panel access with games first
+  // Special handling for demo users - they get regular user navigation with games first
   if (isDemoUser) {
     navItems = [
       { key: 'games', href: '/bet', label: t('navigation.games') },
-      { key: 'admin', href: '/admin', label: 'Panel' }, // Use "Panel" instead of full "Admin Panel"
+      { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
       { key: 'history', href: '/history', label: t('navigation.history') },
       { key: 'profile', href: '/profile', label: t('navigation.profile') },
     ];
