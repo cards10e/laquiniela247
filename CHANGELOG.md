@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.21] - 2025-01-16
+### 🔧 Critical Betting Countdown Fix
+- **Fixed Incorrect Betting Deadline Display**: Corrected primary week selection logic in `/api/games/current-week`
+  - **Problem**: API was selecting highest numbered week (Week 99) with expired deadline, causing 11+ day countdown instead of correct 4-day countdown
+  - **Root Cause**: Primary week selection used `openWeeks[0]` which picked highest `weekNumber` regardless of deadline validity
+  - **Solution**: Modified logic to select week with most recent **valid** (non-expired) betting deadline
+  - **Result**: Countdown now correctly shows ~4 days for games starting June 20th vs showing Week 26/11+ days
+  
+### 📅 Betting Logic Improvements
+- **Smart Week Prioritization**: Week selection now prioritizes active betting windows over week numbers
+- **Deadline Validation**: API now properly filters weeks with expired deadlines when selecting primary week
+- **User Experience**: Betting countdown timers now accurately reflect time remaining for actual betting window
+
 ## [2.0.20] - 2025-01-16
 ### 🎨 Dashboard Visual Enhancement
 - **Enhanced Total Winnings Display**: Added conditional coloring to Total Winnings in dashboard performance overview

@@ -282,8 +282,10 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     });
   }
   
-  // Return data with primary week (highest numbered) for compatibility
-  const primaryWeek = openWeeks[0]; // Already sorted by weekNumber desc
+  // Return data with primary week - choose the week with the most recent VALID betting deadline
+  // (not just highest numbered week, as some might have passed deadlines)
+  const primaryWeek = openWeeks.find(w => new Date(w.bettingDeadline) > now) || openWeeks[0];
+  
   res.json({
     week: primaryWeek,
     weeks: openWeeks, // Include all open weeks for frontend
