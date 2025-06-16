@@ -5,6 +5,8 @@ import { useI18n } from '@/context/I18nContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import TeamLogo from '@/components/TeamLogo';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCrown, faMedal, faAward } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 
 interface UserProfile {
@@ -38,27 +40,124 @@ interface Game {
   userBet?: string;
 }
 
-interface RecentActivity {
+interface LeaderboardEntry {
   id: number;
-  weekNumber: number;
-  correctPredictions: number;
-  totalPredictions: number;
-  winnings: number;
-  date: string;
+  rank: number;
+  playerName: string;
+  score: number | string;
+  weekNumber?: number;
+  isCurrentUser?: boolean;
+}
+
+interface LeaderboardCategory {
+  title: string;
+  description: string;
+  entries: LeaderboardEntry[];
+  scoreFormat: 'percentage' | 'currency' | 'weeks' | 'perfect';
 }
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
   const [games, setGames] = useState<Game[]>([]);
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardCategory[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    initializeLeaderboardData();
+  }, [language, t]);
+
+  const initializeLeaderboardData = () => {
+    // Localized usernames based on language
+    const usernames = {
+      en: {
+        weekly: ['TheChampion247', 'GoldenGoal', 'AceMexico', 'QuinielaKing'],
+        performance: ['MasterPredictor', 'FootballSage', 'TheOracle', 'LigaMXPro'],
+        consistent: ['SteadyWinner', 'TheConsistent', 'RockSolid247', 'QuinielaPro'],
+        winners: ['TheMillionaire', 'CashMaster', 'GoldenTouch', 'MoneyMaker247'],
+        streaks: ['NeverMiss', 'TheDedicated', 'WeeklyWarrior', 'ConstantPlayer']
+      },
+      es: {
+        weekly: ['ElChampion247', 'GoldenGoal', 'AceMexico', 'LaQuinielaKing'],
+        performance: ['MasterPredictor', 'FutbolSage', 'ElOraculo', 'LigaMXPro'],
+        consistent: ['SteadyWinner', 'ElConsistente', 'RockSolid247', 'QuinielaPro'],
+        winners: ['ElMillonario', 'CashMaster', 'GoldenTouch', 'MoneyMaker247'],
+        streaks: ['NeverMiss', 'ElDedicado', 'WeeklyWarrior', 'ConstantPlayer']
+      }
+    };
+
+    const currentUsernames = usernames[language] || usernames.es;
+
+    // Mock leaderboard data matching the requested categories
+    const mockData: LeaderboardCategory[] = [
+      {
+        title: t('dashboard.weekly_winners'),
+        description: t('dashboard.weekly_winners_desc'),
+        scoreFormat: 'perfect',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.weekly[0], score: 100, weekNumber: 28 },
+          { id: 2, rank: 2, playerName: currentUsernames.weekly[1], score: 100, weekNumber: 27 },
+          { id: 3, rank: 3, playerName: currentUsernames.weekly[2], score: 100, weekNumber: 26 },
+          { id: 4, rank: 4, playerName: currentUsernames.weekly[3], score: 100, weekNumber: 25 }
+        ]
+      },
+      {
+        title: t('dashboard.best_performance'),
+        description: t('dashboard.best_performance_desc'),
+        scoreFormat: 'percentage',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.performance[0], score: 94.2 },
+          { id: 2, rank: 2, playerName: currentUsernames.performance[1], score: 91.8 },
+          { id: 3, rank: 3, playerName: currentUsernames.performance[2], score: 89.5 },
+          { id: 4, rank: 4, playerName: currentUsernames.performance[3], score: 87.3 },
+          { id: 5, rank: 5, playerName: 'Demo User', score: 85.1, isCurrentUser: true }
+        ]
+      },
+      {
+        title: t('dashboard.most_consistent'),
+        description: t('dashboard.most_consistent_desc'),
+        scoreFormat: 'percentage',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.consistent[0], score: 88.7 },
+          { id: 2, rank: 2, playerName: currentUsernames.consistent[1], score: 86.4 },
+          { id: 3, rank: 3, playerName: currentUsernames.consistent[2], score: 84.2 },
+          { id: 4, rank: 4, playerName: currentUsernames.consistent[3], score: 82.9 },
+          { id: 5, rank: 5, playerName: 'Demo User', score: 81.6, isCurrentUser: true }
+        ]
+      },
+      {
+        title: t('dashboard.biggest_winners'),
+        description: t('dashboard.biggest_winners_desc'),
+        scoreFormat: 'currency',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.winners[0], score: 24000 },
+          { id: 2, rank: 2, playerName: currentUsernames.winners[1], score: 18000 },
+          { id: 3, rank: 3, playerName: currentUsernames.winners[2], score: 16000 },
+          { id: 4, rank: 4, playerName: currentUsernames.winners[3], score: 14000 },
+          { id: 5, rank: 5, playerName: 'Demo User', score: 12000, isCurrentUser: true }
+        ]
+      },
+      {
+        title: t('dashboard.participation_streaks'),
+        description: t('dashboard.participation_streaks_desc'),
+        scoreFormat: 'weeks',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.streaks[0], score: 15 },
+          { id: 2, rank: 2, playerName: currentUsernames.streaks[1], score: 12 },
+          { id: 3, rank: 3, playerName: currentUsernames.streaks[2], score: 10 },
+          { id: 4, rank: 4, playerName: 'Demo User', score: 8, isCurrentUser: true },
+          { id: 5, rank: 5, playerName: currentUsernames.streaks[3], score: 7 }
+        ]
+      }
+    ];
+    setLeaderboardData(mockData);
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -125,40 +224,6 @@ export default function DashboardPage() {
         teams: `${g.homeTeamName} vs ${g.awayTeamName}`
       })));
       
-      // Debug: log raw recent activity array
-      console.log('[Dashboard Debug] Raw recent activity:', statsRes.data.recentActivity?.recentBets);
-      // Map recent activity with defensive checks (accept weekId or weekNumber, handle raw bet objects)
-      const mappedRecentActivity = (statsRes.data.recentActivity?.recentBets || []).map((activity: any) => {
-        // If this is a raw bet object, map to expected shape
-        if (activity && activity.prediction && activity.game) {
-          return {
-            id: activity.id,
-            weekNumber: activity.weekNumber ?? activity.weekId ?? activity.week?.weekNumber,
-            correctPredictions: activity.isCorrect === true ? 1 : 0,
-            totalPredictions: 1,
-            winnings: activity.isCorrect === true ? 200 : 0,
-            date: activity.date || activity.createdAt || '',
-            homeTeamName: activity.game.homeTeam?.name,
-            awayTeamName: activity.game.awayTeam?.name,
-            prediction: activity.prediction,
-            isCorrect: activity.isCorrect
-          };
-        }
-        // Fallback to previous mapping
-        if (!activity || (activity.weekNumber == null && activity.weekId == null)) {
-          console.warn('[Dashboard Debug] Skipping invalid activity:', activity);
-          return null;
-        }
-        return {
-          id: activity.id,
-          weekNumber: activity.weekNumber ?? activity.weekId,
-          correctPredictions: Number(activity.correctPredictions) || 0,
-          totalPredictions: Number(activity.totalPredictions) || 0,
-          winnings: Number(activity.winnings) || 0,
-          date: activity.date || activity.createdAt || ''
-        };
-      }).filter(Boolean);
-      console.log('[Dashboard Debug] Mapped recent activity:', mappedRecentActivity);
       // Parse numeric fields as numbers for robustness
       setProfile({
         ...profileRes.data.user.profile,
@@ -174,18 +239,12 @@ export default function DashboardPage() {
         status: (weekRes.data.week.status || '').toLowerCase()
       });
       setGames(sortedGames);
-      setRecentActivity(mappedRecentActivity);
-      // Log final recent activity state after mapping
-      setTimeout(() => {
-        console.log('[Final Recent Activity]', mappedRecentActivity);
-      }, 1000);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       // Remove all mock data. Only set loading to false and optionally set error state.
       setProfile(null);
       setCurrentWeek(null);
       setGames([]);
-      setRecentActivity([]);
     } finally {
       setLoading(false);
     }
@@ -200,6 +259,21 @@ export default function DashboardPage() {
       style: 'currency',
       currency: 'MXN'
     }).format(value);
+  };
+
+  const formatScore = (score: number | string, format: string) => {
+    switch (format) {
+      case 'percentage':
+        return `${Number(score).toFixed(1)}%`;
+      case 'currency':
+        return formatCurrency(Number(score));
+      case 'weeks':
+        return `${score} ${t('dashboard.weeks')}`;
+      case 'perfect':
+        return t('dashboard.perfect_score');
+      default:
+        return String(score);
+    }
   };
 
   const timeUntilDeadline = (deadline: string) => {
@@ -229,10 +303,6 @@ export default function DashboardPage() {
       </Layout>
     );
   }
-
-  // Render-time debug logs
-  console.log('[Render] recentActivity:', recentActivity);
-  console.log('[Render] games:', games);
 
   return (
     <Layout title={t('dashboard.title')}>
@@ -297,220 +367,98 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Current Week */}
-          {currentWeek && (
-            <div className="mb-8">
-              <h2 className="section-title">
-                {t('dashboard.current_week')}
-              </h2>
-              
-              <div className="bg-primary-600 text-white rounded-lg p-6 mb-6 shadow-lq247-accent">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                  <div>
-                    <h3 className="subsection-title">
-                      {t('dashboard.week')} {currentWeek.weekNumber}
-                    </h3>
-                    {currentWeek.status === 'open' && (
-                      <span className="inline-block bg-warning-600 text-secondary-900 px-3 py-1 rounded-full text-sm font-medium">
-                        {t('dashboard.open_for_betting')}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {currentWeek.bettingDeadline && currentWeek.status === 'open' && (
-                    <div className="bg-secondary-900 text-white px-4 py-2 rounded-lg">
-                      <div className="text-sm opacity-90">{t('dashboard.betting_closes_in')}</div>
-                      <div className="font-bold text-lg">
-                        {timeUntilDeadline(currentWeek.bettingDeadline)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {currentWeek.status === 'open' && (
-                  <Link
-                    href="/bet"
-                    className="inline-flex items-center px-6 py-3 bg-white text-primary-600 rounded-lg font-medium hover:bg-secondary-50 transition-colors"
-                  >
-                    {t('dashboard.place_bet')}
-                  </Link>
-                )}
-              </div>
-
-              {/* Games Preview */}
-              {Array.isArray(games) && games.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {games.slice(0, 6).map((game) => {
-                    console.log('[Render] game:', game);
-                    return (
-                      <div key={game.id} className="match-card">
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div className="flex items-center space-x-2">
-                            <TeamLogo 
-                              teamName={game.homeTeamName}
-                              logoUrl={game.homeTeamLogo}
-                              className="w-8 h-8 rounded-full object-cover"
-                              alt={game.homeTeamName}
-                            />
-                            <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
-                          </div>
-                          <span className="text-xs text-secondary-500 dark:text-secondary-400">vs</span>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
-                            <TeamLogo 
-                              teamName={game.awayTeamName}
-                              logoUrl={game.awayTeamLogo}
-                              className="w-8 h-8 rounded-full object-cover"
-                              alt={game.awayTeamName}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs text-secondary-500 dark:text-secondary-400">
-                            {new Date(game.gameDate).toLocaleDateString()}
-                          </div>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            game.status === 'finished'
-                              ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
-                              : game.status === 'live'
-                              ? 'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
-                              : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300'
-                          }`}>
-                            {game.status === 'finished' ? t('admin.completed') : 
-                             game.status === 'live' ? `🔴 ${t('admin.live')}` : 
-                             t('admin.scheduled')}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {/* Quick Actions - COMMENTED OUT */}
-          {/*
-          <div className="mb-8">
-            <h2 className="section-title">
-              {t('dashboard.quick_actions')}
+          {/* La Quiniela 247 Leaderboard */}
+          <div>
+            <h2 className="section-title mb-6">
+              {t('dashboard.leaderboard_title')}
             </h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link
-                href="/bet"
-                className="card hover:shadow-lg transition-shadow text-center"
-              >
-                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">🎯</div>
-                <h3 className="content-title">
-                  {t('dashboard.new_bet')}
-                </h3>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                  {t('dashboard.place_predictions')}
-                </p>
-              </Link>
-              
-              <Link
-                href="/history"
-                className="card hover:shadow-lg transition-shadow text-center"
-              >
-                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">📊</div>
-                <h3 className="content-title">
-                  {t('dashboard.view_history')}
-                </h3>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                  {t('dashboard.check_past_bets')}
-                </p>
-              </Link>
-              
-              <Link
-                href="/profile"
-                className="card hover:shadow-lg transition-shadow text-center"
-              >
-                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">⚙️</div>
-                <h3 className="content-title">
-                  {t('dashboard.profile_settings')}
-                </h3>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                  {t('dashboard.manage_account')}
-                </p>
-              </Link>
-              
-              <div className="card text-center">
-                <div className="text-primary-600 dark:text-primary-400 text-2xl mb-2">🏆</div>
-                <h3 className="content-title">
-                  {t('dashboard.results')}
-                </h3>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                  {t('dashboard.view_results')}
-                </p>
-              </div>
-            </div>
-          </div>
-          */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+              {leaderboardData.map((category, categoryIndex) => (
+                <div key={categoryIndex} className="bg-white dark:bg-secondary-800 rounded-lg shadow-lq247-accent overflow-hidden border border-primary-100 dark:border-primary-800">
+                  {/* Category Header */}
+                  <div className="bg-primary-600 text-white px-4 sm:px-6 py-3 sm:py-4">
+                    <h3 className="text-base sm:text-lg font-bold mb-1">{category.title}</h3>
+                    <p className="text-primary-100 text-xs sm:text-sm opacity-90">{category.description}</p>
+                  </div>
 
-          {/* Recent Activity */}
-          <div>
-            <h2 className="section-title">
-              {t('dashboard.recent_activity')}
-            </h2>
-            {/* Defensive check for recentActivity */}
-            {Array.isArray(recentActivity) && recentActivity.length > 0 ? (
-              <div className="card">
-                <div className="space-y-4">
-                  {recentActivity.map((activity) => {
-                    console.log('[Render] activity:', activity);
-                    return (
-                      <div key={activity.id} className="flex items-center justify-between py-3 border-b border-secondary-200 dark:border-secondary-700 last:border-b-0">
-                        <div>
-                          <h4 className="font-medium text-secondary-900 dark:text-secondary-100">
-                            {t('dashboard.week')} {activity.weekNumber}
-                          </h4>
-                          <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                            {activity.correctPredictions}/{activity.totalPredictions} {t('dashboard.correct')}
-                          </p>
-                          <p className="text-xs text-secondary-500 dark:text-secondary-400">
-                            {new Date(activity.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-success-600 dark:text-success-400">
-                            {formatCurrency(activity.winnings)}
+                  {/* Leaderboard Entries */}
+                  <div className="p-4 sm:p-6">
+                    <div className="space-y-4">
+                      {category.entries.map((entry, index) => (
+                        <div
+                          key={entry.id}
+                          className={`flex items-center justify-between p-2 sm:p-3 rounded-lg transition-colors ${
+                            entry.isCurrentUser
+                              ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700'
+                              : 'bg-secondary-50 dark:bg-secondary-700/50 hover:bg-secondary-100 dark:hover:bg-secondary-700'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                            <div className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-xs sm:text-sm font-bold flex-shrink-0 ${
+                              entry.rank === 1
+                                ? 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-yellow-100 shadow-xl border-2 border-yellow-300'
+                                : entry.rank === 2
+                                ? 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-600 text-gray-100 shadow-xl border-2 border-gray-200'
+                                : entry.rank === 3
+                                ? 'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-amber-100 shadow-xl border-2 border-amber-300'
+                                : entry.isCurrentUser
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-secondary-300 dark:bg-secondary-600 text-secondary-700 dark:text-secondary-300'
+                            }`}>
+                              {entry.rank <= 3 ? (
+                                <FontAwesomeIcon 
+                                  icon={entry.rank === 1 ? faCrown : entry.rank === 2 ? faMedal : faAward}
+                                  className={`${
+                                    entry.rank === 1 
+                                      ? 'text-yellow-200 text-lg sm:text-xl' 
+                                      : entry.rank === 2 
+                                      ? 'text-gray-200 text-base sm:text-lg' 
+                                      : 'text-amber-200 text-base sm:text-lg'
+                                  } drop-shadow-lg`}
+                                />
+                              ) : (
+                                entry.rank
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className={`font-medium text-sm sm:text-base truncate ${
+                                entry.isCurrentUser 
+                                  ? 'text-primary-700 dark:text-primary-300' 
+                                  : 'text-secondary-900 dark:text-secondary-100'
+                              }`}>
+                                {entry.playerName}
+                                {entry.isCurrentUser && (
+                                  <span className="ml-1 sm:ml-2 text-xs bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 px-1 sm:px-2 py-0.5 rounded-full">
+                                    You
+                                  </span>
+                                )}
+                              </p>
+                              {entry.weekNumber && (
+                                <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                                  {t('dashboard.week')} {entry.weekNumber}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                            {formatPercentage((activity.correctPredictions / activity.totalPredictions) * 100)}
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <p className={`font-bold text-sm sm:text-base ${
+                              entry.isCurrentUser
+                                ? 'text-primary-700 dark:text-primary-300'
+                                : 'text-secondary-900 dark:text-secondary-100'
+                            }`}>
+                              {formatScore(entry.score, category.scoreFormat)}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+
+
+                  </div>
                 </div>
-                <div className="mt-6 text-center">
-                  <Link
-                    href="/history"
-                    className="btn-outline"
-                  >
-                    {t('dashboard.view_all_history')}
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="card text-center py-12">
-                <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">📊</div>
-                <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100 mb-2">
-                  {t('dashboard.no_recent_activity')}
-                </h3>
-                <p className="text-secondary-600 dark:text-secondary-400 mb-6">
-                  {t('dashboard.start_betting_message')}
-                </p>
-                <Link
-                  href="/bet"
-                  className="btn-primary"
-                >
-                  {t('dashboard.place_first_bet')}
-                </Link>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </ProtectedRoute>

@@ -18,10 +18,6 @@ interface UserProfile {
   newsletter: boolean;
   emailNotifications: boolean;
   smsNotifications: boolean;
-  totalBets: number | null;
-  totalWinnings: number | null;
-  overallPercentage: number | null;
-  bestRankingPosition: number | null;
   memberSince: string;
 }
 
@@ -62,10 +58,6 @@ export default function ProfilePage() {
         newsletter: true,
         emailNotifications: true,
         smsNotifications: false,
-        totalBets: 24,
-        totalWinnings: 2500,
-        overallPercentage: 66.7,
-        bestRankingPosition: 10,
         memberSince: '2023-01-15'
       });
     } finally {
@@ -138,18 +130,7 @@ export default function ProfilePage() {
     }
   };
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value == null || isNaN(value)) return '$0.00';
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(value);
-  };
 
-  const formatPercentage = (value: number | null | undefined) => {
-    if (value == null || isNaN(value)) return '0.0%';
-    return `${value.toFixed(1)}%`;
-  };
 
   if (loading) {
     return (
@@ -231,17 +212,6 @@ export default function ProfilePage() {
                   }`}
                 >
                   {t('profile.notifications')}
-                </button>
-                
-                <button
-                  onClick={() => setActiveTab('stats')}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                    activeTab === 'stats'
-                      ? 'bg-primary-600 text-white'
-                      : 'text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-800'
-                  }`}
-                >
-                  {t('profile.performance_stats')}
                 </button>
               </nav>
             </div>
@@ -526,80 +496,7 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Performance Stats Tab */}
-              {activeTab === 'stats' && (
-                <div className="space-y-6">
-                  <div className="card">
-                    <div className="card-header">
-                      <h2 className="card-title">{t('profile.performance_stats')}</h2>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="performance-card">
-                        <div className="performance-card-title">
-                          {t('dashboard.total_bets')}
-                        </div>
-                        <div className="performance-card-value">
-                          {profile.totalBets || 0}
-                        </div>
-                      </div>
-                      
-                      <div className="performance-card">
-                        <div className="performance-card-title">
-                          {t('dashboard.total_winnings')}
-                        </div>
-                        <div className="performance-card-value">
-                          {formatCurrency(profile.totalWinnings)}
-                        </div>
-                      </div>
-                      
-                      <div className="performance-card">
-                        <div className="performance-card-title">
-                          {t('dashboard.correct_percentage')}
-                        </div>
-                        <div className="performance-card-value">
-                          {formatPercentage(profile.overallPercentage)}
-                        </div>
-                      </div>
-                      
-                      <div className="performance-card">
-                        <div className="performance-card-title">
-                          {t('dashboard.best_position')}
-                        </div>
-                        <div className="performance-card-value">
-                          #{profile.bestRankingPosition || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="card">
-                    <div className="card-header">
-                      <h2 className="card-title">{t('profile.account_summary')}</h2>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="flex justify-between">
-                        <span className="text-secondary-600 dark:text-secondary-400">
-                          {t('profile.member_since')}
-                        </span>
-                        <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                          {profile.memberSince ? new Date(profile.memberSince).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-secondary-600 dark:text-secondary-400">
-                          {t('profile.account_status')}
-                        </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400">
-                          {t('profile.active')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
 

@@ -6,10 +6,31 @@ import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import TeamLogo from '@/components/TeamLogo';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faCalendar, 
+  faCoins, 
+  faTrophy, 
+  faChartBar, 
+  faGamepad, 
+  faUsers,
+  faChevronDown,
+  faChevronUp,
+  faStar,
+  faFire,
+  faFlag,
+  faHistory,
+  faPlay,
+  faLightbulb,
+  faBolt,
+  faShield
+} from '@fortawesome/free-solid-svg-icons';
 
 interface BetHistory {
   id: number;
-  weekNumber: number;
+  betType: 'la_quiniela' | 'single_bet';
+  weekNumber?: number;
+  gameId?: number;
   amount: number;
   status: 'pending' | 'won' | 'lost' | 'partial';
   correctPredictions: number;
@@ -27,6 +48,7 @@ interface BetHistory {
 }
 
 type FilterType = 'all' | 'won' | 'lost' | 'pending';
+type BetTypeFilter = 'all_types' | 'la_quiniela' | 'single_bets';
 
 interface FormattedAmountProps {
   amount: number;
@@ -52,7 +74,7 @@ function FormattedAmount({ amount, originalCurrency, className }: FormattedAmoun
       } catch (error) {
         console.error('Error formatting amount:', error);
         if (isMounted) {
-          setFormattedValue(`$${amount.toFixed(2)}`); // fallback
+          setFormattedValue(`$${amount.toFixed(2)}`);
         }
       } finally {
         if (isMounted) {
@@ -82,7 +104,8 @@ export default function HistoryPage() {
   const [bets, setBets] = useState<BetHistory[]>([]);
   const [filteredBets, setFilteredBets] = useState<BetHistory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [statusFilter, setStatusFilter] = useState<FilterType>('all');
+  const [betTypeFilter, setBetTypeFilter] = useState<BetTypeFilter>('all_types');
   const [expandedBet, setExpandedBet] = useState<number | null>(null);
 
   useEffect(() => {
@@ -91,304 +114,409 @@ export default function HistoryPage() {
 
   useEffect(() => {
     filterBets();
-  }, [bets, filter]);
+  }, [bets, statusFilter, betTypeFilter]);
 
   const fetchBettingHistory = async () => {
     try {
       const response = await axios.get('/api/bets/history');
       
-      // If no betting history exists, use mock data for demo
       if (!response.data || response.data.length === 0) {
-        console.log('No betting history found, using demo data');
-        // Set enhanced mock data for demo with full prediction details
-      setBets([
-        {
-          id: 1,
-          weekNumber: 14,
-          amount: 100,
-          status: 'won',
-          correctPredictions: 8,
-          totalPredictions: 10,
-          winnings: 250,
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          predictions: [
-            {
-              gameId: 1,
-              homeTeamName: 'América',
-              awayTeamName: 'Chivas',
-              prediction: 'home',
-              result: 'home',
-              correct: true
-            },
-            {
-              gameId: 2,
-              homeTeamName: 'Cruz Azul',
-              awayTeamName: 'Pumas',
-              prediction: 'away',
-              result: 'draw',
-              correct: false
-            },
-            {
-              gameId: 3,
-              homeTeamName: 'Tigres UANL',
-              awayTeamName: 'Monterrey',
-              prediction: 'home',
-              result: 'home',
-              correct: true
-            },
-            {
-              gameId: 4,
-              homeTeamName: 'León',
-              awayTeamName: 'Santos Laguna',
-              prediction: 'draw',
-              result: 'draw',
-              correct: true
-            },
-            {
-              gameId: 5,
-              homeTeamName: 'Toluca',
-              awayTeamName: 'Atlas',
-              prediction: 'home',
-              result: 'home',
-              correct: true
-            }
-          ]
-        },
-        {
-          id: 2,
-          weekNumber: 13,
-          amount: 75,
-          status: 'lost',
-          correctPredictions: 4,
-          totalPredictions: 10,
-          winnings: 0,
-          date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          predictions: [
-            {
-              gameId: 6,
-              homeTeamName: 'Pachuca',
-              awayTeamName: 'Necaxa',
-              prediction: 'home',
-              result: 'away',
-              correct: false
-            },
-            {
-              gameId: 7,
-              homeTeamName: 'Atlético San Luis',
-              awayTeamName: 'FC Juárez',
-              prediction: 'draw',
-              result: 'home',
-              correct: false
-            },
-            {
-              gameId: 8,
-              homeTeamName: 'Querétaro',
-              awayTeamName: 'Mazatlán',
-              prediction: 'away',
-              result: 'away',
-              correct: true
-            },
-            {
-              gameId: 9,
-              homeTeamName: 'Tijuana',
-              awayTeamName: 'Puebla',
-              prediction: 'home',
-              result: 'draw',
-              correct: false
-            }
-          ]
-        },
-        {
-          id: 3,
-          weekNumber: 15,
-          amount: 50,
-          status: 'pending',
-          correctPredictions: 0,
-          totalPredictions: 6,
-          winnings: 0,
-          date: new Date().toISOString(),
-          predictions: [
-            {
-              gameId: 10,
-              homeTeamName: 'Club América',
-              awayTeamName: 'Club Necaxa',
-              prediction: 'home',
-              result: undefined,
-              correct: undefined
-            },
-            {
-              gameId: 11,
-              homeTeamName: 'Tijuana',
-              awayTeamName: 'León FC',
-              prediction: 'away',
-              result: undefined,
-              correct: undefined
-            },
-            {
-              gameId: 12,
-              homeTeamName: 'Guadalajara',
-              awayTeamName: 'Cruz Azul',
-              prediction: 'draw',
-              result: undefined,
-              correct: undefined
-            }
-          ]
-        }
-      ]);
+        console.log('No betting history found, using enhanced demo data');
+        setBets([
+          // La Quiniela Bets
+          {
+            id: 1,
+            betType: 'la_quiniela',
+            weekNumber: 28,
+            amount: 200,
+            status: 'won',
+            correctPredictions: 10,
+            totalPredictions: 10,
+            winnings: 2000,
+            date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+            predictions: [
+              {
+                gameId: 1,
+                homeTeamName: 'América',
+                awayTeamName: 'Chivas',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              },
+              {
+                gameId: 2,
+                homeTeamName: 'Cruz Azul',
+                awayTeamName: 'Pumas',
+                prediction: 'away',
+                result: 'away',
+                correct: true
+              },
+              {
+                gameId: 3,
+                homeTeamName: 'Tigres UANL',
+                awayTeamName: 'Monterrey',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              },
+              {
+                gameId: 4,
+                homeTeamName: 'León',
+                awayTeamName: 'Santos Laguna',
+                prediction: 'draw',
+                result: 'draw',
+                correct: true
+              },
+              {
+                gameId: 5,
+                homeTeamName: 'Toluca',
+                awayTeamName: 'Atlas',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              },
+              {
+                gameId: 6,
+                homeTeamName: 'Pachuca',
+                awayTeamName: 'Necaxa',
+                prediction: 'away',
+                result: 'away',
+                correct: true
+              },
+              {
+                gameId: 7,
+                homeTeamName: 'Atlético San Luis',
+                awayTeamName: 'FC Juárez',
+                prediction: 'draw',
+                result: 'draw',
+                correct: true
+              },
+              {
+                gameId: 8,
+                homeTeamName: 'Querétaro',
+                awayTeamName: 'Mazatlán',
+                prediction: 'away',
+                result: 'away',
+                correct: true
+              },
+              {
+                gameId: 9,
+                homeTeamName: 'Tijuana',
+                awayTeamName: 'Puebla',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              },
+              {
+                gameId: 10,
+                homeTeamName: 'Guadalajara',
+                awayTeamName: 'Atlas',
+                prediction: 'draw',
+                result: 'draw',
+                correct: true
+              }
+            ]
+          },
+          {
+            id: 2,
+            betType: 'la_quiniela',
+            weekNumber: 27,
+            amount: 200,
+            status: 'lost',
+            correctPredictions: 6,
+            totalPredictions: 10,
+            winnings: 0,
+            date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+            predictions: [
+              {
+                gameId: 11,
+                homeTeamName: 'América',
+                awayTeamName: 'Cruz Azul',
+                prediction: 'home',
+                result: 'away',
+                correct: false
+              },
+              {
+                gameId: 12,
+                homeTeamName: 'Chivas',
+                awayTeamName: 'Pumas',
+                prediction: 'draw',
+                result: 'home',
+                correct: false
+              },
+              {
+                gameId: 13,
+                homeTeamName: 'Tigres UANL',
+                awayTeamName: 'León',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              },
+              {
+                gameId: 14,
+                homeTeamName: 'Santos Laguna',
+                awayTeamName: 'Toluca',
+                prediction: 'away',
+                result: 'away',
+                correct: true
+              },
+              {
+                gameId: 15,
+                homeTeamName: 'Atlas',
+                awayTeamName: 'Pachuca',
+                prediction: 'draw',
+                result: 'draw',
+                correct: true
+              },
+              {
+                gameId: 16,
+                homeTeamName: 'Necaxa',
+                awayTeamName: 'Atlético San Luis',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              },
+              {
+                gameId: 17,
+                homeTeamName: 'FC Juárez',
+                awayTeamName: 'Querétaro',
+                prediction: 'away',
+                result: 'draw',
+                correct: false
+              },
+              {
+                gameId: 18,
+                homeTeamName: 'Mazatlán',
+                awayTeamName: 'Tijuana',
+                prediction: 'home',
+                result: 'away',
+                correct: false
+              },
+              {
+                gameId: 19,
+                homeTeamName: 'Puebla',
+                awayTeamName: 'Guadalajara',
+                prediction: 'draw',
+                result: 'draw',
+                correct: true
+              },
+              {
+                gameId: 20,
+                homeTeamName: 'Monterrey',
+                awayTeamName: 'Atlas',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              }
+            ]
+          },
+          {
+            id: 3,
+            betType: 'la_quiniela',
+            weekNumber: 29,
+            amount: 200,
+            status: 'pending',
+            correctPredictions: 0,
+            totalPredictions: 10,
+            winnings: 0,
+            date: new Date().toISOString(),
+            predictions: [
+              {
+                gameId: 21,
+                homeTeamName: 'Club América',
+                awayTeamName: 'Club Necaxa',
+                prediction: 'home',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 22,
+                homeTeamName: 'Tijuana',
+                awayTeamName: 'León FC',
+                prediction: 'away',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 23,
+                homeTeamName: 'Guadalajara',
+                awayTeamName: 'Cruz Azul',
+                prediction: 'draw',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 24,
+                homeTeamName: 'Pumas',
+                awayTeamName: 'Santos Laguna',
+                prediction: 'home',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 25,
+                homeTeamName: 'Toluca',
+                awayTeamName: 'Tigres UANL',
+                prediction: 'away',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 26,
+                homeTeamName: 'Atlas',
+                awayTeamName: 'Monterrey',
+                prediction: 'draw',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 27,
+                homeTeamName: 'Pachuca',
+                awayTeamName: 'Atlético San Luis',
+                prediction: 'home',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 28,
+                homeTeamName: 'FC Juárez',
+                awayTeamName: 'Mazatlán',
+                prediction: 'away',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 29,
+                homeTeamName: 'Querétaro',
+                awayTeamName: 'Puebla',
+                prediction: 'home',
+                result: undefined,
+                correct: undefined
+              },
+              {
+                gameId: 30,
+                homeTeamName: 'Necaxa',
+                awayTeamName: 'Guadalajara',
+                prediction: 'draw',
+                result: undefined,
+                correct: undefined
+              }
+            ]
+          },
+          // Single Bets
+          {
+            id: 4,
+            betType: 'single_bet',
+            gameId: 31,
+            amount: 150,
+            status: 'won',
+            correctPredictions: 1,
+            totalPredictions: 1,
+            winnings: 285,
+            date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            predictions: [
+              {
+                gameId: 31,
+                homeTeamName: 'América',
+                awayTeamName: 'Chivas',
+                prediction: 'home',
+                result: 'home',
+                correct: true
+              }
+            ]
+          },
+          {
+            id: 5,
+            betType: 'single_bet',
+            gameId: 32,
+            amount: 75,
+            status: 'lost',
+            correctPredictions: 0,
+            totalPredictions: 1,
+            winnings: 0,
+            date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            predictions: [
+              {
+                gameId: 32,
+                homeTeamName: 'Cruz Azul',
+                awayTeamName: 'Pumas',
+                prediction: 'away',
+                result: 'home',
+                correct: false
+              }
+            ]
+          },
+          {
+            id: 6,
+            betType: 'single_bet',
+            gameId: 33,
+            amount: 300,
+            status: 'won',
+            correctPredictions: 1,
+            totalPredictions: 1,
+            winnings: 510,
+            date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+            predictions: [
+              {
+                gameId: 33,
+                homeTeamName: 'Tigres UANL',
+                awayTeamName: 'Monterrey',
+                prediction: 'draw',
+                result: 'draw',
+                correct: true
+              }
+            ]
+          },
+          {
+            id: 7,
+            betType: 'single_bet',
+            gameId: 34,
+            amount: 50,
+            status: 'pending',
+            correctPredictions: 0,
+            totalPredictions: 1,
+            winnings: 0,
+            date: new Date().toISOString(),
+            predictions: [
+              {
+                gameId: 34,
+                homeTeamName: 'León',
+                awayTeamName: 'Santos Laguna',
+                prediction: 'home',
+                result: undefined,
+                correct: undefined
+              }
+            ]
+          }
+        ]);
       } else {
         setBets(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch betting history:', error);
-      // Fallback to mock data on error as well
-      setBets([
-        {
-          id: 1,
-          weekNumber: 14,
-          amount: 100,
-          status: 'won',
-          correctPredictions: 8,
-          totalPredictions: 10,
-          winnings: 250,
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          predictions: [
-            {
-              gameId: 1,
-              homeTeamName: 'América',
-              awayTeamName: 'Chivas',
-              prediction: 'home',
-              result: 'home',
-              correct: true
-            },
-            {
-              gameId: 2,
-              homeTeamName: 'Cruz Azul',
-              awayTeamName: 'Pumas',
-              prediction: 'away',
-              result: 'draw',
-              correct: false
-            },
-            {
-              gameId: 3,
-              homeTeamName: 'Tigres UANL',
-              awayTeamName: 'Monterrey',
-              prediction: 'home',
-              result: 'home',
-              correct: true
-            },
-            {
-              gameId: 4,
-              homeTeamName: 'León',
-              awayTeamName: 'Santos Laguna',
-              prediction: 'draw',
-              result: 'draw',
-              correct: true
-            },
-            {
-              gameId: 5,
-              homeTeamName: 'Toluca',
-              awayTeamName: 'Atlas',
-              prediction: 'home',
-              result: 'home',
-              correct: true
-            }
-          ]
-        },
-        {
-          id: 2,
-          weekNumber: 13,
-          amount: 75,
-          status: 'lost',
-          correctPredictions: 4,
-          totalPredictions: 10,
-          winnings: 0,
-          date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          predictions: [
-            {
-              gameId: 6,
-              homeTeamName: 'Pachuca',
-              awayTeamName: 'Necaxa',
-              prediction: 'home',
-              result: 'away',
-              correct: false
-            },
-            {
-              gameId: 7,
-              homeTeamName: 'Atlético San Luis',
-              awayTeamName: 'FC Juárez',
-              prediction: 'draw',
-              result: 'home',
-              correct: false
-            },
-            {
-              gameId: 8,
-              homeTeamName: 'Querétaro',
-              awayTeamName: 'Mazatlán',
-              prediction: 'away',
-              result: 'away',
-              correct: true
-            },
-            {
-              gameId: 9,
-              homeTeamName: 'Tijuana',
-              awayTeamName: 'Puebla',
-              prediction: 'home',
-              result: 'draw',
-              correct: false
-            }
-          ]
-        },
-        {
-          id: 3,
-          weekNumber: 15,
-          amount: 50,
-          status: 'pending',
-          correctPredictions: 0,
-          totalPredictions: 6,
-          winnings: 0,
-          date: new Date().toISOString(),
-          predictions: [
-            {
-              gameId: 10,
-              homeTeamName: 'Club América',
-              awayTeamName: 'Club Necaxa',
-              prediction: 'home',
-              result: undefined,
-              correct: undefined
-            },
-            {
-              gameId: 11,
-              homeTeamName: 'Tijuana',
-              awayTeamName: 'León FC',
-              prediction: 'away',
-              result: undefined,
-              correct: undefined
-            },
-            {
-              gameId: 12,
-              homeTeamName: 'Guadalajara',
-              awayTeamName: 'Cruz Azul',
-              prediction: 'draw',
-              result: undefined,
-              correct: undefined
-            }
-          ]
-        }
-      ]);
+      setBets([]);
     } finally {
       setLoading(false);
     }
   };
 
   const filterBets = () => {
-    if (filter === 'all') {
-      setFilteredBets(bets);
-    } else {
-      setFilteredBets(bets.filter(bet => bet.status === filter));
+    let filtered = bets;
+
+    // Filter by bet type
+    if (betTypeFilter !== 'all_types') {
+      filtered = filtered.filter(bet => 
+        betTypeFilter === 'la_quiniela' ? bet.betType === 'la_quiniela' : bet.betType === 'single_bet'
+      );
     }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(bet => bet.status === statusFilter);
+    }
+
+    setFilteredBets(filtered);
   };
-
-
 
   const formatPercentage = (correct: number, total: number) => {
     if (total === 0) return '0%';
@@ -398,15 +526,15 @@ export default function HistoryPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'won':
-        return 'text-success-600 dark:text-success-400 bg-success-100 dark:bg-success-900/20';
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300';
       case 'lost':
-        return 'text-error-600 dark:text-error-400 bg-error-100 dark:bg-error-900/20';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
       case 'pending':
-        return 'text-warning-600 dark:text-warning-400 bg-warning-100 dark:bg-warning-900/20';
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300';
       case 'partial':
-        return 'text-secondary-600 dark:text-secondary-400 bg-secondary-100 dark:bg-secondary-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
       default:
-        return 'text-secondary-600 dark:text-secondary-400 bg-secondary-100 dark:bg-secondary-800';
+        return 'bg-secondary-100 text-secondary-800 dark:bg-secondary-800 dark:text-secondary-300';
     }
   };
 
@@ -425,6 +553,28 @@ export default function HistoryPage() {
     }
   };
 
+  const getPerformanceBadge = (correct: number, total: number, betType: string) => {
+    if (total === 0 || correct === 0) return null;
+    
+    const percentage = (correct / total) * 100;
+    
+    if (betType === 'la_quiniela') {
+      if (percentage === 100) {
+        return { text: t('history.perfect_week'), color: 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white', icon: faTrophy };
+      } else if (percentage >= 80) {
+        return { text: t('history.great_week'), color: 'bg-gradient-to-r from-emerald-400 to-emerald-600 text-white', icon: faStar };
+      } else if (percentage >= 60) {
+        return { text: t('history.good_week'), color: 'bg-gradient-to-r from-blue-400 to-blue-600 text-white', icon: faFlag };
+      } else {
+        return { text: t('history.needs_improvement'), color: 'bg-gradient-to-r from-orange-400 to-orange-600 text-white', icon: faFire };
+      }
+    } else {
+      return percentage === 100 
+        ? { text: t('history.won'), color: 'bg-gradient-to-r from-emerald-400 to-emerald-600 text-white', icon: faTrophy }
+        : null;
+    }
+  };
+
   const getPredictionIcon = (prediction: string) => {
     switch (prediction) {
       case 'home':
@@ -434,7 +584,7 @@ export default function HistoryPage() {
       case 'draw':
         return '🤝';
       default:
-        return '❓';
+        return prediction;
     }
   };
 
@@ -451,12 +601,25 @@ export default function HistoryPage() {
     }
   };
 
+  const getBetTypeIcon = (betType: string) => {
+    return betType === 'la_quiniela' ? faUsers : faGamepad;
+  };
+
+  const getBetTypeColor = (betType: string) => {
+    return betType === 'la_quiniela' 
+      ? 'bg-gradient-to-r from-red-500 to-red-600' 
+      : 'bg-gradient-to-r from-purple-500 to-purple-600';
+  };
+
   if (loading) {
     return (
       <Layout title={t('history.title')}>
         <ProtectedRoute>
           <div className="flex items-center justify-center min-h-96">
-            <div className="spinner"></div>
+            <div className="flex items-center space-x-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <span className="text-lg text-secondary-600 dark:text-secondary-400">{t('common.loading')}</span>
+            </div>
           </div>
         </ProtectedRoute>
       </Layout>
@@ -466,222 +629,350 @@ export default function HistoryPage() {
   return (
     <Layout title={t('history.title')}>
       <ProtectedRoute>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="page-title mb-4">
-              {t('history.title')}
-            </h1>
-            
-            {/* Betting History */}
-            <h2 className="section-title mb-4">
-              {t('history.title')}
-            </h2>
-            
-            {/* Filter Buttons */}
-            <div className="flex flex-wrap gap-2">
-              {(['all', 'won', 'lost', 'pending'] as FilterType[]).map((filterType) => (
-                <button
-                  key={filterType}
-                  onClick={() => setFilter(filterType)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === filterType
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-700'
-                  }`}
-                >
-                  {t(`history.${filterType === 'all' ? 'all_bets' : filterType}`)}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {filteredBets.length > 0 ? (
-            <div className="space-y-4">
-              {filteredBets.map((bet) => (
-                <div key={bet.id} className="card">
-                  <div 
-                    className="cursor-pointer"
-                    onClick={() => setExpandedBet(expandedBet === bet.id ? null : bet.id)}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-                        <div>
-                          <h3 className="content-title">
-                            {t('dashboard.week')} {bet.weekNumber}
-                          </h3>
-                          <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                            {new Date(bet.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                        
-                        <div className="text-center">
-                          <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                            {t('history.amount')}
-                          </div>
-                          <div className="font-medium text-secondary-900 dark:text-secondary-100">
-                            <FormattedAmount amount={bet.amount} />
-                          </div>
-                        </div>
-                        
-                        <div className="text-center">
-                          <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                            {t('history.accuracy')}
-                          </div>
-                          <div className="font-medium text-secondary-900 dark:text-secondary-100">
-                            {bet.correctPredictions}/{bet.totalPredictions}
-                            <span className="text-xs ml-1">
-                              ({formatPercentage(bet.correctPredictions, bet.totalPredictions)})
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                            {t('history.winnings')}
-                          </div>
-                          <div className={`font-semibold ${
-                            bet.winnings > 0 
-                              ? 'text-success-600 dark:text-success-400' 
-                              : 'text-secondary-600 dark:text-secondary-400'
-                          }`}>
-                            <FormattedAmount amount={bet.winnings} />
-                          </div>
-                        </div>
-                        
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(bet.status)}`}>
-                          {getStatusText(bet.status)}
-                        </span>
-                        
-                        <div className="text-secondary-400 dark:text-secondary-500">
-                          {expandedBet === bet.id ? '▼' : '▶'}
-                        </div>
-                      </div>
+        <div className="min-h-screen bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Modern Header */}
+            <div className="mb-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg">
+                  <FontAwesomeIcon icon={faHistory} className="text-white text-xl" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+                    {t('history.title')}
+                  </h1>
+                  <p className="text-secondary-600 dark:text-secondary-400 mt-1">
+                    Track your betting performance and history
+                  </p>
+                </div>
+              </div>
+
+              {/* Modern Filter Controls */}
+              <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                  {/* Bet Type Filters */}
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <FontAwesomeIcon icon={faPlay} className="text-secondary-500 dark:text-secondary-400" />
+                      <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                        {t('history.bet_type')}:
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(['all_types', 'la_quiniela', 'single_bets'] as BetTypeFilter[]).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setBetTypeFilter(type)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            betTypeFilter === type
+                              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105'
+                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600 hover:scale-105'
+                          }`}
+                        >
+                          {t(`history.${type}`)}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  
-                  {/* Expanded Details */}
-                  {expandedBet === bet.id && bet.predictions.length > 0 && (
-                    <div className="mt-6 pt-6 border-t border-secondary-200 dark:border-secondary-700">
-                      <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-4">
-                        {t('history.predictions_detail')}
-                      </h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {bet.predictions.map((prediction) => (
-                          <div 
-                            key={prediction.gameId}
-                            className={`p-4 rounded-lg border-2 ${
-                              prediction.correct === true
-                                ? 'border-success-200 dark:border-success-800 bg-success-50 dark:bg-success-900/10'
-                                : prediction.correct === false
-                                ? 'border-error-200 dark:border-error-800 bg-error-50 dark:bg-error-900/10'
-                                : 'border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-800'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2 font-medium text-secondary-900 dark:text-secondary-100">
-                                <TeamLogo teamName={prediction.homeTeamName} className="w-5 h-5" alt={prediction.homeTeamName} />
-                                <span>{prediction.homeTeamName}</span>
-                                <span className="text-secondary-500">vs</span>
-                                <span>{prediction.awayTeamName}</span>
-                                <TeamLogo teamName={prediction.awayTeamName} className="w-5 h-5" alt={prediction.awayTeamName} />
-                              </div>
-                              {prediction.correct !== undefined && (
-                                <div className={`text-lg ${
-                                  prediction.correct 
-                                    ? 'text-success-600 dark:text-success-400' 
-                                    : 'text-error-600 dark:text-error-400'
-                                }`}>
-                                  {prediction.correct ? '✓' : '✗'}
-                                </div>
-                              )}
+
+                  {/* Status Filters */}
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <FontAwesomeIcon icon={faChartBar} className="text-secondary-500 dark:text-secondary-400" />
+                      <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+                        {t('history.status')}:
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(['all', 'won', 'lost', 'pending'] as FilterType[]).map((filterType) => (
+                        <button
+                          key={filterType}
+                          onClick={() => setStatusFilter(filterType)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            statusFilter === filterType
+                              ? 'bg-gradient-to-r from-secondary-600 to-secondary-700 text-white shadow-lg scale-105'
+                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600 hover:scale-105'
+                          }`}
+                        >
+                          {t(`history.${filterType === 'all' ? 'all_bets' : filterType}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Betting History Cards */}
+            {filteredBets.length > 0 ? (
+              <div className="space-y-6">
+                {filteredBets.map((bet) => (
+                  <div 
+                    key={bet.id} 
+                    className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 overflow-hidden hover:shadow-xl transition-all duration-300"
+                  >
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => setExpandedBet(expandedBet === bet.id ? null : bet.id)}
+                    >
+                      {/* Bet Header */}
+                      <div className="p-6">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                          {/* Left Section - Bet Info */}
+                          <div className="flex items-center space-x-4">
+                            {/* Bet Type Badge */}
+                            <div className={`flex items-center justify-center w-14 h-14 ${getBetTypeColor(bet.betType)} rounded-2xl shadow-lg`}>
+                              <FontAwesomeIcon icon={getBetTypeIcon(bet.betType)} className="text-white text-xl" />
                             </div>
                             
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="text-secondary-600 dark:text-secondary-400">
-                                {t('history.your_prediction')}: 
-                                <span className="ml-1 font-medium">
-                                  {getPredictionIcon(prediction.prediction)} {getPredictionText(prediction.prediction)}
+                            <div>
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h3 className="text-xl font-bold text-secondary-900 dark:text-secondary-100">
+                                  {bet.betType === 'la_quiniela' 
+                                    ? `${t('history.la_quiniela')} - ${t('dashboard.week')} ${bet.weekNumber}`
+                                    : t('history.single_bets')
+                                  }
+                                </h3>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(bet.status)}`}>
+                                  {getStatusText(bet.status)}
                                 </span>
                               </div>
                               
-                              {prediction.result && (
-                                <div className="text-secondary-600 dark:text-secondary-400">
-                                  {t('history.actual_result')}: 
-                                  <span className="ml-1 font-medium">
-                                    {getPredictionIcon(prediction.result)} {getPredictionText(prediction.result)}
+                              <div className="flex items-center space-x-4 text-sm text-secondary-600 dark:text-secondary-400">
+                                <div className="flex items-center space-x-1">
+                                  <FontAwesomeIcon icon={faCalendar} className="text-xs" />
+                                  <span>{new Date(bet.date).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <FontAwesomeIcon icon={faLightbulb} className="text-xs" />
+                                  <span>
+                                    {bet.betType === 'la_quiniela' 
+                                      ? t('history.predictions_count', { count: bet.totalPredictions })
+                                      : t('history.single_prediction')
+                                    }
                                   </span>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           </div>
-                        ))}
+
+                          {/* Right Section - Stats */}
+                          <div className="flex items-center space-x-6">
+                            {/* Performance Stats */}
+                            <div className="text-center">
+                              <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                                {t('history.entry_fee')}
+                              </div>
+                              <div className="text-lg font-bold text-secondary-900 dark:text-secondary-100">
+                                <FormattedAmount amount={bet.amount} />
+                              </div>
+                            </div>
+
+                            <div className="text-center">
+                              <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                                {t('history.accuracy')}
+                              </div>
+                              <div className="text-lg font-bold text-secondary-900 dark:text-secondary-100">
+                                {bet.correctPredictions}/{bet.totalPredictions}
+                                <span className="text-sm ml-1 text-secondary-500">
+                                  ({formatPercentage(bet.correctPredictions, bet.totalPredictions)})
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="text-center">
+                              <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                                {t('history.winnings')}
+                              </div>
+                              <div className={`text-lg font-bold ${
+                                bet.winnings > 0 
+                                  ? 'text-emerald-600 dark:text-emerald-400' 
+                                  : 'text-secondary-600 dark:text-secondary-400'
+                              }`}>
+                                <FormattedAmount amount={bet.winnings} />
+                              </div>
+                            </div>
+
+                            {/* Expand Button */}
+                            <div className="flex items-center space-x-2">
+                              {(() => {
+                                const badge = getPerformanceBadge(bet.correctPredictions, bet.totalPredictions, bet.betType);
+                                return badge ? (
+                                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${badge.color}`}>
+                                    <FontAwesomeIcon icon={badge.icon} className="text-xs" />
+                                    <span>{badge.text}</span>
+                                  </div>
+                                ) : null;
+                              })()}
+                              
+                              <button className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-colors">
+                                <FontAwesomeIcon 
+                                  icon={expandedBet === bet.id ? faChevronUp : faChevronDown} 
+                                  className="text-sm"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="card text-center py-12">
-              <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">📊</div>
-              <h2 className="subsection-title">
-                {filter === 'all' 
-                  ? t('history.no_bets_yet')
-                  : t('history.no_bets_in_filter').replace('%s', getStatusText(filter))
-                }
-              </h2>
-              <p className="text-secondary-600 dark:text-secondary-400 mb-6">
-                {filter === 'all'
-                  ? t('history.start_betting_message')
-                  : t('history.try_different_filter')
-                }
-              </p>
-              {filter === 'all' && (
-                <a
-                  href="/bet"
-                  className="btn-primary"
-                >
-                  {t('dashboard.place_first_bet')}
-                </a>
-              )}
-            </div>
-          )}
 
-          {/* Summary Stats */}
-          {filteredBets.length > 0 && (
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="performance-card">
-                <div className="performance-card-title">
-                  {t('history.total_bets')}
+                    {/* Expanded Details */}
+                    {expandedBet === bet.id && bet.predictions.length > 0 && (
+                      <div className="border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/30">
+                        <div className="p-6">
+                          <h4 className="flex items-center space-x-2 text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
+                            <FontAwesomeIcon icon={faFlag} className="text-primary-600" />
+                            <span>{t('history.bet_details')}</span>
+                          </h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {bet.predictions.map((prediction) => (
+                              <div 
+                                key={prediction.gameId}
+                                className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                                  prediction.correct === true
+                                    ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10 shadow-emerald-100 dark:shadow-emerald-900/20'
+                                    : prediction.correct === false
+                                    ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 shadow-red-100 dark:shadow-red-900/20'
+                                    : 'border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg'
+                                } shadow-lg`}
+                              >
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-2 text-sm font-medium text-secondary-900 dark:text-secondary-100">
+                                      <TeamLogo teamName={prediction.homeTeamName} className="w-6 h-6" alt={prediction.homeTeamName} />
+                                      <span className="truncate max-w-16">{prediction.homeTeamName}</span>
+                                      <span className="text-secondary-500 mx-1">vs</span>
+                                      <span className="truncate max-w-16">{prediction.awayTeamName}</span>
+                                      <TeamLogo teamName={prediction.awayTeamName} className="w-6 h-6" alt={prediction.awayTeamName} />
+                                    </div>
+                                  </div>
+                                  {prediction.correct !== undefined && (
+                                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                                      prediction.correct 
+                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
+                                        : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                                    }`}>
+                                      <span className="text-lg font-bold">
+                                        {prediction.correct ? '✓' : '✗'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-secondary-600 dark:text-secondary-400">
+                                      {t('history.your_prediction')}:
+                                    </span>
+                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                                      {getPredictionIcon(prediction.prediction)} {getPredictionText(prediction.prediction)}
+                                    </span>
+                                  </div>
+                                  
+                                  {prediction.result && (
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-secondary-600 dark:text-secondary-400">
+                                        {t('history.actual_result')}:
+                                      </span>
+                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                                        {getPredictionIcon(prediction.result)} {getPredictionText(prediction.result)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-12 text-center">
+                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-r from-secondary-100 to-secondary-200 dark:from-secondary-700 dark:to-secondary-600 rounded-full mx-auto mb-6">
+                  <FontAwesomeIcon icon={faHistory} className="text-3xl text-secondary-600 dark:text-secondary-400" />
                 </div>
-                <div className="performance-card-value">
-                  {filteredBets.length}
+                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+                  {statusFilter === 'all' && betTypeFilter === 'all_types'
+                    ? t('history.no_bets_yet')
+                    : 'No results found'
+                  }
+                </h2>
+                <p className="text-secondary-600 dark:text-secondary-400 mb-8 max-w-md mx-auto">
+                  {statusFilter === 'all' && betTypeFilter === 'all_types'
+                    ? t('history.start_betting_message')
+                    : t('history.try_different_filter')
+                  }
+                </p>
+                {statusFilter === 'all' && betTypeFilter === 'all_types' && (
+                                      <a
+                      href="/bet"
+                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      <FontAwesomeIcon icon={faBolt} className="mr-2" />
+                      {t('dashboard.place_first_bet')}
+                    </a>
+                )}
+              </div>
+            )}
+
+            {/* Enhanced Summary Stats */}
+            {filteredBets.length > 0 && (
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl">
+                      <FontAwesomeIcon icon={faShield} className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                        {t('history.total_bets')}
+                      </div>
+                      <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                        {filteredBets.length}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl">
+                      <FontAwesomeIcon icon={faCoins} className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                        {t('history.total_wagered')}
+                      </div>
+                      <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                        <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl">
+                      <FontAwesomeIcon icon={faTrophy} className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                        {t('history.total_winnings')}
+                      </div>
+                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                        <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              <div className="performance-card">
-                <div className="performance-card-title">
-                  {t('history.total_wagered')}
-                </div>
-                <div className="performance-card-value">
-                  <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
-                </div>
-              </div>
-              
-              <div className="performance-card">
-                <div className="performance-card-title">
-                  {t('history.total_winnings')}
-                </div>
-                <div className="performance-card-value">
-                  <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </ProtectedRoute>
     </Layout>

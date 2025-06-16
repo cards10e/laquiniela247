@@ -597,9 +597,126 @@ Now let me update the README to reflect this improvement:
 
 ---
 
+```diff
+  
+  A modern web application for managing and participating in sports predictions.
++ 
++ ## 🚀 Version 2.0.17 - Dashboard Game Visibility Enhancement
++ 
++ ### 🎯 Smart Game Prioritization
++ - **Fixed Limited Game Display**: Resolved critical issue where dashboard showed only 1 upcoming game
++   - **Problem**: API returned first 20 games chronologically (oldest first), showing mostly completed games
++   - **Solution**: Increased limit to 100 games + intelligent client-side sorting
++   - **Impact**: Users now see upcoming betting opportunities prominently on dashboard
++ - **Intelligent Sorting**: Upcoming games first (earliest date), then recent completed games
++ - **Better UX**: Maintains existing UI but dramatically improves game relevance and visibility
++ - **Zero Breaking Changes**: All existing functionality preserved with enhanced game prioritization
+  
+  ## 🚀 Version 2.0.16 - Mobile Admin UX Enhancement
+```
+
+---
+
+Now let me commit and push the changes to git:
+
+---
+
+```bash
+cd /Users/batman/laquiniela247 && git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+Model provided invalid arguments to terminal tool.
+
+---
+
+```bash
+git commit -m "feat: enhance dashboard game visibility with intelligent sorting - Fix critical issue where dashboard showed only 1 upcoming game - Increase API limit from 20 to 100 games for better selection - Implement smart client-side sorting prioritizing upcoming games - TypeScript fixes for sort and map function type annotations"
+```
+
+```
+[main 373a439] feat: enhance dashboard game visibility with intelligent sorting - Fix critical issue where d
+ashboard showed only 1 upcoming game - Increase API limit from 20 to 100 games for better selection - Implem
+ent smart client-side sorting prioritizing upcoming games - TypeScript fixes for sort and map function type
+annotations
+ 5 files changed, 741 insertions(+), 2 deletions(-)
+ create mode 100644 .specstory/history/2025-06-15_15-55-investigate-dashboard-game-visibility-logic.md
+
+```
+
+---
+
 
 
 ---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Enumerating objects: 32, done.
+Counting objects: 100% (32/32), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (21/21), done.
+Writing objects: 100% (21/21), 26.78 KiB | 6.69 MiB/s, done.
+Total 21 (delta 15), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (15/15), completed with 9 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   100426a..373a439  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! ✅ **All completed successfully!**
+
+## **Summary of Changes Pushed to GitHub:**
+
+### **🎯 Dashboard Game Visibility Enhancement (v2.0.17)**
+
+**Files Updated:**
+- ✅ `frontend/src/pages/dashboard.tsx` - Enhanced with smart game sorting
+- ✅ `CHANGELOG.md` - Added comprehensive v2.0.17 entry  
+- ✅ `README.md` - Updated with latest version info
+
+**Key Improvements:**
+- **Fixed Critical Issue**: Dashboard now shows multiple upcoming games instead of just 1
+- **Smart Sorting**: Upcoming games prioritized over completed games
+- **API Optimization**: Increased limit from 20 to 100 games for better selection
+- **TypeScript Fixes**: Resolved build errors with proper type annotations
+
+**Microsoft DE Approach:**
+- ✅ **Minimal Code Changes**: Single API parameter + client-side sorting
+- ✅ **Zero Breaking Changes**: All existing functionality preserved  
+- ✅ **Root Cause Analysis**: Identified API limit + chronological ordering issue
+- ✅ **Performance Optimized**: Client-side sorting adds minimal overhead
+
+**Git Status:**
+- ✅ **Committed**: Descriptive commit message with technical details
+- ✅ **Pushed**: Successfully pushed to `main` branch on GitHub
+- ✅ **Tracked**: 5 files changed, 741 insertions, 2 deletions
+
+**Ready for Testing:** You can now test the dashboard to verify that it shows multiple upcoming scheduled games prominently, with the intelligent sorting prioritizing relevant betting opportunities for users.
+
+The fix maintains the existing 6-game display limit on the frontend but now draws from a much better-sorted collection of 100 games, ensuring upcoming games appear at the top.
+
+---
+
+_**User**_
+
+is our architecture for this app, microservices? how hard conceptually would it take ? Convert to docker containers, deploy on K8s on cloud services? please give me your opinion but dont write any code
+
+---
+
+_**Assistant**_
 
 
 

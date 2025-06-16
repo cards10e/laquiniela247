@@ -132,7 +132,7 @@
   - 1ac2104 - "Fix Bug #6: Mobile overflow in admin games management"  
   - 19a2bf6 - "Fix Bug #6: Compact mobile status layout"
 
-### 6. Betting Window Control - Incorrect Open Week Count
+### 8. Betting Window Control - Incorrect Open Week Count
 - **Status**: Fixed
 - **Priority**: Critical
 - **Reported By**: User Testing
@@ -152,8 +152,8 @@
 - **Testing**: ✅ Verified on both desktop and mobile admin interfaces
 - **Verification**: ✅ Betting window control now displays accurate count of weeks accepting bets
 
-### 7. Game Creation Failed Beyond Week 28
-- **Status**: Fixed
+### 9. Game Creation Failed Beyond Week 28
+- **Status**: Testing
 - **Priority**: High
 - **Reported By**: User Testing
 - **Date**: January 16, 2025
@@ -191,6 +191,25 @@
   - `frontend/src/pages/admin.tsx` (handleCreateGame function + better error handling)
   - `backend/src/routes/admin.ts` (duplicate game validation)
 - **Testing**: ✅ Allows seamless game creation for ANY week number without conflicts or crashes
+
+### 10. La Quiniela Bet Validation - Missing Games Error
+- **Status**: Open
+- **Priority**: High
+- **Reported By**: User Testing
+- **Date**: January 16, 2025
+- **Description**: When placing a La Quiniela bet, getting validation error "All games for the week must be included in the bet"
+- **Error Details**: 
+  - Console error: "Failed to load resource: the server responded with a status of 400 ()"
+  - HTTP 400 Bad Request suggests validation failure on bet submission
+  - Error message indicates incomplete game selection for weekly La Quiniela bets
+- **Impact**: Users cannot complete La Quiniela weekly bets, affecting core betting functionality
+- **Location**: Betting interface when submitting La Quiniela weekly bets
+- **Investigation Needed**:
+  - Check backend validation logic for La Quiniela bet requirements
+  - Verify frontend is sending all required games for the selected week
+  - Review game availability and status filtering for weekly bets
+  - Examine if some games are missing from the week or not properly loaded
+  - Check if bet submission payload includes all active games for the week
 
 ## UI/UX Bugs
 
