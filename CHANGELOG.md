@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.19] - 2025-01-16
+### 📱 Mobile Admin Interface Enhancement
+- **Fixed Duplicate Status Display**: Removed redundant "Closed" status indicators in mobile admin interface
+  - **Problem**: Mobile admin view showed "Cerrada" (Closed) status twice for each betting week - once under the week title and again in the controls section
+  - **User Impact**: Confusing and cluttered mobile interface with duplicate information
+  - **Solution**: Removed secondary status display from Enhanced Week Controls while preserving primary status under week title
+  - **Result**: Clean, streamlined mobile admin experience with single, clear status indication per week
+
+### 🎯 Mobile UX Improvements
+- **Reduced Visual Clutter**: Mobile admin interface now shows essential information without redundancy
+- **Maintained Functionality**: All admin capabilities preserved - only removed duplicate visual elements
+- **Better Information Hierarchy**: Primary status indicators remain in logical position under week titles
+- **Touch-Friendly Design**: Cleaner interface reduces cognitive load for mobile admin users
+
+### Fixed
+- Duplicate "Cerrada" (Closed) status display in mobile admin week management
+- Visual clutter in mobile admin interface causing user confusion
+- Redundant status information competing for user attention
+
+### Changed
+- Mobile admin Enhanced Week Controls no longer show duplicate status text
+- Streamlined mobile admin interface focuses on actionable controls rather than redundant status
+- Improved mobile admin user experience with cleaner information architecture
+
+### Technical Details
+- **File Modified**: `frontend/src/pages/admin.tsx`
+- **Logic Removed**: Duplicate status display logic in Enhanced Week Controls section
+- **Preserved**: Primary status indicators under week titles and all functional controls
+- **Zero Breaking Changes**: All admin functionality remains intact, only UI cleanup performed
+
 ## [2.0.18] - 2025-01-16
 ### 🔐 Navigation Security & UX Enhancement
 - **Fixed Demo User Admin Access Confusion**: Removed inappropriate admin panel link from demo user navigation

@@ -1127,12 +1127,12 @@ export default function AdminPage() {
                                           {t('admin.status_open_short')}
                                         </span>
                                       );
-                                                                         } else if (closedGames.length > 0) {
-                                       return (
-                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400">
-                                           {t('admin.status_closed_short')}
-                                         </span>
-                                       );
+                                    } else if (closedGames.length > 0) {
+                                      return (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-error-100 text-error-800 dark:bg-error-900/20 dark:text-error-400">
+                                          {t('admin.status_closed_short')}
+                                        </span>
+                                      );
                                     } else if (readyGames.length > 0) {
                                       return (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400">
@@ -1158,22 +1158,6 @@ export default function AdminPage() {
                                   const readyGames = weekGames.filter(game => game.bettingStatus?.status === 'ready');
                                   const openGames = weekGames.filter(game => game.bettingStatus?.status === 'open');
                                   const closedGames = weekGames.filter(game => game.bettingStatus?.status === 'closed');
-                                  
-                                  if (openGames.length > 0) {
-                                    return (
-                                      <span className="text-xs text-success-600 dark:text-success-400 font-medium">
-                                        <span className="hidden sm:inline">{t('admin.status_open_betting')}</span>
-                                        <span className="sm:hidden">{t('admin.status_open_short')}</span>
-                                      </span>
-                                    );
-                                                                     } else if (closedGames.length > 0) {
-                                     return (
-                                       <span className="text-xs text-error-600 dark:text-error-400 font-medium">
-                                         <span className="hidden sm:inline">{t('admin.status_closed_betting')}</span>
-                                         <span className="sm:hidden">{t('admin.status_closed_short')}</span>
-                                       </span>
-                                     );
-                                  }
                                   
                                   if (readyGames.length > 0 && openDeadlineWeekId !== Number(weekId)) {
                                     return (
