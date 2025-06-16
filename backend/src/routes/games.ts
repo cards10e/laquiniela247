@@ -283,7 +283,7 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
   }
   
   // Return data with primary week - choose the most appropriate week for betting
-  const now = new Date();
+  // (reusing 'now' variable already declared at function start)
   
   // First, try to find weeks with valid (non-expired) deadlines
   const validWeeks = openWeeks.filter(w => new Date(w.bettingDeadline) > now);
