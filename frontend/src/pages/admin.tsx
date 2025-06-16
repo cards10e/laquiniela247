@@ -243,38 +243,8 @@ export default function AdminPage() {
       // Find the selected week in allWeeks
       const selectedWeek = allWeeks.find(w => w.id === newGame.weekId);
       if (!selectedWeek) throw new Error('Selected week not found');
-      // Check if week exists in backend by making a direct API call
-      let backendWeek = weeks.find(w => w.weekNumber === selectedWeek.weekNumber);
-      let backendWeekId;
-      
-      // If not found in local state, check backend directly before creating
-      if (!backendWeek) {
-        try {
-          const weekCheckRes = await axiosInstance.get(`/weeks/${selectedWeek.weekNumber}`);
-          backendWeek = weekCheckRes.data.week;
-          backendWeekId = backendWeek?.id;
-        } catch (error: any) {
-          // Week doesn't exist in backend, create it
-          if (error?.response?.status === 404) {
-            const firstGameDate = newGame.gameDate ? new Date(newGame.gameDate) : new Date(selectedWeek.startDate);
-            const bettingDeadline = new Date(firstGameDate.getTime() - Number(selectedDeadlineHours) * 60 * 60 * 1000).toISOString();
-            const weekRes = await axiosInstance.post('/admin/weeks', {
-              weekNumber: selectedWeek.weekNumber,
-              season: '2025',
-              startDate: selectedWeek.startDate,
-              endDate: selectedWeek.endDate,
-              bettingDeadline
-            });
-            backendWeekId = weekRes.data.id;
-          } else {
-            throw error; // Re-throw non-404 errors
-          }
-        }
-      } else {
-        backendWeekId = backendWeek.id;
-        // Do NOT update the week, since no update endpoint exists
-      }
-      if (!backendWeekId) throw new Error('Failed to create or find week');
+      // Backend will automatically create week if it doesn't exist
+      // No need for frontend week management - let backend handle everything
       // Create the game
       const matchDateISO = new Date(newGame.gameDate).toISOString();
       await axiosInstance.post('/admin/games', {
