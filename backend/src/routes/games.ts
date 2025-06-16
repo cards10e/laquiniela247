@@ -282,9 +282,24 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     });
   }
   
-  // Return data with primary week - choose the week with the most recent VALID betting deadline
-  // (not just highest numbered week, as some might have passed deadlines)
-  const primaryWeek = openWeeks.find(w => new Date(w.bettingDeadline) > now) || openWeeks[0];
+  // Return data with primary week - choose the most appropriate week for betting
+  const now = new Date();
+  
+  // First, try to find weeks with valid (non-expired) deadlines
+  const validWeeks = openWeeks.filter(w => new Date(w.bettingDeadline) > now);
+  
+  let primaryWeek;
+  if (validWeeks.length > 0) {
+    // If there are valid weeks, pick the one with the earliest deadline (most urgent)
+    primaryWeek = validWeeks.reduce((earliest, current) => 
+      new Date(current.bettingDeadline) < new Date(earliest.bettingDeadline) ? current : earliest
+    );
+  } else {
+    // If all deadlines have passed, pick the most recently opened week (highest week number)
+    primaryWeek = openWeeks.reduce((latest, current) => 
+      current.weekNumber > latest.weekNumber ? current : latest
+    );
+  }
   
   res.json({
     week: primaryWeek,
