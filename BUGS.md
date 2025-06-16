@@ -153,10 +153,11 @@
 - **Verification**: ✅ Betting window control now displays accurate count of weeks accepting bets
 
 ### 7. Game Creation Failed Beyond Week 28
-- **Status**: Open
+- **Status**: Fixed
 - **Priority**: High
 - **Reported By**: User Testing
 - **Date**: January 16, 2025
+- **Fixed**: January 16, 2025
 - **Description**: Cannot add games for weeks beyond week 28, receiving "Error al crear el juego" message
 - **Error Details**: 
   - Console error: "Failed to load resource: the server responded with a status of 409 ()"
@@ -175,7 +176,13 @@
   - Frontend week detection logic failing to find existing week 28 record
   - Attempting `POST /api/admin/weeks` for week that already exists
   - Database constraint `@@unique([weekNumber, season])` triggers 409 Conflict
-- **Fix Required**: Update admin panel logic to properly detect existing weeks before attempting creation
+- **Solution Applied**: ✅ **FIXED**
+  - Added direct backend API call to check week existence before creation attempt
+  - Flow now: check local state → check backend via GET /weeks/{weekNumber} → create only if 404
+  - Prevents duplicate week creation attempts that triggered 409 Conflict errors
+  - Minimal code change preserves all existing functionality and error handling
+- **Files Modified**: `frontend/src/pages/admin.tsx` (handleCreateGame function)
+- **Testing**: Should now allow game creation for week 28+ without 409 errors
 
 ## UI/UX Bugs
 
