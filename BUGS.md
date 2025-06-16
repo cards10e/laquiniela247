@@ -164,12 +164,18 @@
   - Week number appears to hit some database or validation constraint at week 28
 - **Impact**: Prevents scheduling games for the final weeks of the season (weeks 29+)
 - **Location**: Admin panel - Create Game form
-- **Investigation Needed**:
-  - Check database constraints on week numbers in Game and Week models
-  - Verify season/week validation logic in backend game creation endpoint
-  - Review if week 28 represents end-of-season boundary in current system
-  - Examine if duplicate week creation is causing the 409 conflict
-  - Check if Week records need to be created before Game records for weeks 29+
+- **Root Cause Identified**: ✅ **FOUND via PM2 logs analysis**
+  - Backend logs show `POST /api/admin/weeks - 409` errors for weekNumber 28
+  - Admin panel attempting to create duplicate Week record for week 28
+  - Week 28 already exists in database, but frontend logic doesn't detect it properly
+  - Database unique constraint on `weekNumber` correctly prevents duplicate weeks
+  - Game creation fails because week creation step fails first
+- **Technical Details**:
+  - Error occurs in admin game creation flow: find week → create week if missing → create game
+  - Frontend week detection logic failing to find existing week 28 record
+  - Attempting `POST /api/admin/weeks` for week that already exists
+  - Database constraint `@@unique([weekNumber, season])` triggers 409 Conflict
+- **Fix Required**: Update admin panel logic to properly detect existing weeks before attempting creation
 
 ## UI/UX Bugs
 
