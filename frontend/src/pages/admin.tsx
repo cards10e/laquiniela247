@@ -739,7 +739,12 @@ export default function AdminPage() {
                               );
                               return readyGames.length > 0;
                             });
-                            const openWeeks = weeks.filter(week => week.status?.toLowerCase() === 'open');
+                            const now = new Date();
+                            const openWeeks = weeks.filter(week => 
+                              week.status?.toLowerCase() === 'open' && 
+                              week.bettingDeadline && 
+                              new Date(week.bettingDeadline) > now
+                            );
                             
                             if (readyWeeks.length > 0) {
                               return (
@@ -996,7 +1001,12 @@ export default function AdminPage() {
                   </div>
                   <div className="flex flex-wrap gap-2 text-sm">
                     {(() => {
-                      const openWeeks = weeks.filter(week => week.status?.toLowerCase() === 'open').length;
+                      const now = new Date();
+                      const openWeeks = weeks.filter(week => 
+                        week.status?.toLowerCase() === 'open' && 
+                        week.bettingDeadline && 
+                        new Date(week.bettingDeadline) > now
+                      ).length;
                       const readyWeeks = weeks.filter(week => {
                         const readyGames = games.filter(game => 
                           game.weekId === week.weekNumber && 

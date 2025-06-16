@@ -132,6 +132,25 @@
   - 1ac2104 - "Fix Bug #6: Mobile overflow in admin games management"  
   - 19a2bf6 - "Fix Bug #6: Compact mobile status layout"
 
+### 6. Betting Window Control - Incorrect Open Week Count
+- **Status**: Fixed
+- **Priority**: Critical
+- **Reported By**: User Testing
+- **Date**: January 16, 2025
+- **Fixed**: January 16, 2025
+- **Description**: Betting window control was displaying "4 weeks open" when there were only 2 weeks actually open for betting
+- **Impact**: Misleading information for administrators managing betting windows, could lead to incorrect decisions about opening/closing betting periods
+- **Location**: Admin panel - Betting Window Control section
+- **Root Cause**: Frontend filtering logic only checked `week.status === 'open'` but ignored `week.bettingDeadline`. Weeks with expired betting deadlines were still counted as "open"
+- **Solution**: 
+  - Updated both betting window control sections (main and mobile) to check both week status AND betting deadline
+  - Added proper datetime comparison: `week.status === 'open' && new Date(week.bettingDeadline) > now`
+  - Now frontend filtering matches backend logic in `/api/weeks/current` endpoint
+  - Ensures displayed count reflects weeks actually accepting bets, not just weeks with "open" status
+- **Files Modified**:
+  - `frontend/src/pages/admin.tsx` (lines 741-747 and 998-1004)
+- **Testing**: Verified on both desktop and mobile admin interfaces
+
 ## UI/UX Bugs
 
 ### 1. Light/Dark Mode Toggle
