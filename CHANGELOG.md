@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.20] - 2025-01-16
+### 🎨 Dashboard Visual Enhancement
+- **Enhanced Total Winnings Display**: Added conditional coloring to Total Winnings in dashboard performance overview
+  - **Green for Positive**: Total winnings values > $0 now display in green (`!text-success-600 dark:!text-success-400`)
+  - **Red for Negative/Zero**: Total winnings values ≤ $0 now display in red (`!text-error-600 dark:!text-error-400`)
+  - **Color Consistency**: Uses the exact same color scheme as the Total Revenue in the admin panel
+  - **Visual Clarity**: Provides immediate visual feedback on user performance and profit/loss status
+  - **Accessibility**: Maintains proper contrast ratios in both light and dark modes
+
+### 💡 UX Improvements
+- **Performance Indicators**: Dashboard now provides clear visual cues for financial performance
+- **Color Psychology**: Green indicates success/profit, red indicates loss/break-even
+- **Admin Panel Consistency**: Maintains consistent color scheme across admin and user dashboards
+
 ## [2.0.19] - 2025-01-16
 ### 📱 Mobile Admin Interface Enhancement
 - **Fixed Duplicate Status Display**: Removed redundant "Closed" status indicators in mobile admin interface

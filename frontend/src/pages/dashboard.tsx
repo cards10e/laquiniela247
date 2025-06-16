@@ -286,7 +286,11 @@ export default function DashboardPage() {
                 <div className="performance-card-title">
                   {t('dashboard.total_winnings')}
                 </div>
-                <div className="performance-card-value">
+                <div className={`performance-card-value ${
+                  (profile?.totalWinnings || 0) > 0 
+                    ? '!text-success-600 dark:!text-success-400'
+                    : '!text-error-600 dark:!text-error-400'
+                }`}>
                   {formatCurrency(profile?.totalWinnings || 0)}
                 </div>
               </div>
