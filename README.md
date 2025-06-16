@@ -2,7 +2,22 @@
 
 A modern web application for managing and participating in sports predictions.
 
-## 🚀 Version 2.0.17 - Dashboard Game Visibility Enhancement
+## 🚀 Version 2.0.22 - Critical Production Rate Limiting Fix
+
+### 🚨 Resolved "Too Many Requests" API Issues
+- **Fixed Production Rate Limiting**: Eliminated external API rate limit violations affecting live users
+  - **Problem**: Background currency refresh timers created hundreds of API calls to exchange rate providers
+  - **Root Cause**: Each user visit started a 5-minute polling interval to `exchangerate-api.com` and `fixer.io`
+  - **Solution**: Disabled aggressive background refresh while preserving intelligent on-demand currency conversion
+  - **Impact**: Production site now operates sustainably without hitting API rate limits
+
+### 🔧 Optimized Currency Architecture
+- **Smart On-Demand Fetching**: Currency conversion only calls APIs when users actually need conversions
+- **Multi-Layer Caching**: 5-minute fresh cache, 30-minute stale tolerance, always-available fallback rates
+- **Production Rate Limiting**: Deploy script automatically enables 100 requests/15 minutes limit per IP
+- **Zero Breaking Changes**: All currency functionality preserved with better performance and cost efficiency
+
+## 🚀 Version 2.0.21 - Critical Betting Countdown Fix
 
 ### 🎯 Smart Game Prioritization
 - **Fixed Limited Game Display**: Resolved critical issue where dashboard showed only 1 upcoming game

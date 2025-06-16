@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.22] - 2025-01-16
+### 🚨 Critical Production Issue Fix - Rate Limiting
+- **Fixed "Too Many Requests" API Rate Limiting**: Resolved critical production issue causing external API rate limit violations
+  - **Problem**: Every user visiting the site started a 5-minute background timer making API calls to `exchangerate-api.com` and `fixer.io`
+  - **Root Cause**: `exchangeRateService.startBackgroundRefresh()` created multiple intervals across browser tabs causing hundreds of API calls
+  - **Impact**: External APIs rate-limited our production site, affecting all users with "too many requests" errors
+  - **Solution**: Disabled aggressive background refresh while preserving intelligent on-demand currency conversion
+
+### 🔧 Optimized Currency Exchange Architecture
+- **Smart Caching Strategy**: Leveraged existing multi-layer cache system without background polling
+  - **Fresh Cache**: 5 minutes for immediate accuracy
+  - **Stale Tolerance**: 30 minutes for resilience during API downtime
+  - **Fallback Rates**: Always-available backup rates prevent complete failure
+  - **On-Demand Fetching**: Currency conversion only triggers API calls when users actually convert currencies
+- **Multi-Provider Failover**: ExchangeRate-API and Fixer.io with graceful degradation maintained
+
+### 🛡️ Production Rate Limiting Confirmation
+- **Deploy Script Verification**: Confirmed `deploy.sh` automatically enables production rate limiting
+  - **Development**: Rate limiting commented out for easy testing
+  - **Production**: Deployment script uncomments all rate limiting middleware
+  - **Default Limits**: 100 requests per 15 minutes per IP (very reasonable)
+  - **Automatic**: No manual intervention required during deployment process
+
+### 💡 Performance & Cost Optimization
+- **Reduced External API Calls**: Eliminated unnecessary background API polling, reducing costs and improving reliability
+- **Better User Experience**: Currency conversion still works seamlessly but only fetches rates when needed
+- **Server Load Reduction**: Fewer background processes and API calls improve overall application performance
+- **Sustainable Architecture**: Application now scales without hitting external API rate limits
+
+### Fixed
+- Production "too many requests" errors from external currency exchange APIs
+- Multiple background refresh timers created by simultaneous user visits
+- Excessive API calls to exchangerate-api.com and fixer.io services
+- Potential cost escalation from unlimited background API polling
+
+### Changed
+- Disabled background currency refresh to prevent API rate limiting
+- Currency exchange now operates on intelligent on-demand fetching
+- Preserved all currency conversion functionality with better resource management
+- Maintained multi-provider failover and caching strategies
+
+### Technical Details
+- **File Modified**: `frontend/src/context/CurrencyContext.tsx` - commented out `exchangeRateService.startBackgroundRefresh()`
+- **Architecture Preserved**: All existing currency conversion, caching, and fallback logic intact
+- **Zero Breaking Changes**: Users experience identical currency functionality with better performance
+- **Production Safety**: Deploy script continues to enable rate limiting as designed
+
 ## [2.0.21] - 2025-01-16
 ### 🔧 Critical Betting Countdown Fix
 - **Fixed Incorrect Betting Deadline Display**: Enhanced primary week selection logic in `/api/games/current-week`

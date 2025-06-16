@@ -23,8 +23,16 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       setCurrency(savedCurrency);
     }
     
-    // Start background exchange rate refresh
-    exchangeRateService.startBackgroundRefresh();
+    // Disabled background refresh to prevent API rate limiting
+    // Exchange rates will still be fetched on-demand with smart caching
+    // const refreshId = exchangeRateService.startBackgroundRefresh();
+    // 
+    // return () => {
+    //   // Clean up the interval when component unmounts
+    //   if (refreshId) {
+    //     clearInterval(refreshId);
+    //   }
+    // };
   }, []);
 
   // Save currency to localStorage when it changes

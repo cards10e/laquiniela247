@@ -169,8 +169,8 @@ class ExchangeRateService {
   }
 
   // Background refresh for better UX
-  startBackgroundRefresh(): void {
-    setInterval(async () => {
+  startBackgroundRefresh(): NodeJS.Timeout {
+    return setInterval(async () => {
       try {
         await this.getExchangeRates();
         console.log('Background exchange rate refresh completed');
