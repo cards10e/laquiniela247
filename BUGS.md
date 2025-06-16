@@ -149,7 +149,27 @@
   - Ensures displayed count reflects weeks actually accepting bets, not just weeks with "open" status
 - **Files Modified**:
   - `frontend/src/pages/admin.tsx` (lines 741-747 and 998-1004)
-- **Testing**: Verified on both desktop and mobile admin interfaces
+- **Testing**: ✅ Verified on both desktop and mobile admin interfaces
+- **Verification**: ✅ Betting window control now displays accurate count of weeks accepting bets
+
+### 7. Game Creation Failed Beyond Week 28
+- **Status**: Open
+- **Priority**: High
+- **Reported By**: User Testing
+- **Date**: January 16, 2025
+- **Description**: Cannot add games for weeks beyond week 28, receiving "Error al crear el juego" message
+- **Error Details**: 
+  - Console error: "Failed to load resource: the server responded with a status of 409 ()"
+  - HTTP 409 Conflict status suggests duplicate or constraint violation
+  - Week number appears to hit some database or validation constraint at week 28
+- **Impact**: Prevents scheduling games for the final weeks of the season (weeks 29+)
+- **Location**: Admin panel - Create Game form
+- **Investigation Needed**:
+  - Check database constraints on week numbers in Game and Week models
+  - Verify season/week validation logic in backend game creation endpoint
+  - Review if week 28 represents end-of-season boundary in current system
+  - Examine if duplicate week creation is causing the 409 conflict
+  - Check if Week records need to be created before Game records for weeks 29+
 
 ## UI/UX Bugs
 
