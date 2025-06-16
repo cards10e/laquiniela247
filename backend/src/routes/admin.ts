@@ -411,6 +411,27 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     throw createError('Home and away teams cannot be the same', 400);
   }
 
+  // Check for duplicate games (same teams in same week)
+  const existingGame = await prisma.game.findFirst({
+    where: {
+      weekNumber: validatedData.weekNumber,
+      OR: [
+        {
+          homeTeamId: validatedData.homeTeamId,
+          awayTeamId: validatedData.awayTeamId
+        },
+        {
+          homeTeamId: validatedData.awayTeamId,
+          awayTeamId: validatedData.homeTeamId
+        }
+      ]
+    }
+  });
+
+  if (existingGame) {
+    throw createError('A game between these teams already exists for this week', 409);
+  }
+
   // Verify week exists
   console.log('[DEBUG] Attempting week lookup with:', {
     weekNumber: validatedData.weekNumber,

@@ -260,7 +260,8 @@ export default function AdminPage() {
       setShowDeadlineModal(null);
       fetchAdminData();
     } catch (error: any) {
-      toast.error(t('admin.game_creation_failed') + (error?.response?.data?.message ? ': ' + error.response.data.message : ''));
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Unknown error occurred';
+      toast.error(t('admin.game_creation_failed') + ': ' + errorMessage);
     }
   };
 
