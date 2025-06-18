@@ -458,6 +458,69 @@ else
     log_info "4 steps remaining..."
 fi
 
+# 7.5. RUN BET TYPES MIGRATION (New Step)
+if [ "$MIGRATE_BET_TYPES" = "true" ]; then
+    log_step "7.5" 11 "Running Bet Types Migration"
+    log_info "Step 7.5/11: Starting bet types migration process..."
+    
+    # Create backup before bet types migration (always, for safety)
+    bet_types_backup_file="$REMOTE_PATH/backup_before_bet_types_$(date +%Y%m%d_%H%M%S).sql"
+    log_info "Step 7.5/11: Creating safety backup before bet types migration..."
+    execute_command "ssh $SSH_OPTS $REMOTE 'mysqldump -u root -p\"T6Bkd239XsdQA1\" --single-transaction --routines --triggers laquiniela247 > $bet_types_backup_file'" "create bet types migration backup"
+    log_success "Safety backup created: $bet_types_backup_file"
+    
+    # Validate paths and dependencies
+    log_info "Step 7.5/11: Validating migration prerequisites..."
+    if ! ssh $SSH_OPTS $REMOTE "[ -d $REMOTE_PATH/backend ]"; then
+        log_error "Backend directory not found: $REMOTE_PATH/backend"
+        exit 1
+    fi
+    
+    if ! ssh $SSH_OPTS $REMOTE "[ -f $REMOTE_PATH/backend/src/scripts/migrateBetTypes.ts ]"; then
+        log_error "Bet types migration script not found: $REMOTE_PATH/backend/src/scripts/migrateBetTypes.ts"
+        exit 1
+    fi
+    
+    if ! ssh $SSH_OPTS $REMOTE "[ -f $REMOTE_PATH/backend/package.json ]"; then
+        log_error "Backend package.json not found: $REMOTE_PATH/backend/package.json"
+        exit 1
+    fi
+    
+    # Install backend dependencies if not already done
+    log_info "Step 7.5/11: Ensuring backend dependencies are installed..."
+    execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/backend && npm install'" "install backend dependencies"
+    
+    # Run migration dry-run first for safety
+    log_info "Step 7.5/11: Running bet types migration dry-run..."
+    execute_command "ssh $SSH_OPTS $REMOTE \"cd $REMOTE_PATH/backend && DATABASE_URL=\\\"mysql://root:T6Bkd239XsdQA1@127.0.0.1:3306/laquiniela247\\\" npm run migrate:bet-types -- --dry-run\"" "run bet types migration dry-run"
+    
+    # Run live migration with error handling
+    log_warning "Step 7.5/11: Running LIVE bet types migration..."
+    log_warning "⚠️  This will modify the database schema and classify existing bets!"
+    
+    if ! ssh $SSH_OPTS $REMOTE "cd $REMOTE_PATH/backend && DATABASE_URL=\"mysql://root:T6Bkd239XsdQA1@127.0.0.1:3306/laquiniela247\" npm run migrate:bet-types -- --live"; then
+        log_error "Bet types migration failed! Attempting rollback from backup..."
+        execute_command "ssh $SSH_OPTS $REMOTE 'mysql -u root -p\"T6Bkd239XsdQA1\" laquiniela247 < $bet_types_backup_file'" "rollback bet types migration"
+        log_error "Database rolled back to pre-migration state. Check logs for migration failure details."
+        exit 1
+    fi
+    
+    # Verify migration success
+    log_info "Step 7.5/11: Verifying bet types migration..."
+    if ! ssh $SSH_OPTS $REMOTE "cd $REMOTE_PATH/backend && DATABASE_URL=\"mysql://root:T6Bkd239XsdQA1@127.0.0.1:3306/laquiniela247\" npm run migrate:bet-types -- --analyze"; then
+        log_warning "Migration verification failed, but migration may have succeeded. Check manually."
+    fi
+    
+    log_step_complete "7.5" 11 "Bet Types Migration completed successfully"
+    log_info "3.5 steps remaining..."
+else
+    log_step "7.5" 11 "Skipping Bet Types Migration"
+    log_info "Step 7.5/11: Bet types migration disabled - database schema unchanged"
+    log_success "Existing database schema preserved"
+    log_step_complete "7.5" 11 "Bet Types Migration skipped"
+    log_info "3.5 steps remaining..."
+fi
+
 # 8. RESTART NODE.JS APP (PM2)
 log_step 8 11 "Restarting Node.js app with PM2"
 log_info "Step 8/11: Starting frontend (Next.js SSR) with PM2..."
@@ -510,7 +573,14 @@ else
     log_success "✅ Safe deployment: Production database PRESERVED"
 fi
 
+if [ "$MIGRATE_BET_TYPES" = "true" ]; then
+    log_success "✅ Bet types migration: COMPLETED"
+    log_success "✅ Safety backup: CREATED (check $REMOTE_PATH/backup_before_bet_types_*.sql)"
+fi
+
 log_info "=== USAGE EXAMPLES ==="
 log_info "Code-only deployment (safe):        ./deploy.sh"
 log_info "Database migration (destructive):   MIGRATE_DB=true ./deploy.sh"
-log_info "Migration with backup (safest):     BACKUP_PROD=true MIGRATE_DB=true ./deploy.sh" 
+log_info "Migration with backup (safest):     BACKUP_PROD=true MIGRATE_DB=true ./deploy.sh"
+log_info "Bet types migration only:           MIGRATE_BET_TYPES=true ./deploy.sh"
+log_info "Full migration (db + bet types):    MIGRATE_DB=true MIGRATE_BET_TYPES=true BACKUP_PROD=true ./deploy.sh" 

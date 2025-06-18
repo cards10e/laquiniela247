@@ -269,12 +269,11 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       }
     };
     
-    // 🧪 TEMPORARY: Disable betType filtering to test if bets are being saved
     // Filter by betType if specified (for separating single vs parlay bets)
-    // if (betType && (betType === 'single' || betType === 'parlay')) {
-    //   // Convert to uppercase enum values that Prisma expects
-    //   betFilter.betType = betType.toUpperCase();
-    // }
+    if (betType && (betType === 'single' || betType === 'parlay')) {
+      // Convert to uppercase enum values that Prisma expects
+      betFilter.betType = betType.toUpperCase();
+    }
     
     console.log('[DEBUG] Fetching user bets with filter:', betFilter);
     const userBets = await prisma.bet.findMany({
@@ -333,11 +332,10 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       weekId: primaryWeek.id
     };
     
-    // 🧪 TEMPORARY: Disable betType filtering to test if bets are being saved
     // Apply same betType filter as above for consistency
-    // if (betType && (betType === 'single' || betType === 'parlay')) {
-    //   userBetFilter.betType = betType.toUpperCase();
-    // }
+    if (betType && (betType === 'single' || betType === 'parlay')) {
+      userBetFilter.betType = betType.toUpperCase();
+    }
     
     const userBetsInPrimaryWeek = await prisma.bet.count({
       where: userBetFilter

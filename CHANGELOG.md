@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.26] - 2025-01-18
+### 🐛 Critical Bug Fix: Single Bets Not Persisting (Bug #11)
+- **Fixed Database Constraint Issue**: Resolved critical bug where single bets appeared to be placed successfully but disappeared after user logout/login
+  - **Root Cause**: Database unique constraint `UNIQUE(user_id, game_id)` prevented placing both single AND parlay bets on the same game by the same user
+  - **Silent Failure Pattern**: API returned 200 OK but database silently rejected transactions due to constraint violations
+  - **Prisma Client Mismatch**: Backend code using outdated constraint names after schema changes
+
+### 🔧 Database Schema Migration
+- **Enhanced Unique Constraint**: Updated database constraint to allow both bet types on same game
+  - **Before**: `UNIQUE KEY (user_id, game_id)` - prevented mixed bet types
+  - **After**: `UNIQUE KEY (user_id, game_id, bet_type)` - allows single + parlay on same game
+  - **Smart Prevention**: Still prevents duplicate bets of same type on same game
+  - **Production Migration**: Applied direct database migration with zero downtime
+
+### 🎯 Backend API Improvements
+- **Fixed Prisma Query Logic**: Updated backend to use correct constraint reference
+  - **Before**: `userId_gameId: { userId, gameId }` - caused validation errors
+  - **After**: `userId_gameId_betType: { userId, gameId, betType: 'SINGLE' }` - proper type-aware validation
+  - **Enhanced Error Handling**: Improved error logging for database constraint violations
+  - **Type Safety**: Ensured TypeScript compatibility with new constraint structure
+
+### 🚀 User Experience Restoration
+- **Persistent Single Bets**: Single bets now correctly persist across login sessions
+  - **Mixed Betting Support**: Users can place both single bets AND parlay bets on same games
+  - **Eliminated "Endless Betting"**: Fixed confusing behavior where users could repeatedly place the same bet
+  - **Consistent State**: Betting interface now accurately reflects actual database state
+  - **Proper Validation**: Duplicate prevention works correctly for each bet type independently
+
+### Technical Implementation
+- **Database Migration**:
+  ```sql
+  -- Removed problematic constraint
+  ALTER TABLE bets DROP INDEX bets_user_id_game_id_key;
+  
+  -- Added enhanced constraint supporting bet types
+  ALTER TABLE bets ADD UNIQUE KEY bets_user_id_game_id_bet_type_key (user_id, game_id, bet_type);
+  ```
+- **Prisma Schema Update**: `@@unique([userId, gameId, betType])` - enhanced constraint modeling
+- **Backend Logic Fix**: Updated bet validation to use type-aware constraint checking
+- **Zero Breaking Changes**: All existing functionality preserved with enhanced capabilities
+
+### Fixed
+- Single bets disappearing after user logout/login cycles
+- Silent database transaction failures with misleading 200 OK responses
+- Prisma client validation errors for constraint lookups
+- "Endless betting" behavior causing user confusion
+- Database constraint conflicts between single and parlay bet types
+
+### Enhanced
+- Database schema with intelligent bet type separation
+- Backend validation logic with proper constraint awareness
+- User experience with consistent bet persistence
+- Error handling with detailed constraint violation logging
+- System reliability with elimination of silent failures
+
 ## [2.0.25] - 2025-01-18
 ### 🎯 Complete Single Bet & Parlay System Implementation
 - **Full Bet Type Migration System**: Successfully migrated database to support both SINGLE and PARLAY bet types

@@ -59,12 +59,13 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
     throw createError('Cannot bet on games that have already started', 400);
   }
 
-  // Check if user already has a bet for this game
+  // Check if user already has a single bet for this game
   const existingBet = await prisma.bet.findUnique({
     where: {
-      userId_gameId: {
+      userId_gameId_betType: {
         userId,
-        gameId: validatedData.gameId
+        gameId: validatedData.gameId,
+        betType: 'SINGLE'
       }
     }
   });
@@ -93,41 +94,67 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
     });
   } else {
     // Create new bet and transaction
-    const result = await prisma.$transaction(async (tx) => {
-      const newBet = await tx.bet.create({
-        data: {
-          userId,
-          weekId: game.week.id,
-          gameId: validatedData.gameId,
-          prediction: validatedData.prediction,
-          betType: 'SINGLE' // Set betType for single bets
-        },
-        include: {
-          game: {
-            include: {
-              homeTeam: { select: { name: true, shortName: true } },
-              awayTeam: { select: { name: true, shortName: true } }
+    try {
+      console.log('[DEBUG] Creating new single bet:', {
+        userId,
+        weekId: game.week.id,
+        gameId: validatedData.gameId,
+        prediction: validatedData.prediction,
+        betType: 'SINGLE'
+      });
+      
+      const result = await prisma.$transaction(async (tx) => {
+        const newBet = await tx.bet.create({
+          data: {
+            userId,
+            weekId: game.week.id,
+            gameId: validatedData.gameId,
+            prediction: validatedData.prediction,
+            betType: 'SINGLE' // Set betType for single bets
+          },
+          include: {
+            game: {
+              include: {
+                homeTeam: { select: { name: true, shortName: true } },
+                awayTeam: { select: { name: true, shortName: true } }
+              }
             }
           }
-        }
+        });
+        
+        console.log('[DEBUG] Single bet created successfully:', newBet.id);
+        
+        const transaction = await tx.transaction.create({
+          data: {
+            userId,
+            weekId: game.week.id,
+            type: 'ENTRY_FEE',
+            amount,
+            status: 'COMPLETED'
+          }
+        });
+        
+        console.log('[DEBUG] Transaction created successfully:', transaction.id);
+        
+        return { newBet, transaction };
       });
-      const transaction = await tx.transaction.create({
-        data: {
-          userId,
-          weekId: game.week.id,
-          type: 'ENTRY_FEE',
-          amount,
-          status: 'COMPLETED'
-        }
-      });
-      return { newBet, transaction };
-    });
 
-    res.status(201).json({
-      message: 'Bet placed successfully',
-      bet: result.newBet,
-      transaction: result.transaction
-    });
+      console.log('[DEBUG] Single bet transaction completed successfully');
+
+      res.status(201).json({
+        message: 'Bet placed successfully',
+        bet: result.newBet,
+        transaction: result.transaction
+      });
+    } catch (error) {
+      console.error('[ERROR] Single bet creation failed:', error);
+      console.error('[ERROR] Error details:', {
+        message: (error as any).message,
+        code: (error as any).code,
+        meta: (error as any).meta
+      });
+      throw error;
+    }
   }
 }));
 

@@ -78,7 +78,7 @@ model Bet {
   user       User       @relation(fields: [userId], references: [id])
   week       Week       @relation(fields: [weekId], references: [id])
 
-  @@unique([userId, gameId])
+  @@unique([userId, gameId, betType])
   @@index([userId, weekId])
   @@index([gameId])
   @@index([weekId], map: "bets_week_id_fkey")

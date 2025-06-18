@@ -98,6 +98,17 @@ async function runMigration(dryRun: boolean = true) {
   try {
     console.log('🚀 Starting Bet Type Migration...');
     console.log(`📋 Mode: ${dryRun ? 'DRY RUN (no changes)' : 'LIVE MIGRATION'}`);
+    console.log(`🔗 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
+    console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+    
+    // Production safety check
+    if (!dryRun) {
+      console.log('\n⚠️  PRODUCTION SAFETY WARNING ⚠️');
+      console.log('This is a LIVE migration that will modify your database schema!');
+      console.log('Ensure you have a backup before proceeding.');
+      console.log('Press Ctrl+C within 5 seconds to abort...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
     
     // Step 1: Check if bet_type column exists
     console.log('\n🔍 Checking if bet_type column exists...');

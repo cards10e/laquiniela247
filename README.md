@@ -2,6 +2,20 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.26 - Critical Bug Fix: Single Bets Not Persisting (Bug #11)
+
+### 🐛 **Fixed Single Bet Persistence Issue**
+- **Database Constraint Resolution**: Resolved critical bug where single bets appeared successful but disappeared after logout
+- **Enhanced Unique Constraint**: Updated constraint from `(user_id, game_id)` to `(user_id, game_id, bet_type)` allowing mixed betting
+- **Proper Validation**: Fixed Prisma client constraint references and eliminated silent database failures
+- **Restored User Experience**: Single bets now persist correctly across login sessions with proper duplicate prevention
+
+### 🔧 **Technical Implementation**
+- **Zero-Downtime Migration**: Applied direct database schema changes with backward compatibility
+- **Smart Constraint Design**: Allows both single AND parlay bets on same game while preventing duplicate bets of same type
+- **Enhanced Error Handling**: Improved logging and validation for constraint violations
+- **Production-Tested**: Successfully deployed with comprehensive testing across all bet scenarios
+
 ## 🎯 Version 2.0.25 - Complete Single Bet & Parlay System Implementation
 
 ### 🚀 **Revolutionary Betting Architecture**
