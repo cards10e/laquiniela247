@@ -733,4 +733,27 @@ router.get('/teams', asyncHandler(async (req: AuthenticatedRequest, res: express
   res.json({ teams });
 }));
 
+// DELETE /api/admin/demo-user/bets - Delete all bets for demo user (demo purposes only)
+router.delete('/demo-user/bets', asyncHandler(async (req: AuthenticatedRequest, res: express.Response) => {
+  // Security check: Only allow for demo user
+  const demoUser = await prisma.user.findUnique({
+    where: { email: 'demo@laquiniela247.mx' }
+  });
+
+  if (!demoUser) {
+    throw createError('Demo user not found', 404);
+  }
+
+  // Delete all bets for demo user
+  const deleteResult = await prisma.bet.deleteMany({
+    where: { userId: demoUser.id }
+  });
+
+  res.json({
+    message: `Successfully deleted ${deleteResult.count} bets for demo user`,
+    deletedCount: deleteResult.count,
+    timestamp: new Date().toISOString()
+  });
+}));
+
 export default router;

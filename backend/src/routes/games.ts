@@ -259,16 +259,29 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
   
   // If user is authenticated, include their bets for ALL open weeks
   let gamesWithUserBets = updatedGames;
+  const betType = req.query.betType as string; // Get betType from query parameter - moved to higher scope
   if (req.user) {
     const weekIds = openWeeks.map(w => w.id);
-    const userBets = await prisma.bet.findMany({
-      where: {
-        userId: req.user.id,
-        weekId: {
-          in: weekIds
-        }
+    const betFilter: any = {
+      userId: req.user.id,
+      weekId: {
+        in: weekIds
       }
+    };
+    
+    // 🧪 TEMPORARY: Disable betType filtering to test if bets are being saved
+    // Filter by betType if specified (for separating single vs parlay bets)
+    // if (betType && (betType === 'single' || betType === 'parlay')) {
+    //   // Convert to uppercase enum values that Prisma expects
+    //   betFilter.betType = betType.toUpperCase();
+    // }
+    
+    console.log('[DEBUG] Fetching user bets with filter:', betFilter);
+    const userBets = await prisma.bet.findMany({
+      where: betFilter
     });
+    console.log('[DEBUG] Found user bets:', userBets.length, userBets.map(b => ({ gameId: b.gameId, prediction: b.prediction, betType: b.betType })));
+
     const betsByGameId = userBets.reduce((acc, bet) => {
       acc[bet.gameId] = bet;
       return acc;
@@ -301,11 +314,49 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     );
   }
   
+  // Calculate betStatus for the primary week
+  let betStatus = {
+    canBet: openWeeks.some(w => w.status === 'OPEN' && new Date() < w.bettingDeadline),
+    hasPlacedAllBets: false,
+    placedBetsCount: 0,
+    totalGamesCount: 0
+  };
+
+  if (req.user && primaryWeek) {
+    const totalGamesInPrimaryWeek = await prisma.game.count({
+      where: { weekNumber: primaryWeek.weekNumber }
+    });
+    
+    // Filter bet counting by betType to match the request filter
+    const userBetFilter: any = {
+      userId: req.user.id,
+      weekId: primaryWeek.id
+    };
+    
+    // 🧪 TEMPORARY: Disable betType filtering to test if bets are being saved
+    // Apply same betType filter as above for consistency
+    // if (betType && (betType === 'single' || betType === 'parlay')) {
+    //   userBetFilter.betType = betType.toUpperCase();
+    // }
+    
+    const userBetsInPrimaryWeek = await prisma.bet.count({
+      where: userBetFilter
+    });
+
+    betStatus = {
+      canBet: betStatus.canBet,
+      hasPlacedAllBets: userBetsInPrimaryWeek >= totalGamesInPrimaryWeek && totalGamesInPrimaryWeek > 0,
+      placedBetsCount: userBetsInPrimaryWeek,
+      totalGamesCount: totalGamesInPrimaryWeek
+    };
+  }
+
   res.json({
     week: primaryWeek,
     weeks: openWeeks, // Include all open weeks for frontend
     games: gamesWithUserBets,
-    canBet: openWeeks.some(w => w.status === 'OPEN' && new Date() < w.bettingDeadline)
+    canBet: betStatus.canBet,
+    betStatus
   });
 }));
 

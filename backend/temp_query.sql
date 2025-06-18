@@ -1,0 +1,1 @@
+SELECT * FROM bets ORDER BY created_at DESC LIMIT 5;

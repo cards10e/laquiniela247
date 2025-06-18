@@ -14,7 +14,8 @@
     "db:seed": "tsx src/scripts/seed.ts",
     "db:reset": "npx prisma migrate reset --force",
     "generate": "npx prisma generate",
-    "studio": "npx prisma studio"
+    "studio": "npx prisma studio",
+    "migrate:bet-types": "tsx src/scripts/migrateBetTypes.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",

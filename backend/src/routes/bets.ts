@@ -99,7 +99,8 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
           userId,
           weekId: game.week.id,
           gameId: validatedData.gameId,
-          prediction: validatedData.prediction
+          prediction: validatedData.prediction,
+          betType: 'SINGLE' // Set betType for single bets
         },
         include: {
           game: {
@@ -562,7 +563,8 @@ router.post('/multi', asyncHandler(async (req: AuthenticatedRequest, res: expres
           userId,
           weekId: week.id,
           gameId: bet.gameId,
-          prediction: bet.prediction
+          prediction: bet.prediction,
+          betType: 'PARLAY' // Set betType for parlay bets
         }
       })
     ));

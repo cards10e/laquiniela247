@@ -165,8 +165,10 @@ execute_command() {
 setup_ssh_agent
 
 # --- DEPLOYMENT CONFIGURATION ---
+MIGRATE_BET_TYPES=${MIGRATE_BET_TYPES:-false}
 log_info "=== DEPLOYMENT CONFIGURATION ==="
 log_info "Database Migration: $MIGRATE_DB"
+log_info "Bet Types Migration: $MIGRATE_BET_TYPES"
 log_info "Production Backup: $BACKUP_PROD"
 log_info "Target Server: $REMOTE"
 log_info "Target Domain: $DOMAIN"

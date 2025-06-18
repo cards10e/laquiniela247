@@ -98,13 +98,18 @@ export const optionalAuthMiddleware = async (
   next: NextFunction
 ) => {
   try {
+    // Try to get token from Authorization header first, then from cookie (same as authMiddleware)
+    let token;
     const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else if (req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    }
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       return next(); // Continue without authentication
     }
-
-    const token = authHeader.substring(7);
     
     if (!process.env.JWT_SECRET) {
       return next();

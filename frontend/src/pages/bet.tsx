@@ -122,7 +122,7 @@ export default function BetPage() {
     } else {
       fetchBettingData();
     }
-  }, [isAdmin]);
+  }, [isAdmin, tab]); // Add tab dependency to refetch data when tab changes
 
   // Removed automatic refresh - users can manually refresh if needed
   // The constant 30-second refresh was causing UX issues on mobile
@@ -156,10 +156,14 @@ export default function BetPage() {
   const fetchBettingData = async () => {
     try {
       // Fetch all open weeks and their games from the updated endpoint
-      const gamesRes = await axios.get('/api/games/current-week');
+      // Pass betType parameter to filter bets by single/parlay
+      const url = `/api/games/current-week${tab ? `?betType=${tab}` : ''}`;
+      const gamesRes = await axios.get(url);
       const gamesData = gamesRes.data;
       
       console.log('[Bet Debug] Multi-week games response:', gamesData);
+      console.log('[Bet Debug] betStatus from API:', gamesData?.betStatus);
+      console.log('[Bet Debug] API URL called:', url);
       
       if (gamesData && gamesData.games) {
         // Map backend games to frontend shape with defensive checks
@@ -196,13 +200,23 @@ export default function BetPage() {
         console.log('[Bet Debug] Mapped games from all open weeks:', mappedGames);
         console.log('[Bet Debug] Future games after filtering:', futureGames);
         setGames(futureGames);
+        
+        // Populate predictions state from existing userBet data
+        const existingPredictions: Record<number, PredictionType> = {};
+        futureGames.forEach((game: Game) => {
+          if (game.userBet && game.userBet.prediction) {
+            existingPredictions[game.id] = game.userBet.prediction.toLowerCase() as PredictionType;
+          }
+        });
+        setPredictions(existingPredictions);
+        console.log('[Bet Debug] Populated predictions from userBet:', existingPredictions);
       }
       
       // Set the primary week from the response
       if (gamesData && gamesData.week) {
         setCurrentWeek({
           ...gamesData.week,
-          status: (gamesData.week.status || '').toLowerCase(),
+          status: gamesData.week.status || 'closed', // Keep original status from API
           canBet: gamesData.canBet || false
         });
       }
@@ -275,20 +289,39 @@ export default function BetPage() {
 
   // Update single bet amounts calculation
   useEffect(() => {
-    const selectedGames = Object.keys(predictions).filter(gameId => 
-      tab === 'single' && predictions[parseInt(gameId)]
-    );
-    const totalAmount = selectedGames.reduce((sum, gameId) => 
-      sum + (singleBetAmounts[parseInt(gameId)] || 50), 0
-    );
-    const potentialWinnings = totalAmount * 2.5; // 2.5x multiplier for single bets
-    
-    setSingleBetSummary({
-      totalBets: selectedGames.length,
-      totalAmount,
-      potentialWinnings
-    });
-  }, [predictions, singleBetAmounts, tab]);
+    if (tab === 'single') {
+      // Count BOTH pending predictions AND already placed bets
+      const pendingGames = Object.keys(predictions).filter(gameId => 
+        predictions[parseInt(gameId)]
+      );
+      const placedBets = games.filter(game => game.userBet);
+      
+      // Calculate amounts for pending predictions
+      const pendingAmount = pendingGames.reduce((sum, gameId) => 
+        sum + (singleBetAmounts[parseInt(gameId)] || 50), 0
+      );
+      
+      // For placed bets, assume $50 each (we don't store the bet amount in the UI)
+      const placedAmount = placedBets.length * 50;
+      
+      const totalBets = pendingGames.length + placedBets.length;
+      const totalAmount = pendingAmount + placedAmount;
+      const potentialWinnings = totalAmount * 2.5; // 2.5x multiplier for single bets
+      
+      setSingleBetSummary({
+        totalBets,
+        totalAmount,
+        potentialWinnings
+      });
+    } else {
+      // Reset for parlay mode
+      setSingleBetSummary({
+        totalBets: 0,
+        totalAmount: 0,
+        potentialWinnings: 0
+      });
+    }
+  }, [predictions, singleBetAmounts, tab, games]);
 
   // Modified calculate function for La Quiniela fixed amounts
   const calculatePotentialWinnings = () => {
@@ -350,6 +383,23 @@ export default function BetPage() {
     try {
       await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
       toast.success(t('betting.bet_placed'));
+      
+      // 🚀 OPTIMISTIC UPDATE: Immediately update local state without server round-trip
+      setGames((prevGames) => 
+        prevGames.map((game) => 
+          game.id === gameId 
+            ? { 
+                ...game, 
+                userBet: { 
+                  prediction: prediction, 
+                  isCorrect: null 
+                } 
+              }
+            : game
+        )
+      );
+      
+      // Clear the prediction from UI
       setPredictions((prev) => {
         const { [gameId]: _, ...rest } = prev;
         return rest;
@@ -391,6 +441,23 @@ export default function BetPage() {
       };
       await axios.post('/api/bets/multi', betData);
       toast.success(t('betting.bet_placed'));
+      
+      // 🚀 OPTIMISTIC UPDATE: Immediately update local state for all games in parlay
+      setGames((prevGames) => 
+        prevGames.map((game) => {
+          const gamePrediction = predictions[game.id];
+          return gamePrediction 
+            ? { 
+                ...game, 
+                userBet: { 
+                  prediction: gamePrediction, 
+                  isCorrect: null 
+                } 
+              }
+            : game;
+        })
+      );
+      
       setPredictions({});
       setBetAmount(50);
     } catch (error: any) {
@@ -413,7 +480,7 @@ export default function BetPage() {
     if (game.bettingClosed) return false;
     
     // Can't bet if current week doesn't allow betting
-    if (!currentWeek || currentWeek.status !== 'open') return false;
+    if (!currentWeek || currentWeek.status.toLowerCase() !== 'open') return false;
     
     // Check if betting deadline has passed for the current week
     if (currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)) {
@@ -537,7 +604,7 @@ export default function BetPage() {
     );
   }
 
-  if (!currentWeek || currentWeek.status !== 'open') {
+  if (!currentWeek || currentWeek.status.toLowerCase() !== 'open') {
     return (
       <Layout title={t('betting.place_bet')}>
         <ProtectedRoute>
@@ -560,6 +627,10 @@ export default function BetPage() {
   // Render-time debug logs
   console.log('[Render] games:', games);
   console.log('[Render] predictions:', predictions);
+  console.log('[Render] tab:', tab);
+  console.log('[Render] currentWeek:', currentWeek);
+  console.log('[Render] isAdmin:', isAdmin);
+  console.log('[Render] loading:', loading);
 
   return (
     <Layout title={t('betting.place_bet')}>
@@ -635,9 +706,14 @@ export default function BetPage() {
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
                   <div className="space-y-4">
-                    {games.map((game) => {
-                      console.log('[Render] game:', game);
+                    {(() => {
+                      console.log('[DEBUG] About to render games in single tab');
+                      return games.map((game) => {
+                      console.log(`[Render Game ${game.id}] Full game:`, game);
+                      console.log(`[Render Game ${game.id}] userBet:`, game.userBet);
+                      console.log(`[Render Game ${game.id}] canBetOnGame result:`, canBetOnGame(game));
                       const hasUserBet = isUserBet(game.userBet);
+                      console.log(`[Render Game ${game.id}] hasUserBet:`, hasUserBet);
                       return (
                         <div key={game.id} className="card">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
@@ -750,10 +826,11 @@ export default function BetPage() {
                               </button>
                             </div>
                           )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                                                  </div>
+                        );
+                      });
+                    })()}
+                    </div>
                 </div>
                 <div className="lg:col-span-1">
                   {/* Bet Summary for Single Bets */}
@@ -806,12 +883,153 @@ export default function BetPage() {
               </div>
             )
           ) : (
-          // --- Weekly Parlay Tab (existing UI, but update submission) ---
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Games List (existing code) */}
-            <div className="lg:col-span-2">
-              <div className="space-y-4">
-                {games.map((game) => (
+          // --- Weekly Parlay Tab ---
+          // Check if user has already placed all bets for this week
+          (() => {
+            // Get betStatus from the API response - check if user has placed all bets
+            const response = games.length > 0 ? {
+              betStatus: {
+                hasPlacedAllBets: games.every(g => g.userBet && g.userBet.prediction),
+                placedBetsCount: games.filter(g => g.userBet && g.userBet.prediction).length,
+                totalGamesCount: games.length
+              }
+            } : null;
+            
+            const hasPlacedAllBets = response?.betStatus?.hasPlacedAllBets || false;
+            
+            console.log('[Parlay Debug] tab:', tab);
+            console.log('[Parlay Debug] games.length:', games.length);
+            console.log('[Parlay Debug] hasPlacedAllBets:', hasPlacedAllBets);
+            console.log('[Parlay Debug] games with userBet:', games.filter(g => g.userBet));
+            console.log('[Parlay Debug] games with userBet.prediction:', games.filter(g => g.userBet && g.userBet.prediction));
+            console.log('[Parlay Debug] placedBetsCount:', games.filter(g => g.userBet && g.userBet.prediction).length);
+            console.log('[Parlay Debug] full games array:', games.map(g => ({ id: g.id, userBet: g.userBet, homeTeam: g.homeTeamName, awayTeam: g.awayTeamName })));
+            
+            if (hasPlacedAllBets) {
+              // Show "View Existing Bets" mode for parlay
+              return (
+                <div className="space-y-6">
+                  {/* Success Banner */}
+                  <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-6">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-lg">✓</span>
+                        </div>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-success-800 dark:text-success-200">
+                          {t('betting.all_bets_placed')}
+                        </h3>
+                        <p className="text-success-700 dark:text-success-300">
+                          {t('betting.bets_placed_count', { 
+                            placed: response?.betStatus?.placedBetsCount || 0, 
+                            total: response?.betStatus?.totalGamesCount || 0 
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Games with Existing Bets */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                      <div className="space-y-4">
+                        {games.map((game) => (
+                          <div key={game.id} className="card opacity-75">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                              <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+                                <div className="flex items-center space-x-2">
+                                  <TeamLogo 
+                                    teamName={game.homeTeamName}
+                                    logoUrl={game.homeTeamLogo}
+                                    className="team-logo"
+                                    alt={game.homeTeamName}
+                                  />
+                                  <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
+                                </div>
+                                <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
+                                  <TeamLogo 
+                                    teamName={game.awayTeamName}
+                                    logoUrl={game.awayTeamLogo}
+                                    className="team-logo"
+                                    alt={game.awayTeamName}
+                                  />
+                                </div>
+                              </div>
+                              <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                            
+                            {/* Show existing prediction */}
+                            <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
+                                  <span className="ml-2">
+                                    {t('betting.your_prediction')}: <b>{
+                                      (() => {
+                                        const pred = (game.userBet?.prediction || '').toLowerCase();
+                                        if (pred === 'home') return t('betting.home_team');
+                                        if (pred === 'away') return t('betting.away_team');
+                                        if (pred === 'draw') return t('betting.draw');
+                                        return game.userBet?.prediction;
+                                      })()
+                                    }</b>
+                                  </span>
+                                </div>
+                                {game.userBet?.isCorrect !== null && game.userBet?.isCorrect !== undefined && (
+                                  <span className={`font-bold ${game.userBet.isCorrect ? 'text-success-700 dark:text-success-300' : 'text-danger-700 dark:text-danger-300'}`}>
+                                    {game.userBet.isCorrect ? t('betting.correct') : t('betting.incorrect')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Week Summary Sidebar */}
+                    <div className="lg:col-span-1">
+                      <div className="card sticky top-8">
+                        <h3 className="subsection-title">
+                          {t('betting.week_summary')}
+                        </h3>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-secondary-600 dark:text-secondary-400">{t('betting.predictions_made')}</span>
+                            <span className="font-bold text-success-600 dark:text-success-400">
+                              {response?.betStatus?.placedBetsCount || 0} / {response?.betStatus?.totalGamesCount || 0}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-secondary-600 dark:text-secondary-400">{t('betting.bet_amount')}</span>
+                            <span className="font-medium"><FormattedAmount amount={200} /></span>
+                          </div>
+                          <div className="p-4 bg-info-50 dark:bg-info-900/20 rounded-lg">
+                            <p className="text-info-700 dark:text-info-300 text-sm text-center">
+                              {t('betting.wait_for_results')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            // Normal betting mode
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Games List (existing code) */}
+                <div className="lg:col-span-2">
+                  <div className="space-y-4">
+                    {games.map((game) => (
                   <div key={game.id} className="card">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                       <div className="flex items-center space-x-4 mb-4 sm:mb-0">
@@ -842,21 +1060,42 @@ export default function BetPage() {
                     {/* Prediction Buttons */}
                     <div className="grid grid-cols-3 gap-2">
                       <button
-                        onClick={() => handlePredictionChange(game.id, 'home')}
-                        className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'home' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                        onClick={() => !game.userBet && handlePredictionChange(game.id, 'home')}
+                        disabled={!!game.userBet}
+                        className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                          (predictions[game.id] === 'home' || game.userBet?.prediction?.toLowerCase() === 'home') 
+                            ? 'bg-primary-600 text-white' 
+                            : game.userBet 
+                              ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
+                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                        }`}
                       >
                         {t('betting.home_team')}
                         <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
                       </button>
                       <button
-                        onClick={() => handlePredictionChange(game.id, 'draw')}
-                        className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'draw' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                        onClick={() => !game.userBet && handlePredictionChange(game.id, 'draw')}
+                        disabled={!!game.userBet}
+                        className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                          (predictions[game.id] === 'draw' || game.userBet?.prediction?.toLowerCase() === 'draw') 
+                            ? 'bg-primary-600 text-white' 
+                            : game.userBet 
+                              ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
+                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                        }`}
                       >
                         {t('betting.draw')}
                       </button>
                       <button
-                        onClick={() => handlePredictionChange(game.id, 'away')}
-                        className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'away' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                        onClick={() => !game.userBet && handlePredictionChange(game.id, 'away')}
+                        disabled={!!game.userBet}
+                        className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                          (predictions[game.id] === 'away' || game.userBet?.prediction?.toLowerCase() === 'away') 
+                            ? 'bg-primary-600 text-white' 
+                            : game.userBet 
+                              ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
+                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                        }`}
                       >
                         {t('betting.away_team')}
                         <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
@@ -879,11 +1118,11 @@ export default function BetPage() {
                       {t('betting.predictions_made')}
                     </span>
                     <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                      {Object.keys(predictions).length} / {games.length}
+                      {games.filter(g => g.userBet && g.userBet.prediction).length} / {games.length}
                     </span>
                   </div>
                   <div className="w-full bg-secondary-200 dark:bg-secondary-700 rounded-full h-2">
-                    <div className="bg-primary-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(Object.keys(predictions).length / games.length) * 100}%` }}></div>
+                    <div className="bg-primary-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(games.filter(g => g.userBet && g.userBet.prediction).length / games.length) * 100}%` }}></div>
                   </div>
                 </div>
                 {/* Bet Amount */}
@@ -931,8 +1170,8 @@ export default function BetPage() {
                 {/* Submit Button */}
                 <button
                   onClick={handleSubmitParlay}
-                  disabled={Object.keys(predictions).length !== games.length || submitting || getEffectiveBetAmount() < 10}
-                  className={`btn-primary w-full ${Object.keys(predictions).length !== games.length || submitting || getEffectiveBetAmount() < 10 ? 'btn-disabled' : ''}`}
+                  disabled={(Object.keys(predictions).length !== games.length && games.filter(g => g.userBet && g.userBet.prediction).length !== games.length) || submitting || getEffectiveBetAmount() < 10}
+                  className={`btn-primary w-full ${(Object.keys(predictions).length !== games.length && games.filter(g => g.userBet && g.userBet.prediction).length !== games.length) || submitting || getEffectiveBetAmount() < 10 ? 'btn-disabled' : ''}`}
                 >
                   {submitting ? (
                     <div className="flex items-center"><div className="spinner-sm mr-2"></div>{t('common.loading')}</div>
@@ -940,12 +1179,14 @@ export default function BetPage() {
                     t('betting.confirm_bet')
                   )}
                 </button>
-                {Object.keys(predictions).length !== games.length && (
+                {(Object.keys(predictions).length !== games.length && games.filter(g => g.userBet && g.userBet.prediction).length !== games.length) && (
                   <p className="mt-2 text-xs text-warning-600 dark:text-warning-400 text-center">{t('betting.select_all_games')}</p>
                 )}
               </div>
             </div>
           </div>
+          ); // End of IIFE return
+          })() // End of IIFE
           )}
         </div>
       </ProtectedRoute>

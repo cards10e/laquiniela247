@@ -70,6 +70,7 @@ model Bet {
   weekId     Int        @map("week_id")
   gameId     Int        @map("game_id")
   prediction GameResult
+  betType    BetType    @default(SINGLE) @map("bet_type")
   isCorrect  Boolean?   @map("is_correct")
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
@@ -204,6 +205,11 @@ enum TransactionStatus {
   COMPLETED @map("completed")
   FAILED    @map("failed")
   CANCELLED @map("cancelled")
+}
+
+enum BetType {
+  SINGLE @map("single")
+  PARLAY @map("parlay")
 }
 
 enum UserRole {

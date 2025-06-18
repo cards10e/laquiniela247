@@ -294,6 +294,22 @@ export default function AdminPage() {
     }
   };
 
+  // Demo user bet deletion functionality
+  const handleDeleteDemoBets = async () => {
+    if (!confirm('🗑️ Delete ALL bets for Demo User?\n\nThis will remove all demo user bets and cannot be undone.\n\nClick OK to proceed.')) {
+      return;
+    }
+    
+    try {
+      const response = await axiosInstance.delete('/admin/demo-user/bets');
+      toast.success(`✅ Deleted ${response.data.deletedCount} demo user bets`);
+      fetchAdminData(); // Refresh data
+    } catch (error) {
+      console.error('Failed to delete demo bets:', error);
+      toast.error('❌ Failed to delete demo user bets');
+    }
+  };
+
   const formatCurrency = (value: number, lang: string) => {
     if (!value || isNaN(value)) return lang === 'es' ? '$0' : '$0';
     
@@ -611,7 +627,17 @@ export default function AdminPage() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
                                 <div className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
-                                  {user.firstName} {user.lastName}
+                                  {user.email === 'demo@laquiniela247.mx' ? (
+                                    <button
+                                      onClick={handleDeleteDemoBets}
+                                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer"
+                                      title="Click to delete all demo user bets"
+                                    >
+                                      {user.firstName} {user.lastName}
+                                    </button>
+                                  ) : (
+                                    <span>{user.firstName} {user.lastName}</span>
+                                  )}
                                 </div>
                                 <div className="text-sm text-secondary-500 dark:text-secondary-400">
                                   {user.email}

@@ -9,21 +9,13 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCalendar, 
-  faCoins, 
   faTrophy, 
-  faChartBar, 
-  faGamepad, 
-  faUsers,
   faChevronDown,
   faChevronUp,
   faStar,
   faFire,
   faFlag,
-  faHistory,
-  faPlay,
-  faLightbulb,
-  faBolt,
-  faShield
+  faLightbulb
 } from '@fortawesome/free-solid-svg-icons';
 
 interface BetHistory {
@@ -601,15 +593,7 @@ export default function HistoryPage() {
     }
   };
 
-  const getBetTypeIcon = (betType: string) => {
-    return betType === 'la_quiniela' ? faUsers : faGamepad;
-  };
 
-  const getBetTypeColor = (betType: string) => {
-    return betType === 'la_quiniela' 
-      ? 'bg-gradient-to-r from-red-500 to-red-600' 
-      : 'bg-gradient-to-r from-purple-500 to-purple-600';
-  };
 
   if (loading) {
     return (
@@ -631,77 +615,35 @@ export default function HistoryPage() {
       <ProtectedRoute>
         <div className="min-h-screen bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Modern Header */}
+            {/* Page Header */}
             <div className="mb-8">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg">
-                  <FontAwesomeIcon icon={faHistory} className="text-white text-xl" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                    {t('history.title')}
-                  </h1>
-                  <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-                    Track your betting performance and history
-                  </p>
-                </div>
-              </div>
-
-              {/* Modern Filter Controls */}
-              <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                  {/* Bet Type Filters */}
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <FontAwesomeIcon icon={faPlay} className="text-secondary-500 dark:text-secondary-400" />
-                      <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-                        {t('history.bet_type')}:
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(['all_types', 'la_quiniela', 'single_bets'] as BetTypeFilter[]).map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => setBetTypeFilter(type)}
-                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                            betTypeFilter === type
-                              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105'
-                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600 hover:scale-105'
-                          }`}
-                        >
-                          {t(`history.${type}`)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Status Filters */}
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <FontAwesomeIcon icon={faChartBar} className="text-secondary-500 dark:text-secondary-400" />
-                      <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-                        {t('history.status')}:
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(['all', 'won', 'lost', 'pending'] as FilterType[]).map((filterType) => (
-                        <button
-                          key={filterType}
-                          onClick={() => setStatusFilter(filterType)}
-                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                            statusFilter === filterType
-                              ? 'bg-gradient-to-r from-secondary-600 to-secondary-700 text-white shadow-lg scale-105'
-                              : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600 hover:scale-105'
-                          }`}
-                        >
-                          {t(`history.${filterType === 'all' ? 'all_bets' : filterType}`)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <h1 className="page-title">
+                {t('history.title')}
+              </h1>
+              
+              <h2 className="section-title">
+                {t('history.betting_performance_and_history')}
+              </h2>
             </div>
+
+              {/* Consolidated Filter Tabs */}
+              <div className="flex mb-8 border-b-2 border-secondary-200 dark:border-secondary-700">
+                {(['all_types', 'la_quiniela', 'single_bets'] as BetTypeFilter[]).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setBetTypeFilter(type)}
+                    className={`px-6 py-3 font-semibold focus:outline-none transition-colors ${
+                      betTypeFilter === type 
+                        ? 'border-b-4 border-primary-600 text-primary-700 dark:text-primary-300' 
+                        : 'text-secondary-500 dark:text-secondary-400'
+                    } ${type !== 'all_types' ? 'ml-2' : ''}`}
+                  >
+                    {t(`history.${type}`)}
+                  </button>
+                ))}
+              </div>
+
+
 
             {/* Betting History Cards */}
             {filteredBets.length > 0 ? (
@@ -720,14 +662,9 @@ export default function HistoryPage() {
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                           {/* Left Section - Bet Info */}
                           <div className="flex items-center space-x-4">
-                            {/* Bet Type Badge */}
-                            <div className={`flex items-center justify-center w-14 h-14 ${getBetTypeColor(bet.betType)} rounded-2xl shadow-lg`}>
-                              <FontAwesomeIcon icon={getBetTypeIcon(bet.betType)} className="text-white text-xl" />
-                            </div>
-                            
                             <div>
                               <div className="flex items-center space-x-3 mb-2">
-                                <h3 className="text-xl font-bold text-secondary-900 dark:text-secondary-100">
+                                <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
                                   {bet.betType === 'la_quiniela' 
                                     ? `${t('history.la_quiniela')} - ${t('dashboard.week')} ${bet.weekNumber}`
                                     : t('history.single_bets')
@@ -740,11 +677,11 @@ export default function HistoryPage() {
                               
                               <div className="flex items-center space-x-4 text-sm text-secondary-600 dark:text-secondary-400">
                                 <div className="flex items-center space-x-1">
-                                  <FontAwesomeIcon icon={faCalendar} className="text-xs" />
+                                  <FontAwesomeIcon icon={faCalendar} className="w-3 h-3" />
                                   <span>{new Date(bet.date).toLocaleDateString()}</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
-                                  <FontAwesomeIcon icon={faLightbulb} className="text-xs" />
+                                  <FontAwesomeIcon icon={faLightbulb} className="w-3 h-3" />
                                   <span>
                                     {bet.betType === 'la_quiniela' 
                                       ? t('history.predictions_count', { count: bet.totalPredictions })
@@ -763,7 +700,7 @@ export default function HistoryPage() {
                               <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
                                 {t('history.entry_fee')}
                               </div>
-                              <div className="text-lg font-bold text-secondary-900 dark:text-secondary-100">
+                              <div className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
                                 <FormattedAmount amount={bet.amount} />
                               </div>
                             </div>
@@ -772,7 +709,7 @@ export default function HistoryPage() {
                               <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
                                 {t('history.accuracy')}
                               </div>
-                              <div className="text-lg font-bold text-secondary-900 dark:text-secondary-100">
+                              <div className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
                                 {bet.correctPredictions}/{bet.totalPredictions}
                                 <span className="text-sm ml-1 text-secondary-500">
                                   ({formatPercentage(bet.correctPredictions, bet.totalPredictions)})
@@ -784,7 +721,7 @@ export default function HistoryPage() {
                               <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
                                 {t('history.winnings')}
                               </div>
-                              <div className={`text-lg font-bold ${
+                              <div className={`text-lg font-medium ${
                                 bet.winnings > 0 
                                   ? 'text-emerald-600 dark:text-emerald-400' 
                                   : 'text-secondary-600 dark:text-secondary-400'
@@ -799,7 +736,7 @@ export default function HistoryPage() {
                                 const badge = getPerformanceBadge(bet.correctPredictions, bet.totalPredictions, bet.betType);
                                 return badge ? (
                                   <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${badge.color}`}>
-                                    <FontAwesomeIcon icon={badge.icon} className="text-xs" />
+                                    <FontAwesomeIcon icon={badge.icon} className="w-3 h-3" />
                                     <span>{badge.text}</span>
                                   </div>
                                 ) : null;
@@ -808,7 +745,7 @@ export default function HistoryPage() {
                               <button className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-colors">
                                 <FontAwesomeIcon 
                                   icon={expandedBet === bet.id ? faChevronUp : faChevronDown} 
-                                  className="text-sm"
+                                  className="w-3 h-3"
                                 />
                               </button>
                             </div>
@@ -822,7 +759,7 @@ export default function HistoryPage() {
                       <div className="border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/30">
                         <div className="p-6">
                           <h4 className="flex items-center space-x-2 text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
-                            <FontAwesomeIcon icon={faFlag} className="text-primary-600" />
+                            <FontAwesomeIcon icon={faFlag} className="text-primary-600 w-3 h-3" />
                             <span>{t('history.bet_details')}</span>
                           </h4>
                           
@@ -843,7 +780,7 @@ export default function HistoryPage() {
                                     <div className="flex items-center space-x-2 text-sm font-medium text-secondary-900 dark:text-secondary-100">
                                       <TeamLogo teamName={prediction.homeTeamName} className="w-6 h-6" alt={prediction.homeTeamName} />
                                       <span className="truncate max-w-16">{prediction.homeTeamName}</span>
-                                      <span className="text-secondary-500 mx-1">vs</span>
+                                      <span className="text-secondary-500 mx-1">{t('admin.vs')}</span>
                                       <span className="truncate max-w-16">{prediction.awayTeamName}</span>
                                       <TeamLogo teamName={prediction.awayTeamName} className="w-6 h-6" alt={prediction.awayTeamName} />
                                     </div>
@@ -892,14 +829,12 @@ export default function HistoryPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-12 text-center">
-                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-r from-secondary-100 to-secondary-200 dark:from-secondary-700 dark:to-secondary-600 rounded-full mx-auto mb-6">
-                  <FontAwesomeIcon icon={faHistory} className="text-3xl text-secondary-600 dark:text-secondary-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
+              <div className="card text-center py-12">
+                <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">📊</div>
+                <h2 className="subsection-title">
                   {statusFilter === 'all' && betTypeFilter === 'all_types'
                     ? t('history.no_bets_yet')
-                    : 'No results found'
+                    : t('history.no_results_found')
                   }
                 </h2>
                 <p className="text-secondary-600 dark:text-secondary-400 mb-8 max-w-md mx-auto">
@@ -909,65 +844,43 @@ export default function HistoryPage() {
                   }
                 </p>
                 {statusFilter === 'all' && betTypeFilter === 'all_types' && (
-                                      <a
-                      href="/bet"
-                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                    >
-                      <FontAwesomeIcon icon={faBolt} className="mr-2" />
-                      {t('dashboard.place_first_bet')}
-                    </a>
+                  <a
+                    href="/bet"
+                    className="btn-primary"
+                  >
+                    {t('dashboard.place_first_bet')}
+                  </a>
                 )}
               </div>
             )}
 
-            {/* Enhanced Summary Stats */}
+            {/* Summary Stats */}
             {filteredBets.length > 0 && (
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl">
-                      <FontAwesomeIcon icon={faShield} className="text-white text-xl" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                        {t('history.total_bets')}
-                      </div>
-                      <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                        {filteredBets.length}
-                      </div>
-                    </div>
+                <div className="card text-center">
+                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                    {t('history.total_bets')}
+                  </div>
+                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    {filteredBets.length}
                   </div>
                 </div>
                 
-                <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl">
-                      <FontAwesomeIcon icon={faCoins} className="text-white text-xl" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                        {t('history.total_wagered')}
-                      </div>
-                      <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                        <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
-                      </div>
-                    </div>
+                <div className="card text-center">
+                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                    {t('history.total_wagered')}
+                  </div>
+                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
                   </div>
                 </div>
                 
-                <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl">
-                      <FontAwesomeIcon icon={faTrophy} className="text-white text-xl" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                        {t('history.total_winnings')}
-                      </div>
-                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                        <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
-                      </div>
-                    </div>
+                <div className="card text-center">
+                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                    {t('history.total_winnings')}
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
                   </div>
                 </div>
               </div>
