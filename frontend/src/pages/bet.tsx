@@ -91,6 +91,60 @@ function FormattedAmount({ amount, originalCurrency, className }: FormattedAmoun
   return <span className={className}>{formattedValue}</span>;
 }
 
+// Utility function to get current week games only
+const getCurrentWeekGames = (games: Game[]): Game[] => {
+  console.log('🚨 [CURRENT WEEK FILTER] FUNCTION CALLED WITH', games.length, 'GAMES');
+  
+  if (!games || games.length === 0) {
+    console.log('🚨 [CURRENT WEEK FILTER] NO GAMES PROVIDED, RETURNING EMPTY ARRAY');
+    return [];
+  }
+  
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 6); // Sunday
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  console.log('🚨 [CURRENT WEEK FILTER] Current week range:', startOfWeek.toLocaleDateString(), 'to', endOfWeek.toLocaleDateString());
+  console.log('🚨 [CURRENT WEEK FILTER] All games with dates:', games.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate, parsed: new Date(g.gameDate).toLocaleDateString() })));
+  
+  // Filter games happening this calendar week
+  const currentWeekGames = games.filter(game => {
+    const gameDate = new Date(game.gameDate);
+    return gameDate >= startOfWeek && gameDate <= endOfWeek;
+  });
+  
+  console.log('🚨 [CURRENT WEEK FILTER] Games this week:', currentWeekGames.length);
+  console.log('🚨 [CURRENT WEEK FILTER] Current week games:', currentWeekGames.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate })));
+  
+  // If no games this week, show next upcoming week with games
+  if (currentWeekGames.length === 0) {
+    console.log('🚨 [CURRENT WEEK FILTER] No games this week, finding next week...');
+    // Find the earliest upcoming game
+    const futureGames = games.filter(game => new Date(game.gameDate) > now);
+    if (futureGames.length === 0) return [];
+    
+    const earliestGame = futureGames.reduce((earliest, game) => 
+      new Date(game.gameDate) < new Date(earliest.gameDate) ? game : earliest
+    );
+    
+    console.log('🚨 [CURRENT WEEK FILTER] Earliest upcoming game is in week:', earliestGame.weekId);
+    
+    // Return all games from the same week as the earliest game
+    const nextWeekGames = games.filter(game => game.weekId === earliestGame.weekId);
+    console.log('🚨 [CURRENT WEEK FILTER] Showing next week games:', nextWeekGames.length);
+    console.log('🚨 [CURRENT WEEK FILTER] Next week games:', nextWeekGames.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate })));
+    return nextWeekGames;
+  }
+  
+  console.log('🚨 [CURRENT WEEK FILTER] Showing current week games:', currentWeekGames.length);
+  return currentWeekGames;
+};
+
 export default function BetPage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -122,6 +176,19 @@ export default function BetPage() {
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
+
+  // Apply current week filtering (only for regular users, not admins)
+  // Admins see all games for management purposes
+  const filteredGames = isAdmin ? games : getCurrentWeekGames(games);
+  
+  // Debug: Show filtering status
+  console.log('[Filtering Debug] isAdmin:', isAdmin, 'user role:', user?.role);
+  console.log('[Filtering Debug] Original games count:', games.length);
+  console.log('[Filtering Debug] Filtered games count:', filteredGames.length);
+  console.log('[Filtering Debug] Games being shown:', filteredGames.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate })));
+  
+  // Debug the derived variables used in rendering
+  console.log('🎮 [RENDER DEBUG] About to compute gamesWithBets and gamesWithoutBets from filteredGames');
 
   useEffect(() => {
     if (isAdmin) {
@@ -307,7 +374,7 @@ export default function BetPage() {
       const pendingGames = Object.keys(predictions).filter(gameId => 
         predictions[parseInt(gameId)]
       );
-      const placedBets = games.filter(game => game.userBet);
+      const placedBets = filteredGames.filter(game => game.userBet);
       
       // Calculate amounts for pending predictions
       const pendingAmount = pendingGames.reduce((sum, gameId) => 
@@ -340,7 +407,7 @@ export default function BetPage() {
   const calculatePotentialWinnings = () => {
     if (tab === 'parlay') {
       // Fixed amounts for La Quiniela
-      return Object.keys(predictions).length === games.length ? 2000 : 0;
+      return Object.keys(predictions).length === filteredGames.length ? 2000 : 0;
     }
     // For single bets, return summary calculation
     return singleBetSummary.potentialWinnings;
@@ -372,9 +439,9 @@ export default function BetPage() {
 
   // Utility function to calculate game date range
   const getGameDateRange = () => {
-    if (!games.length) return null;
+    if (!filteredGames.length) return null;
     
-    const dates = games
+    const dates = filteredGames
       .map(game => new Date(game.gameDate))
       .filter(date => !isNaN(date.getTime()))
       .sort((a, b) => a.getTime() - b.getTime());
@@ -460,7 +527,7 @@ export default function BetPage() {
 
   // --- Parlay (All-at-once) Submission ---
   const handleSubmitParlay = async () => {
-    if (Object.keys(predictions).length !== games.length) {
+    if (Object.keys(predictions).length !== filteredGames.length) {
       toast.error(t('betting.select_all_games'));
       return;
     }
@@ -486,7 +553,7 @@ export default function BetPage() {
       
       // 🚀 OPTIMISTIC UPDATE: Immediately update local state for all games in parlay
       setGames((prevGames) => 
-        prevGames.map((game) => {
+        filteredGames.map((game) => {
           const gamePrediction = predictions[game.id];
           return gamePrediction 
             ? { 
@@ -533,9 +600,12 @@ export default function BetPage() {
   };
 
   // Variables for parlay section
-  const gamesWithBets = games.filter(g => g.userBet && g.userBet.prediction);
-  const gamesWithoutBets = games.filter(g => !g.userBet || !g.userBet.prediction);
+  const gamesWithBets = filteredGames.filter(g => g.userBet && g.userBet.prediction);
+  const gamesWithoutBets = filteredGames.filter(g => !g.userBet || !g.userBet.prediction);
   const hasAnyBets = gamesWithBets.length > 0;
+  
+  console.log('🎮 [RENDER DEBUG] gamesWithBets:', gamesWithBets.map(g => ({ id: g.id, weekId: g.weekId })));
+  console.log('🎮 [RENDER DEBUG] gamesWithoutBets:', gamesWithoutBets.map(g => ({ id: g.id, weekId: g.weekId })));
 
   if (loading) {
     return (
@@ -576,7 +646,7 @@ export default function BetPage() {
                   ) : (
                     // Group games by week
                     Object.entries(
-                      games.reduce((acc, game) => {
+                      filteredGames.reduce((acc, game) => {
                         const weekId = game.weekId || 'unknown';
                         if (!acc[weekId]) {
                           acc[weekId] = [];
@@ -763,12 +833,12 @@ export default function BetPage() {
           </div>
 
           {tab === 'single' ? (
-            Array.isArray(games) && games.length > 0 ? (
+            Array.isArray(filteredGames) && filteredGames.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
                   <div className="space-y-4">
-                    {games.map((game) => {
+                    {filteredGames.map((game) => {
                       const hasUserBet = isUserBet(game.userBet);
                       return (
                         <div key={game.id} className="card">
@@ -955,7 +1025,7 @@ export default function BetPage() {
                       <p className="text-success-700 dark:text-success-300">
                         {t('betting.bets_placed_count', { 
                           placed: gamesWithBets.length, 
-                          total: games.length 
+                                                      total: filteredGames.length 
                         })}
                       </p>
                     </div>
@@ -1129,7 +1199,7 @@ export default function BetPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-secondary-600 dark:text-secondary-400">{t('betting.predictions_made')}</span>
                         <span className="font-bold text-success-600 dark:text-success-400">
-                          {gamesWithBets.length} / {games.length}
+                          {gamesWithBets.length} / {filteredGames.length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
@@ -1140,7 +1210,7 @@ export default function BetPage() {
                         <span className="text-secondary-600 dark:text-secondary-400">{t('betting.number_of_weeks_bet')}</span>
                         <span className="font-medium">{
                           (() => {
-                            const weeksWithBets = new Set(games.filter(g => g.userBet).map(g => g.weekId));
+                            const weeksWithBets = new Set(filteredGames.filter(g => g.userBet).map(g => g.weekId));
                             return weeksWithBets.size || 1;
                           })()
                         }</span>

@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.28] - 2025-06-18
+### 🎯 Traditional Quiniela Format: Current Week Betting Restriction
+- **Weekly Betting Format**: Implemented traditional Quiniela format restricting betting to current calendar week only
+  - **Current Week Definition**: Monday to Sunday of current calendar week for consistent betting periods
+  - **Smart Week Detection**: Automatically detects current week games, falls back to next upcoming week if no current games
+  - **Frontend-Only Implementation**: Safe, non-breaking approach using client-side filtering without database changes
+  - **Admin Exception**: Administrators continue to see all games for management purposes while users see only current week
+
+### 🛠️ Technical Implementation
+- **Intelligent Game Filtering**: `getCurrentWeekGames()` utility function with comprehensive week range calculation
+  - **Calendar Week Logic**: Monday 00:00 to Sunday 23:59 for consistent weekly periods
+  - **Fallback Strategy**: Shows next upcoming week games if no games in current week
+  - **Same-Week Grouping**: Returns games from same week as earliest upcoming game for consistency
+- **Comprehensive Application**: Applied filtering to all betting interfaces:
+  - Single bet sections with individual game cards
+  - Parlay bet sections with weekly group betting
+  - Game calculations and summary statistics
+  - Bet validation and placement logic
+
+### 🎮 Enhanced User Experience
+- **Focused Betting Interface**: Users see only relevant games for current betting period (2 games from week 25, dated 6/20/2025)
+- **Traditional Format Adherence**: Follows established Quiniela weekly format familiar to Mexican sports betting culture
+- **Eliminated Week Confusion**: No more multiple weeks (6/20, 6/27, 7/4) displayed simultaneously
+- **Preserved Admin Functionality**: Administrators retain full game management capabilities across all weeks
+
+### 🔧 Debugging & Quality Assurance
+- **Comprehensive Debug Logging**: Enhanced console logging with 🚨 and 🎮 prefixes for filtering verification
+- **Variable Consistency**: Fixed duplicate variable declarations causing parlay section to use unfiltered games
+- **Build Verification**: TypeScript compilation successful with zero errors throughout development
+- **Thorough Testing**: Verified filtering works correctly for both single and parlay betting modes
+
+### Fixed
+- Multiple weeks (25, 26, 27) showing simultaneously in betting interface
+- Parlay section using unfiltered games array instead of current week filtered games
+- Single bet section displaying games from multiple weeks instead of current week only
+- Inconsistent variable declarations causing filtering bypass in certain interface sections
+
+### Enhanced
+- Traditional weekly Quiniela format with current week restriction
+- User experience focused on relevant current week games only
+- Administrative game management capabilities preserved
+- Consistent filtering application across all betting interfaces
+- Debug logging system for filtering verification and troubleshooting
+
 ## [2.0.27] - 2025-06-18
 ### 🌐 Localization Fix: Complete Spanish Translation Support
 - **Fixed Hardcoded Strings**: Resolved issue where betting interface displayed English text instead of proper translations

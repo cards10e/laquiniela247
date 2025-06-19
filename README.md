@@ -2,6 +2,42 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.28 - Traditional Quiniela Format: Current Week Betting Restriction
+
+### 🎮 **Weekly Betting Format Implementation**
+- **Traditional Quiniela Experience**: Implemented authentic weekly betting format restricting users to current calendar week games only
+- **Current Week Definition**: Monday to Sunday calendar week periods for consistent betting cycles familiar to Mexican sports culture
+- **Smart Week Detection**: Automatically identifies current week games with intelligent fallback to next upcoming week if no current games available
+- **Admin Management Exception**: Administrators retain full access to all games across all weeks for proper game management and oversight
+
+### 🛠️ **Technical Architecture Excellence**
+- **Frontend-Only Implementation**: Safe, zero-risk approach using client-side filtering without any database schema changes
+- **Intelligent Game Filtering**: `getCurrentWeekGames()` utility function with comprehensive week range calculation and same-week grouping logic
+- **Comprehensive Application**: Applied filtering consistently across all betting interfaces:
+  - Single bet sections with individual game cards and betting controls
+  - Parlay bet sections with weekly group betting and summary calculations
+  - Game statistics, counts, and validation logic throughout the interface
+  - Bet placement workflows and confirmation systems
+
+### 🎯 **Enhanced User Experience**
+- **Focused Betting Interface**: Users now see only relevant games for current betting period (2 games from week 25, dated 6/20/2025)
+- **Eliminated Week Confusion**: Resolved issue where multiple weeks (6/20, 6/27, 7/4) were displayed simultaneously causing user confusion
+- **Traditional Format Adherence**: Follows established Quiniela weekly format deeply familiar to Mexican sports betting culture
+- **Preserved Functionality**: All existing betting features maintained while adding week restriction for better user experience
+
+### 🔧 **Quality Assurance & Debugging**
+- **Comprehensive Debug System**: Enhanced console logging with 🚨 and 🎮 prefixes for filtering verification and troubleshooting
+- **Variable Consistency**: Fixed critical duplicate variable declarations that caused parlay section to bypass week filtering
+- **Build Verification**: TypeScript compilation successful with zero errors throughout development process
+- **Thorough Testing**: Verified filtering works correctly for both single and parlay betting modes in all scenarios
+
+### 🌟 **Key Benefits**
+- **Traditional Weekly Format**: Authentic Quiniela experience with week-based betting periods
+- **Reduced User Confusion**: Clear focus on current week games eliminates multi-week complexity
+- **Zero Breaking Changes**: All existing functionality preserved with enhanced user experience
+- **Administrative Control**: Admins maintain full game management capabilities across all time periods
+- **Mexican Market Optimized**: Betting format aligned with traditional Quiniela expectations
+
 ## 🌐 Version 2.0.27 - Complete Localization Enhancement
 
 ### 🎯 **Fixed Betting Interface Localization**
