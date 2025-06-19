@@ -77,6 +77,9 @@ const translations = {
       back_to_main: "Back to main site",
       admin_panel: "Admin Panel"
     },
+    bet_page: {
+      title: "Mexican Soccer League La Quiniela"
+    },
     dashboard: {
       title: "Dashboard",
       welcome: "Welcome, %s!",
@@ -483,11 +486,14 @@ const translations = {
     navigation: {
       dashboard: "Panel",
       history: "Mi Historial",
-      games: "Juegos",
+      games: "Partidos",
       profile: "Perfil",
       logout: "Salir",
       back_to_main: "Volver al sitio principal",
       admin_panel: "Panel de Admin"
+    },
+    bet_page: {
+      title: "Liga MX La Quiniela"
     },
     dashboard: {
       title: "Panel",

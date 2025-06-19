@@ -723,7 +723,7 @@ export default function BetPage() {
 
   if (!currentWeek || currentWeek.status.toLowerCase() !== 'open') {
     return (
-      <Layout title={t('betting.place_bet')}>
+      <Layout title={t('bet_page.title')}>
         <ProtectedRoute>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="card text-center py-12">
@@ -750,13 +750,13 @@ export default function BetPage() {
   console.log('[Render] loading:', loading);
 
   return (
-    <Layout title={t('betting.place_bet')}>
+    <Layout title={t('bet_page.title')}>
       <ProtectedRoute>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Title */}
           <div className="mb-8">
             <h1 className="page-title">
-              {t('navigation.games')}
+              {t('bet_page.title')}
             </h1>
             
             {/* Select Your Predictions heading - moved here for demo users */}
