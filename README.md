@@ -2,6 +2,26 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.29 - Admin Panel: Enhanced Game Creation Date Validation
+
+### 🛠️ **Enhanced Date Validation & Error Handling**
+- **Fixed "Invalid Time Value" Error**: Resolved critical issue preventing admin game creation with comprehensive date validation
+- **Robust DateTime Processing**: Multi-step validation prevents JavaScript Date constructor failures with invalid inputs
+- **Clear Error Messages**: Administrators receive specific feedback for date/time selection issues instead of cryptic "Invalid time value" errors
+- **Enhanced Form Management**: Improved form state reset functionality with proper cleanup of date, hour, and minute fields
+
+### 🔧 **Technical Architecture Improvements**
+- **Date Parsing Enhancement**: Enhanced validation with `isNaN(gameDateTime.getTime())` checking before API submission
+- **Improved DateTime Formatting**: Robust `combineDateTime()` function with proper padding, validation, and seconds precision
+- **Consistent Format**: DateTime strings include seconds (`2025-06-20T12:00:00`) for reliable parsing across browsers
+- **Enhanced Debugging**: Comprehensive error logging helps identify and resolve date-related issues during development
+
+### 🎯 **Admin Panel Reliability & UX**
+- **Eliminated Silent Failures**: Date validation errors surface with clear, actionable messaging for administrators
+- **Consistent Game Creation**: Administrators can reliably create games using same dates/times as before without mysterious errors
+- **Form State Management**: Proper cleanup prevents stale data issues and ensures clean form state after operations
+- **Validation Before Submission**: Date checks occur before backend API calls to prevent unnecessary server round-trips
+
 ## 🎯 Version 2.0.28 - Traditional Quiniela Format: Current Week Betting Restriction
 
 ### 🎮 **Weekly Betting Format Implementation**

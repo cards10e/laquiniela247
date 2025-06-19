@@ -243,10 +243,25 @@ export default function AdminPage() {
       // Find the selected week in allWeeks
       const selectedWeek = allWeeks.find(w => w.id === newGame.weekId);
       if (!selectedWeek) throw new Error('Selected week not found');
+      
+      // Validate the game date before attempting to parse it
+      if (!newGame.gameDate || newGame.gameDate.trim() === '') {
+        throw new Error('Game date is required');
+      }
+      
+      // Create the game date with timezone information to prevent "Invalid time value" errors
+      const gameDateTime = new Date(newGame.gameDate);
+      
+      // Check if the date is valid
+      if (isNaN(gameDateTime.getTime())) {
+        console.error('Invalid date string:', newGame.gameDate);
+        throw new Error('Invalid date/time value. Please check your date and time selection.');
+      }
+      
       // Backend will automatically create week if it doesn't exist
       // No need for frontend week management - let backend handle everything
       // Create the game
-      const matchDateISO = new Date(newGame.gameDate).toISOString();
+      const matchDateISO = gameDateTime.toISOString();
       await axiosInstance.post('/admin/games', {
         weekNumber: selectedWeek.weekNumber,
         season: '2025',
@@ -256,11 +271,15 @@ export default function AdminPage() {
       });
       toast.success(t('admin.game_created'));
       setNewGame({ weekId: '', homeTeamId: '', awayTeamId: '', gameDate: '' });
+      setGameDate('');
+      setGameHour('12');
+      setGameMinute('00');
       setSelectedDeadlineHours(null);
       setShowDeadlineModal(null);
       fetchAdminData();
     } catch (error: any) {
       const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Unknown error occurred';
+      console.error('Game creation error:', error);
       toast.error(t('admin.game_creation_failed') + ': ' + errorMessage);
     }
   };
@@ -414,8 +433,23 @@ export default function AdminPage() {
 
   // Add this helper function at the top or bottom of the file
   function combineDateTime(date: string, hour: string, minute: string) {
-    if (!date) return '';
-    return `${date}T${hour}:${minute}`;
+    if (!date || !hour || !minute) return '';
+    
+    // Ensure hour and minute are properly formatted
+    const formattedHour = hour.padStart(2, '0');
+    const formattedMinute = minute.padStart(2, '0');
+    
+    // Create a properly formatted datetime string
+    const dateTimeString = `${date}T${formattedHour}:${formattedMinute}:00`;
+    
+    // Validate the resulting date string
+    const testDate = new Date(dateTimeString);
+    if (isNaN(testDate.getTime())) {
+      console.warn('Invalid date combination:', { date, hour, minute, result: dateTimeString });
+      return '';
+    }
+    
+    return dateTimeString;
   }
 
   // Handler to set current week and deadline

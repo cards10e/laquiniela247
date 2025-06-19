@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.29] - 2025-06-19
+### 🛠️ Admin Panel: Enhanced Game Creation Date Validation
+- **Fixed "Invalid Time Value" Error**: Resolved critical issue where admin game creation would fail with "Invalid time value" error
+  - **Root Cause**: JavaScript Date constructor receiving invalid date strings due to insufficient validation
+  - **Enhanced Validation**: Added comprehensive date string validation before Date object creation
+  - **Robust Error Handling**: Improved error messages to help administrators identify date/time selection issues
+  - **Form State Management**: Enhanced form cleanup and reset functionality after successful game creation
+
+### 🔧 Technical Improvements
+- **Date Parsing Enhancement**: 
+  - **Before**: `new Date(newGame.gameDate)` - prone to "Invalid time value" errors
+  - **After**: Multi-step validation with `isNaN(gameDateTime.getTime())` checking
+  - **Improved DateTime Formatting**: Enhanced `combineDateTime()` function with proper padding and validation
+  - **Consistent Format**: DateTime strings now include seconds (`2025-06-20T12:00:00` vs `2025-06-20T12:00`)
+
+### 🎯 User Experience Improvements
+- **Clear Error Messages**: Administrators now receive specific feedback when date/time selection is invalid
+- **Form State Reset**: Proper cleanup of date, hour, and minute fields after successful game creation
+- **Enhanced Debugging**: Added comprehensive error logging for troubleshooting date-related issues
+- **Validation Before Submission**: Date validation occurs before attempting backend API calls
+
+### 🚀 Admin Panel Reliability
+- **Eliminated Silent Failures**: Date validation errors now surface with clear messaging
+- **Consistent Game Creation**: Administrators can reliably create games with same dates/times as before
+- **Better Debugging**: Console logging helps identify date parsing issues during development
+- **Form Reliability**: Improved form state management prevents stale data issues
+
+### Fixed
+- "Invalid time value" error when creating games in admin panel
+- Silent date parsing failures causing confusing error messages
+- Inconsistent datetime string formatting in game creation form
+- Form state not properly resetting after successful game creation
+- Missing validation for empty or malformed date inputs
+
+### Enhanced
+- Comprehensive date validation with early error detection
+- Robust `combineDateTime()` function with validation and formatting
+- Clear error messages for administrators when date issues occur
+- Improved form state management with proper cleanup
+- Enhanced debugging capabilities for date-related issues
+
 ## [2.0.28] - 2025-06-18
 ### 🎯 Traditional Quiniela Format: Current Week Betting Restriction
 - **Weekly Betting Format**: Implemented traditional Quiniela format restricting betting to current calendar week only
