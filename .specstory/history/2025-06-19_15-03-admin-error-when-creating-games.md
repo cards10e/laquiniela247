@@ -1090,3 +1090,183 @@ _**Assistant**_
 
 ---
 
+I see the issue is still occurring! This is interesting - you were able to create one game successfully, but the second game with different teams on the same date/time failed. This suggests the date parsing fix worked initially, but something else is causing the problem on subsequent attempts.
+
+Let me check a few things to debug this:
+
+---
+
+```bash
+cd /Users/batman/laquiniela247 && git log --oneline -5
+```
+
+```
+e48fce6 (HEAD -> main, origin/main) feat: enhance admin game creation with robust date validation (v2.0.29)
+ba55b29 feat: implement current week betting restriction for traditional Quiniela format - Add getCurrentWee
+kGames() utility function for intelligent week filtering - Restrict betting to current calendar week (Monday
+-Sunday) - Apply filtering to both single and parlay sections - Preserve admin access to all games - Fix var
+iable consistency issues - Add comprehensive debug logging - Version 2.0.28
+6070181 Clean up: Remove backup file
+5adf5c9 🌐 Version 2.0.27: Complete Localization Enhancement - Fixed betting interface localization with 9 n
+ew translation keys, replaced hardcoded strings with t() functions, enhanced Spanish/English support, added
+dynamic parameter support, updated documentation. Users can seamlessly switch languages using 🌐 toggle. Fix
+es #12
+c7be178 🐛 Fix Bug #11: Single Bets Not Persisting - Fixed critical database constraint issue preventing sin
+gle bets from persisting - Updated unique constraint from (user_id, game_id) to (user_id, game_id, bet_type)
+ - Allows both single AND parlay bets on same game while preventing duplicates - Fixed Prisma client constra
+int references for proper validation - Applied zero-downtime production database migration - Enhanced error
+handling and logging for constraint violations - Updated documentation: BUGS.md, CHANGELOG.md, README.md - R
+estored core single betting functionality across login sessions
+
+```
+
+---
+
+The changes are deployed. The issue might be that something in the form state or validation logic is getting corrupted after the first successful game creation. Let me check a few potential causes:
+
+---
+
+Read file: backend/src/routes/admin.ts
+
+---
+
+I found a potential issue! Looking at the backend code, I see that on lines 465-471, when the week doesn't exist yet, it creates a new week using these date operations:
+
+```javascript
+const matchDate = new Date(validatedData.matchDate);
+const startDate = new Date(matchDate);
+startDate.setDate(startDate.getDate() - 1); // Start date is 1 day before match
+const endDate = new Date(matchDate);
+endDate.setDate(endDate.getDate() + 1); // End date is 1 day after match
+const bettingDeadline = new Date(matchDate);
+bettingDeadline.setHours(bettingDeadline.getHours() - 2); // Betting deadline is 2 hours before match
+```
+
+The problem could be that after the first game is created successfully and a week is automatically created, when you try to create the second game, the frontend might be sending a malformed date string, causing the backend `new Date(validatedData.matchDate)` to fail.
+
+Let me add additional debugging to see exactly what's being sent to the backend:
+
+---
+
+```diff
+      homeTeamId: validatedData.homeTeamId,
+      awayTeamId: validatedData.awayTeamId,
+-     matchDate: validatedData.matchDate
+-   });
++     matchDate: validatedData.matchDate,
++     matchDateType: typeof validatedData.matchDate
++   });
++ 
++   // Validate the matchDate before using it
++   const testDate = new Date(validatedData.matchDate);
++   if (isNaN(testDate.getTime())) {
++     console.error('[DEBUG] Invalid matchDate received:', validatedData.matchDate);
++     throw createError(`Invalid match date: ${validatedData.matchDate}`, 400);
++   }
++   console.log('[DEBUG] Match date validation passed:', testDate.toISOString());
+  
+    // Verify teams exist
+```
+
+```diff
+      // Create the week automatically
+      const matchDate = new Date(validatedData.matchDate);
++     console.log('[DEBUG] Creating week with matchDate:', matchDate.toISOString());
++     
+      const startDate = new Date(matchDate);
+      startDate.setDate(startDate.getDate() - 1); // Start date is 1 day before match
+```
+
+```diff
+      const bettingDeadline = new Date(matchDate);
+      bettingDeadline.setHours(bettingDeadline.getHours() - 2); // Betting deadline is 2 hours before match
++ 
++     console.log('[DEBUG] Week creation dates:', {
++       startDate: startDate.toISOString(),
++       endDate: endDate.toISOString(),
++       bettingDeadline: bettingDeadline.toISOString()
++     });
+  
+      week = await prisma.week.create({
+```
+
+```diff
+    }
+  
++   console.log('[DEBUG] Creating game with final matchDate:', testDate.toISOString());
+    const game = await prisma.game.create({
+      data: {
+        weekNumber: validatedData.weekNumber,
+        homeTeamId: validatedData.homeTeamId,
+        awayTeamId: validatedData.awayTeamId,
+-       matchDate: new Date(validatedData.matchDate)
++       matchDate: testDate
+      },
+      include: {
+```
+
+---
+
+Now let me also add better error handling to the frontend to help debug the issue:
+
+---
+
+```diff
+          throw new Error('Game date is required');
+        }
++       
++       console.log('[DEBUG] Form state before processing:', {
++         gameDate: newGame.gameDate,
++         rawGameDate: gameDate,
++         gameHour,
++         gameMinute,
++         selectedWeekId: newGame.weekId
++       });
+        
+        // Create the game date with timezone information to prevent "Invalid time value" errors
+```
+
+```diff
+        if (isNaN(gameDateTime.getTime())) {
+          console.error('Invalid date string:', newGame.gameDate);
++         console.error('Form state debug:', { gameDate, gameHour, gameMinute });
+          throw new Error('Invalid date/time value. Please check your date and time selection.');
+        }
++       
++       console.log('[DEBUG] Sending to backend:', {
++         weekNumber: selectedWeek.weekNumber,
++         season: '2025',
++         homeTeamId: parseInt(newGame.homeTeamId),
++         awayTeamId: parseInt(newGame.awayTeamId),
++         matchDate: gameDateTime.toISOString()
++       });
+        
+        // Backend will automatically create week if it doesn't exist
+```
+
+```diff
+        const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Unknown error occurred';
+        console.error('Game creation error:', error);
++       console.error('Full error details:', {
++         error,
++         response: error?.response?.data,
++         formState: { gameDate, gameHour, gameMinute, newGameState: newGame }
++       });
+        toast.error(t('admin.game_creation_failed') + ': ' + errorMessage);
+      }
+```
+
+---
+
+_**User**_
+
+well its working on my local dev env -- the issue is happening in prod
+
+---
+
+_**Assistant**_
+
+
+
+---
+

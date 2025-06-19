@@ -254,55 +254,75 @@ export default function AdminPage() {
         rawGameDate: gameDate,
         gameHour,
         gameMinute,
-        selectedWeekId: newGame.weekId
+        selectedWeekId: newGame.weekId,
+        userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
       
-      // Create the game date with timezone information to prevent "Invalid time value" errors
-      const gameDateTime = new Date(newGame.gameDate);
-      
-      // Check if the date is valid
-      if (isNaN(gameDateTime.getTime())) {
-        console.error('Invalid date string:', newGame.gameDate);
-        console.error('Form state debug:', { gameDate, gameHour, gameMinute });
-        throw new Error('Invalid date/time value. Please check your date and time selection.');
+      // Create the game date with explicit timezone handling for production compatibility
+      let matchDateISO: string;
+      try {
+        // Parse the date components explicitly to avoid timezone issues
+        const [year, month, day] = newGame.gameDate.split('-').map(num => parseInt(num, 10));
+        const hour = parseInt(gameHour, 10);
+        const minute = parseInt(gameMinute, 10);
+        
+        // Create date in local timezone first, then convert to ISO
+        const localDate = new Date(year, month - 1, day, hour, minute, 0, 0);
+        
+        console.log('[DEBUG] Date components:', { year, month, day, hour, minute });
+        console.log('[DEBUG] Local date created:', localDate);
+        console.log('[DEBUG] Local date valid?', !isNaN(localDate.getTime()));
+        
+        if (isNaN(localDate.getTime())) {
+          throw new Error(`Invalid date components: ${year}-${month}-${day} ${hour}:${minute}`);
+        }
+        
+        // Convert to ISO string for backend
+        matchDateISO = localDate.toISOString();
+        
+        console.log('[DEBUG] Final ISO date:', matchDateISO);
+      } catch (dateError) {
+        console.error('[DEBUG] Date parsing error:', dateError);
+        throw new Error(`Failed to parse date: ${dateError instanceof Error ? dateError.message : 'Unknown error'}`);
       }
-      
-      console.log('[DEBUG] Sending to backend:', {
+
+      const gameData = {
         weekNumber: selectedWeek.weekNumber,
-        season: '2025',
-        homeTeamId: parseInt(newGame.homeTeamId),
-        awayTeamId: parseInt(newGame.awayTeamId),
-        matchDate: gameDateTime.toISOString()
-      });
-      
-      // Backend will automatically create week if it doesn't exist
-      // No need for frontend week management - let backend handle everything
-      // Create the game
-      const matchDateISO = gameDateTime.toISOString();
-      await axiosInstance.post('/admin/games', {
-        weekNumber: selectedWeek.weekNumber,
-        season: '2025',
-        homeTeamId: parseInt(newGame.homeTeamId),
-        awayTeamId: parseInt(newGame.awayTeamId),
+        season: selectedWeek.season,
+        homeTeamId: newGame.homeTeamId,
+        awayTeamId: newGame.awayTeamId,
         matchDate: matchDateISO
-      });
+      };
+
+      console.log('[DEBUG] Game data being sent to backend:', gameData);
+
+      const response = await axiosInstance.post('/admin/games', gameData);
+
+      const result = response.data;
+      
+      if (!response.ok) {
+        console.error('[DEBUG] Backend error response:', result);
+        throw new Error(result.error || `Failed to create game: ${response.status}`);
+      }
+
+      console.log('[DEBUG] Game created successfully:', result);
       toast.success(t('admin.game_created'));
-      setNewGame({ weekId: '', homeTeamId: '', awayTeamId: '', gameDate: '' });
+      
+      // Reset form
+      setNewGame({
+        weekId: '',
+        homeTeamId: '',
+        awayTeamId: ''
+      });
       setGameDate('');
       setGameHour('12');
       setGameMinute('00');
-      setSelectedDeadlineHours(null);
-      setShowDeadlineModal(null);
+      
+      // Refresh games list
       fetchAdminData();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Unknown error occurred';
-      console.error('Game creation error:', error);
-      console.error('Full error details:', {
-        error,
-        response: error?.response?.data,
-        formState: { gameDate, gameHour, gameMinute, newGameState: newGame }
-      });
-      toast.error(t('admin.game_creation_failed') + ': ' + errorMessage);
+    } catch (error) {
+      console.error('[DEBUG] Game creation error:', error);
+      toast.error(t('admin.game_creation_failed') + ': ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -321,8 +341,6 @@ export default function AdminPage() {
       toast.error(t('admin.game_result_update_failed'));
     }
   };
-
-
 
   const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
     try {

@@ -395,29 +395,54 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     homeTeamId: validatedData.homeTeamId,
     awayTeamId: validatedData.awayTeamId,
     matchDate: validatedData.matchDate,
-    matchDateType: typeof validatedData.matchDate
+    matchDateType: typeof validatedData.matchDate,
+    serverTimezone: process.env.TZ || 'system default',
+    nodeVersion: process.version
   });
 
-  // Validate the matchDate before using it
-  const testDate = new Date(validatedData.matchDate);
-  if (isNaN(testDate.getTime())) {
-    console.error('[DEBUG] Invalid matchDate received:', validatedData.matchDate);
-    throw createError(`Invalid match date: ${validatedData.matchDate}`, 400);
-  }
-  console.log('[DEBUG] Match date validation passed:', testDate.toISOString());
-
-  // Verify teams exist
-  const [homeTeam, awayTeam] = await Promise.all([
-    prisma.team.findUnique({ where: { id: validatedData.homeTeamId } }),
-    prisma.team.findUnique({ where: { id: validatedData.awayTeamId } })
-  ]);
-
-  if (!homeTeam || !awayTeam) {
-    throw createError('One or both teams not found', 404);
-  }
-
-  if (validatedData.homeTeamId === validatedData.awayTeamId) {
-    throw createError('Home and away teams cannot be the same', 400);
+  // Enhanced validation for the matchDate to handle production timezone issues
+  let parsedMatchDate: Date;
+  try {
+    parsedMatchDate = new Date(validatedData.matchDate);
+    
+    // Additional validation for timezone-related issues
+    if (isNaN(parsedMatchDate.getTime())) {
+      console.error('[DEBUG] Invalid matchDate - NaN result:', {
+        originalDate: validatedData.matchDate,
+        parsedResult: parsedMatchDate,
+        dateString: parsedMatchDate.toString()
+      });
+      throw createError(`Invalid match date format: ${validatedData.matchDate}`);
+    }
+    
+    // Check if the date is reasonable (not too far in past/future)
+    const now = new Date();
+    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+    
+    if (parsedMatchDate < oneYearAgo || parsedMatchDate > twoYearsFromNow) {
+      console.warn('[DEBUG] Date outside reasonable range:', {
+        parsedDate: parsedMatchDate,
+        now: now,
+        oneYearAgo: oneYearAgo,
+        twoYearsFromNow: twoYearsFromNow
+      });
+    }
+    
+    console.log('[DEBUG] Successfully parsed match date:', {
+      original: validatedData.matchDate,
+      parsed: parsedMatchDate,
+      iso: parsedMatchDate.toISOString(),
+      local: parsedMatchDate.toString()
+    });
+    
+  } catch (error) {
+    console.error('[DEBUG] Date parsing failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      inputDate: validatedData.matchDate,
+      inputType: typeof validatedData.matchDate
+    });
+    throw createError(`Failed to parse match date "${validatedData.matchDate}": ${error instanceof Error ? error.message : 'Invalid date format'}`);
   }
 
   // Check for duplicate games (same teams in same week)
@@ -438,40 +463,30 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
   });
 
   if (existingGame) {
-    throw createError('A game between these teams already exists for this week', 409);
+    throw createError('A game with these teams already exists in this week');
   }
 
-  // Verify week exists
-  console.log('[DEBUG] Attempting week lookup with:', {
-    weekNumber: validatedData.weekNumber,
-    season: validatedData.season
-  });
-  
-  let week = await prisma.week.findUnique({
-    where: { 
-      weekNumber_season: { 
-        weekNumber: validatedData.weekNumber, 
-        season: validatedData.season 
-      } 
+  // Find or create the week
+  let week = await prisma.week.findFirst({
+    where: {
+      number: validatedData.weekNumber,
+      season: validatedData.season
     }
   });
 
-  console.log('[DEBUG] Week lookup result:', week);
-
   if (!week) {
-    console.log('[DEBUG] Week not found, creating it automatically');
-    // Create the week automatically
-    const matchDate = new Date(validatedData.matchDate);
-    console.log('[DEBUG] Creating week with matchDate:', matchDate.toISOString());
+    console.log('[DEBUG] Creating new week:', validatedData.weekNumber);
     
-    const startDate = new Date(matchDate);
+    // Use the parsed date for week calculations to ensure consistency
+    const startDate = new Date(parsedMatchDate);
     startDate.setDate(startDate.getDate() - 1); // Start date is 1 day before match
-    const endDate = new Date(matchDate);
+    const endDate = new Date(parsedMatchDate);
     endDate.setDate(endDate.getDate() + 1); // End date is 1 day after match
-    const bettingDeadline = new Date(matchDate);
+    const bettingDeadline = new Date(parsedMatchDate);
     bettingDeadline.setHours(bettingDeadline.getHours() - 2); // Betting deadline is 2 hours before match
 
-    console.log('[DEBUG] Week creation dates:', {
+    console.log('[DEBUG] Week date calculations:', {
+      matchDate: parsedMatchDate.toISOString(),
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       bettingDeadline: bettingDeadline.toISOString()
@@ -479,24 +494,26 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
 
     week = await prisma.week.create({
       data: {
-        weekNumber: validatedData.weekNumber,
+        number: validatedData.weekNumber,
         season: validatedData.season,
-        startDate,
-        endDate,
-        bettingDeadline,
-        status: 'UPCOMING'
+        startDate: startDate,
+        endDate: endDate,
+        bettingDeadline: bettingDeadline,
+        isActive: true
       }
     });
-    console.log('[DEBUG] Created new week:', week);
+    console.log('[DEBUG] Created week:', week);
   }
 
-  console.log('[DEBUG] Creating game with final matchDate:', testDate.toISOString());
+  // Create the game using the validated parsed date
   const game = await prisma.game.create({
     data: {
+      weekId: week.id,
       weekNumber: validatedData.weekNumber,
       homeTeamId: validatedData.homeTeamId,
       awayTeamId: validatedData.awayTeamId,
-      matchDate: testDate
+      matchDate: parsedMatchDate, // Use the validated parsed date
+      status: 'scheduled'
     },
     include: {
       homeTeam: true,
@@ -505,10 +522,14 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     }
   });
 
-  res.status(201).json({
-    message: 'Game created successfully',
-    game
+  console.log('[DEBUG] Successfully created game:', {
+    id: game.id,
+    matchDate: game.matchDate,
+    homeTeam: game.homeTeam.name,
+    awayTeam: game.awayTeam.name
   });
+
+  res.status(201).json(game);
 }));
 
 // PUT /api/admin/games/:id - Update game
