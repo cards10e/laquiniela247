@@ -469,7 +469,7 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
   // Find or create the week
   let week = await prisma.week.findFirst({
     where: {
-      number: validatedData.weekNumber,
+      weekNumber: validatedData.weekNumber,
       season: validatedData.season
     }
   });
@@ -494,12 +494,12 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
 
     week = await prisma.week.create({
       data: {
-        number: validatedData.weekNumber,
+        weekNumber: validatedData.weekNumber,
         season: validatedData.season,
         startDate: startDate,
         endDate: endDate,
         bettingDeadline: bettingDeadline,
-        isActive: true
+        status: 'UPCOMING'
       }
     });
     console.log('[DEBUG] Created week:', week);
@@ -508,12 +508,11 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
   // Create the game using the validated parsed date
   const game = await prisma.game.create({
     data: {
-      weekId: week.id,
       weekNumber: validatedData.weekNumber,
       homeTeamId: validatedData.homeTeamId,
       awayTeamId: validatedData.awayTeamId,
       matchDate: parsedMatchDate, // Use the validated parsed date
-      status: 'scheduled'
+      status: 'SCHEDULED'
     },
     include: {
       homeTeam: true,

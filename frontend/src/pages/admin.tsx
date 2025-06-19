@@ -29,6 +29,7 @@ interface Week {
   bettingDeadline: string;
   startDate: string;
   endDate: string;
+  season?: string;
 }
 
 interface Game {
@@ -300,11 +301,6 @@ export default function AdminPage() {
 
       const result = response.data;
       
-      if (!response.ok) {
-        console.error('[DEBUG] Backend error response:', result);
-        throw new Error(result.error || `Failed to create game: ${response.status}`);
-      }
-
       console.log('[DEBUG] Game created successfully:', result);
       toast.success(t('admin.game_created'));
       
@@ -312,7 +308,8 @@ export default function AdminPage() {
       setNewGame({
         weekId: '',
         homeTeamId: '',
-        awayTeamId: ''
+        awayTeamId: '',
+        gameDate: ''
       });
       setGameDate('');
       setGameHour('12');
