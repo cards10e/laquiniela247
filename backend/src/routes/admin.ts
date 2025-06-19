@@ -394,8 +394,17 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     season: validatedData.season,
     homeTeamId: validatedData.homeTeamId,
     awayTeamId: validatedData.awayTeamId,
-    matchDate: validatedData.matchDate
+    matchDate: validatedData.matchDate,
+    matchDateType: typeof validatedData.matchDate
   });
+
+  // Validate the matchDate before using it
+  const testDate = new Date(validatedData.matchDate);
+  if (isNaN(testDate.getTime())) {
+    console.error('[DEBUG] Invalid matchDate received:', validatedData.matchDate);
+    throw createError(`Invalid match date: ${validatedData.matchDate}`, 400);
+  }
+  console.log('[DEBUG] Match date validation passed:', testDate.toISOString());
 
   // Verify teams exist
   const [homeTeam, awayTeam] = await Promise.all([
@@ -453,12 +462,20 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     console.log('[DEBUG] Week not found, creating it automatically');
     // Create the week automatically
     const matchDate = new Date(validatedData.matchDate);
+    console.log('[DEBUG] Creating week with matchDate:', matchDate.toISOString());
+    
     const startDate = new Date(matchDate);
     startDate.setDate(startDate.getDate() - 1); // Start date is 1 day before match
     const endDate = new Date(matchDate);
     endDate.setDate(endDate.getDate() + 1); // End date is 1 day after match
     const bettingDeadline = new Date(matchDate);
     bettingDeadline.setHours(bettingDeadline.getHours() - 2); // Betting deadline is 2 hours before match
+
+    console.log('[DEBUG] Week creation dates:', {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      bettingDeadline: bettingDeadline.toISOString()
+    });
 
     week = await prisma.week.create({
       data: {
@@ -473,12 +490,13 @@ router.post('/games', asyncHandler(async (req: AuthenticatedRequest, res: expres
     console.log('[DEBUG] Created new week:', week);
   }
 
+  console.log('[DEBUG] Creating game with final matchDate:', testDate.toISOString());
   const game = await prisma.game.create({
     data: {
       weekNumber: validatedData.weekNumber,
       homeTeamId: validatedData.homeTeamId,
       awayTeamId: validatedData.awayTeamId,
-      matchDate: new Date(validatedData.matchDate)
+      matchDate: testDate
     },
     include: {
       homeTeam: true,

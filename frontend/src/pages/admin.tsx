@@ -249,14 +249,31 @@ export default function AdminPage() {
         throw new Error('Game date is required');
       }
       
+      console.log('[DEBUG] Form state before processing:', {
+        gameDate: newGame.gameDate,
+        rawGameDate: gameDate,
+        gameHour,
+        gameMinute,
+        selectedWeekId: newGame.weekId
+      });
+      
       // Create the game date with timezone information to prevent "Invalid time value" errors
       const gameDateTime = new Date(newGame.gameDate);
       
       // Check if the date is valid
       if (isNaN(gameDateTime.getTime())) {
         console.error('Invalid date string:', newGame.gameDate);
+        console.error('Form state debug:', { gameDate, gameHour, gameMinute });
         throw new Error('Invalid date/time value. Please check your date and time selection.');
       }
+      
+      console.log('[DEBUG] Sending to backend:', {
+        weekNumber: selectedWeek.weekNumber,
+        season: '2025',
+        homeTeamId: parseInt(newGame.homeTeamId),
+        awayTeamId: parseInt(newGame.awayTeamId),
+        matchDate: gameDateTime.toISOString()
+      });
       
       // Backend will automatically create week if it doesn't exist
       // No need for frontend week management - let backend handle everything
@@ -280,6 +297,11 @@ export default function AdminPage() {
     } catch (error: any) {
       const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Unknown error occurred';
       console.error('Game creation error:', error);
+      console.error('Full error details:', {
+        error,
+        response: error?.response?.data,
+        formState: { gameDate, gameHour, gameMinute, newGameState: newGame }
+      });
       toast.error(t('admin.game_creation_failed') + ': ' + errorMessage);
     }
   };
