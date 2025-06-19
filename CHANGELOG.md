@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.27] - 2025-06-18
+### 🌐 Localization Fix: Complete Spanish Translation Support
+- **Fixed Hardcoded Strings**: Resolved issue where betting interface displayed English text instead of proper translations
+  - **Root Cause**: Multiple hardcoded strings in betting interface bypassing translation system
+  - **Missing Translation Keys**: Added 9 new translation keys for betting interface components
+  - **Comprehensive Coverage**: All betting interface elements now respect user's language preference
+
+### 🔧 Translation System Enhancement
+- **Added Missing Translation Keys**:
+  - `betting.total_bet_amount` - "Total Bet Amount" / "Cantidad Total de Apuesta"
+  - `betting.number_of_weeks_bet` - "Number of Weeks Bet" / "Número de Jornadas Apostadas"
+  - `betting.place_selections` - "Place Selections" / "Apostar Selecciones"
+  - `betting.games_available_to_bet` - "Available Games for Betting" / "Juegos Disponibles para Apostar"
+  - `betting.active_bets_placed` - "Active Bets Placed" / "Apuestas Realizadas"
+  - `betting.you_have_placed_bets` - "You have placed bets" / "Tienes apuestas realizadas"
+  - `betting.select_predictions_and_amounts` - Interactive helper text for bet summary
+  - `betting.no_games_available` - "No games available" / "No hay juegos disponibles"
+  - `betting.select_all_available_games` - Validation message with dynamic count parameters
+
+### 🎯 User Experience Improvements
+- **Consistent Language Experience**: Users can now seamlessly switch between English and Spanish using the 🌐 toggle
+- **Week Summary Translation**: "Week Summary" now properly displays as "Resumen de la Jornada" in Spanish
+- **Betting Interface Localization**: All betting actions, summaries, and status messages respect language preference
+- **Parameter Support**: Dynamic translations with count and status parameters work correctly
+
+### 🛠️ Technical Implementation
+- **Code Quality**: Replaced hardcoded strings with proper `t()` function calls throughout betting interface
+- **Translation Coverage**: Enhanced I18nContext with comprehensive betting terminology
+- **Consistency**: Aligned all user-facing text with existing translation system patterns
+- **Validation**: Ensured all new translation keys work correctly in both English and Spanish
+
+### Fixed
+- Hardcoded "Week Summary" not translating to "Resumen de la Jornada"
+- "Total Bet Amount" and "Number of Weeks Bet" displaying in English regardless of language setting
+- Mixed language display in betting interface elements
+- Hardcoded Spanish strings bypassing translation system
+- Missing translations for betting summary and status messages
+
+### Enhanced
+- Complete betting interface localization support
+- Seamless language switching with 🌐 toggle in header
+- Consistent translation system usage across all betting components
+- Dynamic parameter support for count-based translations
+
 ## [2.0.26] - 2025-01-18
 ### 🐛 Critical Bug Fix: Single Bets Not Persisting (Bug #11)
 - **Fixed Database Constraint Issue**: Resolved critical bug where single bets appeared to be placed successfully but disappeared after user logout/login

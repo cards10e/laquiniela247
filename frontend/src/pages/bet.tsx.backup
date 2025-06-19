@@ -532,11 +532,6 @@ export default function BetPage() {
     return true;
   };
 
-  // Variables for parlay section
-  const gamesWithBets = games.filter(g => g.userBet && g.userBet.prediction);
-  const gamesWithoutBets = games.filter(g => !g.userBet || !g.userBet.prediction);
-  const hasAnyBets = gamesWithBets.length > 0;
-
   if (loading) {
     return (
       <Layout title={t('betting.place_bet')}>
@@ -768,8 +763,14 @@ export default function BetPage() {
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
                   <div className="space-y-4">
-                    {games.map((game) => {
+                    {(() => {
+                      console.log('[DEBUG] About to render games in single tab');
+                      return games.map((game) => {
+                      console.log(`[Render Game ${game.id}] Full game:`, game);
+                      console.log(`[Render Game ${game.id}] userBet:`, game.userBet);
+                      console.log(`[Render Game ${game.id}] canBetOnGame result:`, canBetOnGame(game));
                       const hasUserBet = isUserBet(game.userBet);
+                      console.log(`[Render Game ${game.id}] hasUserBet:`, hasUserBet);
                       return (
                         <div key={game.id} className="card">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
@@ -884,8 +885,9 @@ export default function BetPage() {
                           )}
                         </div>
                       );
-                    })}
-                  </div>
+                    })()
+                    }
+                    </div>
                 </div>
                 <div className="lg:col-span-1">
                   {/* Bet Summary for Single Bets */}
@@ -926,7 +928,7 @@ export default function BetPage() {
                     </div>
                     {singleBetSummary.totalBets === 0 && (
                       <p className="text-xs text-secondary-500 dark:text-secondary-400 text-center">
-                        {t('betting.select_predictions_and_amounts')}
+                        Select predictions and set amounts to see your bet summary
                       </p>
                     )}
                   </div>
@@ -934,279 +936,294 @@ export default function BetPage() {
               </div>
             ) : (
               <div className="text-center py-12 text-secondary-500 dark:text-secondary-400">
-                {t('betting.no_games_available')}
+                {t('betting.no_games_available') || 'No games available.'}
               </div>
             )
           ) : (
-            <div className="space-y-6">
-              {/* Success Banner - only show if there are existing bets */}
-              {hasAnyBets && (
-                <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-lg">✓</span>
-                      </div>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-lg font-medium text-success-800 dark:text-success-200">
-                        {gamesWithoutBets.length === 0 ? t('betting.all_bets_placed') : t('betting.you_have_placed_bets')}
-                      </h3>
-                      <p className="text-success-700 dark:text-success-300">
-                        {t('betting.bets_placed_count', { 
-                          placed: gamesWithBets.length, 
-                          total: games.length 
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2">
-                  <div className="space-y-6">
-                    {/* Games with Existing Bets */}
-                    {gamesWithBets.length > 0 && (
-                      <div>
-                        <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
-                          {t('betting.active_bets_placed')}
-                        </h4>
-                        <div className="space-y-4">
-                          {gamesWithBets.map((game) => (
-                            <div key={game.id} className="card opacity-75">
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                                <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-                                  <div className="flex items-center space-x-2">
-                                    <TeamLogo 
-                                      teamName={game.homeTeamName}
-                                      logoUrl={game.homeTeamLogo}
-                                      className="team-logo"
-                                      alt={game.homeTeamName}
-                                    />
-                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
-                                  </div>
-                                  <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
-                                  <div className="flex items-center space-x-2">
-                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
-                                    <TeamLogo 
-                                      teamName={game.awayTeamName}
-                                      logoUrl={game.awayTeamLogo}
-                                      className="team-logo"
-                                      alt={game.awayTeamName}
-                                    />
-                                  </div>
-                                </div>
-                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                                  {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
-                              </div>
-                              
-                              {/* Show existing prediction */}
-                              <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
-                                    <span className="ml-2">
-                                      {t('betting.your_prediction')}: <b>{
-                                        (() => {
-                                          const pred = (game.userBet?.prediction || '').toLowerCase();
-                                          if (pred === 'home') return game.homeTeamName;
-                                          if (pred === 'away') return game.awayTeamName;
-                                          if (pred === 'draw') return t('betting.draw');
-                                          return game.userBet?.prediction;
-                                        })()
-                                      }</b>
-                                    </span>
-                                  </div>
-                                  {game.userBet?.isCorrect !== null && game.userBet?.isCorrect !== undefined && (
-                                    <span className={`font-bold ${game.userBet.isCorrect ? 'text-success-700 dark:text-success-300' : 'text-danger-700 dark:text-danger-300'}`}>
-                                      {game.userBet.isCorrect ? t('betting.correct') : t('betting.incorrect')}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+          // --- Weekly Parlay Tab ---
+          // For La Quiniela, always show all games organized by status
+          (() => {
+            const gamesWithBets = games.filter(g => g.userBet && g.userBet.prediction);
+            const gamesWithoutBets = games.filter(g => !g.userBet || !g.userBet.prediction);
+            const hasAnyBets = gamesWithBets.length > 0;
+            
+            console.log('[Parlay Debug] tab:', tab);
+            console.log('[Parlay Debug] games.length:', games.length);
+            console.log('[Parlay Debug] betStatus from API:', betStatus);
+            console.log('[Parlay Debug] gamesWithBets:', gamesWithBets.length);
+            console.log('[Parlay Debug] gamesWithoutBets:', gamesWithoutBets.length);
+            console.log('[Parlay Debug] full games array:', games.map(g => ({ id: g.id, userBet: g.userBet, homeTeam: g.homeTeamName, awayTeam: g.awayTeamName })));
+            
+            return (
+              <div className="space-y-6">
+                {/* Success Banner - only show if there are existing bets */}
+                {hasAnyBets && (
+                  <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-6">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-lg">✓</span>
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Games Available for Betting - restore normal betting flow */}
-                    {gamesWithoutBets.length > 0 && (
-                      <div>
-                        <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
-                          {t('betting.games_available_to_bet')}
-                        </h4>
-                        <div className="space-y-4">
-                          {gamesWithoutBets.map((game) => (
-                            <div key={game.id} className="card">
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                                <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-                                  <div className="flex items-center space-x-2">
-                                    <TeamLogo 
-                                      teamName={game.homeTeamName}
-                                      logoUrl={game.homeTeamLogo}
-                                      className="team-logo"
-                                      alt={game.homeTeamName}
-                                    />
-                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
-                                  </div>
-                                  <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
-                                  <div className="flex items-center space-x-2">
-                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
-                                    <TeamLogo 
-                                      teamName={game.awayTeamName}
-                                      logoUrl={game.awayTeamLogo}
-                                      className="team-logo"
-                                      alt={game.awayTeamName}
-                                    />
-                                  </div>
-                                </div>
-                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                                  {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
-                              </div>
-                              {/* Prediction Buttons */}
-                              <div className="grid grid-cols-3 gap-2">
-                                <button
-                                  onClick={() => !game.userBet && handlePredictionChange(game.id, 'home')}
-                                  disabled={!!game.userBet}
-                                  className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
-                                    (predictions[game.id] === 'home' || game.userBet?.prediction?.toLowerCase() === 'home') 
-                                      ? 'bg-primary-600 text-white' 
-                                      : game.userBet 
-                                        ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
-                                        : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
-                                  }`}
-                                >
-                                  {t('betting.home_team')}
-                                  <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
-                                </button>
-                                <button
-                                  onClick={() => !game.userBet && handlePredictionChange(game.id, 'draw')}
-                                  disabled={!!game.userBet}
-                                  className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
-                                    (predictions[game.id] === 'draw' || game.userBet?.prediction?.toLowerCase() === 'draw') 
-                                      ? 'bg-primary-600 text-white' 
-                                      : game.userBet 
-                                        ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
-                                        : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
-                                  }`}
-                                >
-                                  {t('betting.draw')}
-                                </button>
-                                <button
-                                  onClick={() => !game.userBet && handlePredictionChange(game.id, 'away')}
-                                  disabled={!!game.userBet}
-                                  className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
-                                    (predictions[game.id] === 'away' || game.userBet?.prediction?.toLowerCase() === 'away') 
-                                      ? 'bg-primary-600 text-white' 
-                                      : game.userBet 
-                                        ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
-                                        : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
-                                  }`}
-                                >
-                                  {t('betting.away_team')}
-                                  <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-success-800 dark:text-success-200">
+                          {gamesWithoutBets.length === 0 ? t('betting.all_bets_placed') : 'Tienes apuestas realizadas'}
+                        </h3>
+                        <p className="text-success-700 dark:text-success-300">
+                          {t('betting.bets_placed_count', { 
+                            placed: gamesWithBets.length, 
+                            total: games.length 
+                          })}
+                        </p>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-               
-                {/* Week Summary Sidebar */}
-                <div className="lg:col-span-1">
-                  <div className="card sticky top-8">
-                    <h3 className="subsection-title">
-                      {t('betting.week_summary')}
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-secondary-600 dark:text-secondary-400">{t('betting.predictions_made')}</span>
-                        <span className="font-bold text-success-600 dark:text-success-400">
-                          {gamesWithBets.length} / {games.length}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_bet_amount')}</span>
-                        <span className="font-medium"><FormattedAmount amount={200} /></span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-secondary-600 dark:text-secondary-400">{t('betting.number_of_weeks_bet')}</span>
-                        <span className="font-medium">{
-                          (() => {
-                            const weeksWithBets = new Set(games.filter(g => g.userBet).map(g => g.weekId));
-                            return weeksWithBets.size || 1;
-                          })()
-                        }</span>
-                      </div>
+                )}
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2">
+                    <div className="space-y-6">
+                      {/* Games with Existing Bets */}
+                      {gamesWithBets.length > 0 && (
+                        <div>
+                          <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+                            Apuestas Realizadas
+                          </h4>
+                          <div className="space-y-4">
+                            {gamesWithBets.map((game) => (
+                              <div key={game.id} className="card opacity-75">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                  <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+                                    <div className="flex items-center space-x-2">
+                                      <TeamLogo 
+                                        teamName={game.homeTeamName}
+                                        logoUrl={game.homeTeamLogo}
+                                        className="team-logo"
+                                        alt={game.homeTeamName}
+                                      />
+                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
+                                    </div>
+                                    <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
+                                    <div className="flex items-center space-x-2">
+                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
+                                      <TeamLogo 
+                                        teamName={game.awayTeamName}
+                                        logoUrl={game.awayTeamLogo}
+                                        className="team-logo"
+                                        alt={game.awayTeamName}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                    {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                </div>
+                                
+                                {/* Show existing prediction */}
+                                <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
+                                      <span className="ml-2">
+                                        {t('betting.your_prediction')}: <b>{
+                                          (() => {
+                                            const pred = (game.userBet?.prediction || '').toLowerCase();
+                                            if (pred === 'home') return game.homeTeamName;
+                                            if (pred === 'away') return game.awayTeamName;
+                                            if (pred === 'draw') return t('betting.draw');
+                                            return game.userBet?.prediction;
+                                          })()
+                                        }</b>
+                                      </span>
+                                    </div>
+                                    {game.userBet?.isCorrect !== null && game.userBet?.isCorrect !== undefined && (
+                                      <span className={`font-bold ${game.userBet.isCorrect ? 'text-success-700 dark:text-success-300' : 'text-danger-700 dark:text-danger-300'}`}>
+                                        {game.userBet.isCorrect ? t('betting.correct') : t('betting.incorrect')}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       
-                      {/* Show betting section for available games */}
+                      {/* Games Available for Betting - restore normal betting flow */}
                       {gamesWithoutBets.length > 0 && (
-                        <>
-                          <hr className="border-secondary-200 dark:border-secondary-700" />
-                          
-                          {/* Bet Amount */}
-                          <div className="mb-4">
-                            <label className="form-label">{t('betting.total_bet_amount')}</label>
-                            <div className="flex items-center gap-2">
-                              <CurrencySelector size="sm" className="w-14 text-xs" />
-                              <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-                                <FormattedAmount amount={getEffectiveBetAmount()} />
-                              </span>
-                            </div>
-                            <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
-                              {t('betting.la_quiniela_fixed_amount')}
-                            </p>
+                        <div>
+                          <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+                            Juegos Disponibles para Apostar
+                          </h4>
+                          <div className="space-y-4">
+                            {gamesWithoutBets.map((game) => (
+                              <div key={game.id} className="card">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                  <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+                                    <div className="flex items-center space-x-2">
+                                      <TeamLogo 
+                                        teamName={game.homeTeamName}
+                                        logoUrl={game.homeTeamLogo}
+                                        className="team-logo"
+                                        alt={game.homeTeamName}
+                                      />
+                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
+                                    </div>
+                                    <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
+                                    <div className="flex items-center space-x-2">
+                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
+                                      <TeamLogo 
+                                        teamName={game.awayTeamName}
+                                        logoUrl={game.awayTeamLogo}
+                                        className="team-logo"
+                                        alt={game.awayTeamName}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                    {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                </div>
+                                {/* Prediction Buttons */}
+                                <div className="grid grid-cols-3 gap-2">
+                                  <button
+                                    onClick={() => !game.userBet && handlePredictionChange(game.id, 'home')}
+                                    disabled={!!game.userBet}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                                      (predictions[game.id] === 'home' || game.userBet?.prediction?.toLowerCase() === 'home') 
+                                        ? 'bg-primary-600 text-white' 
+                                        : game.userBet 
+                                          ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
+                                          : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                                    }`}
+                                  >
+                                    {t('betting.home_team')}
+                                    <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
+                                  </button>
+                                  <button
+                                    onClick={() => !game.userBet && handlePredictionChange(game.id, 'draw')}
+                                    disabled={!!game.userBet}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                                      (predictions[game.id] === 'draw' || game.userBet?.prediction?.toLowerCase() === 'draw') 
+                                        ? 'bg-primary-600 text-white' 
+                                        : game.userBet 
+                                          ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
+                                          : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                                    }`}
+                                  >
+                                    {t('betting.draw')}
+                                  </button>
+                                  <button
+                                    onClick={() => !game.userBet && handlePredictionChange(game.id, 'away')}
+                                    disabled={!!game.userBet}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
+                                      (predictions[game.id] === 'away' || game.userBet?.prediction?.toLowerCase() === 'away') 
+                                        ? 'bg-primary-600 text-white' 
+                                        : game.userBet 
+                                          ? 'bg-secondary-200 dark:bg-secondary-600 text-secondary-500 cursor-not-allowed' 
+                                          : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'
+                                    }`}
+                                  >
+                                    {t('betting.away_team')}
+                                    <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          
-                          {/* Potential Winnings */}
-                          <div className="mb-4 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
-                            <div className="flex justify-between items-center">
-                              <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
-                              <span className="text-success-700 dark:text-success-300 font-bold text-lg">
-                                <FormattedAmount amount={calculatePotentialWinnings()} />
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Submit Button */}
-                          <button
-                            onClick={handleSubmitParlay}
-                            disabled={(Object.keys(predictions).length !== gamesWithoutBets.length) || submitting || getEffectiveBetAmount() < 10}
-                            className={`btn-primary w-full ${(Object.keys(predictions).length !== gamesWithoutBets.length) || submitting || getEffectiveBetAmount() < 10 ? 'btn-disabled' : ''}`}
-                          >
-                            {submitting ? (
-                              <div className="flex items-center"><div className="spinner-sm mr-2"></div>{t('common.loading')}</div>
-                            ) : (
-                              t('betting.place_selections')
-                            )}
-                          </button>
-                          {(Object.keys(predictions).length !== gamesWithoutBets.length) && (
-                            <p className="mt-2 text-xs text-warning-600 dark:text-warning-400 text-center">
-                              {t('betting.select_all_available_games', { current: Object.keys(predictions).length, total: gamesWithoutBets.length })}
-                            </p>
-                          )}
-                        </>
-                      )}
-                      
-                      {gamesWithBets.length > 0 && gamesWithoutBets.length === 0 && (
-                        <div className="p-4 bg-info-50 dark:bg-info-900/20 rounded-lg">
-                          <p className="text-info-700 dark:text-info-300 text-sm text-center">
-                            {t('betting.wait_for_results')}
-                          </p>
                         </div>
                       )}
                     </div>
+                  
+                  {/* Week Summary Sidebar */}
+                  <div className="lg:col-span-1">
+                    <div className="card sticky top-8">
+                      <h3 className="subsection-title">
+                        {t('betting.week_summary')}
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-secondary-600 dark:text-secondary-400">{t('betting.predictions_made')}</span>
+                          <span className="font-bold text-success-600 dark:text-success-400">
+                            {gamesWithBets.length} / {games.length}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-secondary-600 dark:text-secondary-400">Total Bet Amount</span>
+                          <span className="font-medium"><FormattedAmount amount={200} /></span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-secondary-600 dark:text-secondary-400">Number of Weeks Bet</span>
+                          <span className="font-medium">{
+                            (() => {
+                              const weeksWithBets = new Set(games.filter(g => g.userBet).map(g => g.weekId));
+                              return weeksWithBets.size || 1;
+                            })()
+                          }</span>
+                        </div>
+                        
+                        {/* Show betting section for available games */}
+                        {gamesWithoutBets.length > 0 && (
+                          <>
+                            <hr className="border-secondary-200 dark:border-secondary-700" />
+                            
+                            {/* Bet Amount */}
+                            <div className="mb-4">
+                              <label className="form-label">Total Bet Amount</label>
+                              <div className="flex items-center gap-2">
+                                <CurrencySelector size="sm" className="w-14 text-xs" />
+                                <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+                                  <FormattedAmount amount={getEffectiveBetAmount()} />
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
+                                {t('betting.la_quiniela_fixed_amount')}
+                              </p>
+                            </div>
+                            
+                            {/* Potential Winnings */}
+                            <div className="mb-4 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                              <div className="flex justify-between items-center">
+                                <span className="text-success-700 dark:text-success-300 font-medium">{t('betting.potential_winnings')}</span>
+                                <span className="text-success-700 dark:text-success-300 font-bold text-lg">
+                                  <FormattedAmount amount={calculatePotentialWinnings()} />
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Submit Button */}
+                            <button
+                              onClick={handleSubmitParlay}
+                              disabled={(Object.keys(predictions).length !== gamesWithoutBets.length) || submitting || getEffectiveBetAmount() < 10}
+                              className={`btn-primary w-full ${(Object.keys(predictions).length !== gamesWithoutBets.length) || submitting || getEffectiveBetAmount() < 10 ? 'btn-disabled' : ''}`}
+                            >
+                              {submitting ? (
+                                <div className="flex items-center"><div className="spinner-sm mr-2"></div>{t('common.loading')}</div>
+                              ) : (
+                                'Apostar Selecciones'
+                              )}
+                            </button>
+                            {(Object.keys(predictions).length !== gamesWithoutBets.length) && (
+                              <p className="mt-2 text-xs text-warning-600 dark:text-warning-400 text-center">
+                                Selecciona todos los juegos disponibles ({Object.keys(predictions).length}/{gamesWithoutBets.length})
+                              </p>
+                            )}
+                          </>
+                        )}
+                        
+                        {gamesWithBets.length > 0 && gamesWithoutBets.length === 0 && (
+                          <div className="p-4 bg-info-50 dark:bg-info-900/20 rounded-lg">
+                            <p className="text-info-700 dark:text-info-300 text-sm text-center">
+                              {t('betting.wait_for_results')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()
           )}
         </div>
       </ProtectedRoute>
