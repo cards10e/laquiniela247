@@ -289,8 +289,8 @@ export default function AdminPage() {
       const gameData = {
         weekNumber: selectedWeek.weekNumber,
         season: selectedWeek.season,
-        homeTeamId: newGame.homeTeamId,
-        awayTeamId: newGame.awayTeamId,
+        homeTeamId: parseInt(newGame.homeTeamId),
+        awayTeamId: parseInt(newGame.awayTeamId),
         matchDate: matchDateISO
       };
 
@@ -425,7 +425,8 @@ export default function AdminPage() {
   // Generate weeks for the next two months
   const today = new Date();
   const weeksSet = new Set<number>();
-  const generatedWeeks: { id: string; weekNumber: number; startDate: string; endDate: string }[] = [];
+  const currentSeason = '2025'; // Default season for generated weeks
+  const generatedWeeks: { id: string; weekNumber: number; startDate: string; endDate: string; season: string }[] = [];
   for (let i = 0; i < 9; i++) { // 9 weeks covers ~2 months
     const weekStart = addDays(startOfWeek(today, { weekStartsOn: 1 }), i * 7);
     const weekEnd = addDays(weekStart, 6);
@@ -434,7 +435,8 @@ export default function AdminPage() {
       id: `gen-${weekNumber}`,
       weekNumber,
       startDate: weekStart.toISOString(),
-      endDate: weekEnd.toISOString()
+      endDate: weekEnd.toISOString(),
+      season: currentSeason
     });
     weeksSet.add(weekNumber);
   }
@@ -445,7 +447,8 @@ export default function AdminPage() {
       id: String(w.id),
       weekNumber: w.weekNumber,
       startDate: w.startDate,
-      endDate: w.endDate
+      endDate: w.endDate,
+      season: w.season || currentSeason // Fallback to current season if missing
     }))
   ];
   allWeeks.sort((a, b) => a.weekNumber - b.weekNumber);

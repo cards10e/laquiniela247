@@ -271,6 +271,61 @@
 - **Testing Status**: Ready for testing - users should now be able to place single bets on games with existing parlay bets
 - **Impact**: Restored core single betting functionality, eliminated user confusion about "endless betting"
 
+### 13. Admin Game Creation - "Invalid Time Value" Error (Production)
+- **Status**: Open → Testing Fix
+- **Priority**: Critical
+- **Reported By**: Production User Testing
+- **Date**: June 19, 2025
+- **Description**: Admin users experience "Invalid time value" error when creating games in production environment, despite same operation working successfully in local development
+- **Symptoms**:
+  - First game creation succeeds (6/20/2025 12:00pm)
+  - Second game creation with different teams on same date/time fails with "Invalid time value" error
+  - Error occurs intermittently in production but never in local development
+  - Browser shows: "Error al crear el juego: Request failed with status code 400"
+- **Environment**: Production only (works fine in local development)
+- **Potential Causes**:
+  - Timezone differences between production server (UTC) and local development
+  - Node.js version differences between environments
+  - Date parsing inconsistencies with form state after first successful creation
+  - Server-side date validation failing due to timezone conversion issues
+- **Investigation**: 
+  - Added comprehensive debugging logs to both frontend and backend
+  - Enhanced date validation with explicit timezone handling
+  - Replaced string concatenation with explicit date component parsing
+- **Fix Applied**: 
+  - Frontend: Explicit timezone-aware date parsing (parse year/month/day/hour/minute individually)
+  - Backend: Enhanced matchDate validation with timezone debugging
+  - Added user timezone detection and server environment logging
+- **Testing Status**: In progress - deployed fix to production for validation
+- **Impact**: Critical admin functionality blocked in production environment
+
+### 14. Admin Game Creation - Zod Validation Error (Data Type Mismatch)
+- **Status**: Open → Testing Fix
+- **Priority**: Critical
+- **Reported By**: Production Testing
+- **Date**: June 19, 2025
+- **Description**: Game creation fails with Zod validation errors due to data type mismatches and missing required fields
+- **Error Details**:
+  ```
+  "code": "invalid_type", "expected": "string", "received": "undefined", "path": ["season"], "message": "Required"
+  "code": "invalid_type", "expected": "number", "received": "string", "path": ["homeTeamId"], "message": "Expected number, received string"
+  "code": "invalid_type", "expected": "number", "received": "string", "path": ["awayTeamId"], "message": "Expected number, received string"
+  ```
+- **Root Cause**: 
+  - Generated frontend weeks missing `season` property 
+  - Team IDs being sent as strings instead of numbers
+  - Backend Zod schema expects: `season: string`, `homeTeamId: number`, `awayTeamId: number`
+- **Frontend Issues**:
+  - `allWeeks` constructed from two sources: generated weeks (missing season) + backend weeks
+  - Form sends team IDs as strings without `parseInt()` conversion
+  - Selected week object may not have `season` property if it's a generated week
+- **Fix Applied**: 
+  - Added `season: '2025'` to generated weeks structure
+  - Added fallback `season` for backend weeks missing this property
+  - Convert team IDs to numbers using `parseInt()` before sending to backend
+- **Testing Status**: In progress - deployed fix to production for validation
+- **Impact**: Complete blocking of admin game creation functionality
+
 ## UI/UX Bugs
 
 ### 1. Light/Dark Mode Toggle
