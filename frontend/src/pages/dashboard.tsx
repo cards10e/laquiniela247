@@ -97,18 +97,6 @@ export default function DashboardPage() {
     // Mock leaderboard data matching the requested categories
     const mockData: LeaderboardCategory[] = [
       {
-        title: t('dashboard.most_consistent'),
-        description: t('dashboard.most_consistent_desc'),
-        scoreFormat: 'percentage',
-        entries: [
-          { id: 1, rank: 1, playerName: currentUsernames.consistent[0], score: 88.7 },
-          { id: 2, rank: 2, playerName: currentUsernames.consistent[1], score: 86.4 },
-          { id: 3, rank: 3, playerName: currentUsernames.consistent[2], score: 84.2 },
-          { id: 4, rank: 4, playerName: currentUsernames.consistent[3], score: 82.9 },
-          { id: 5, rank: 5, playerName: 'Demo User', score: 81.6, isCurrentUser: true }
-        ]
-      },
-      {
         title: t('dashboard.biggest_winners'),
         description: t('dashboard.biggest_winners_desc'),
         scoreFormat: 'currency',
@@ -118,6 +106,30 @@ export default function DashboardPage() {
           { id: 3, rank: 3, playerName: currentUsernames.winners[2], score: 16000 },
           { id: 4, rank: 4, playerName: currentUsernames.winners[3], score: 14000 },
           { id: 5, rank: 5, playerName: 'Demo User', score: 12000, isCurrentUser: true }
+        ]
+      },
+      {
+        title: t('dashboard.participation_streaks'),
+        description: t('dashboard.participation_streaks_desc'),
+        scoreFormat: 'weeks',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.streaks[0], score: 15 },
+          { id: 2, rank: 2, playerName: currentUsernames.streaks[1], score: 12 },
+          { id: 3, rank: 3, playerName: currentUsernames.streaks[2], score: 10 },
+          { id: 4, rank: 4, playerName: 'Demo User', score: 8, isCurrentUser: true },
+          { id: 5, rank: 5, playerName: currentUsernames.streaks[3], score: 7 }
+        ]
+      },
+      {
+        title: t('dashboard.most_consistent'),
+        description: t('dashboard.most_consistent_desc'),
+        scoreFormat: 'percentage',
+        entries: [
+          { id: 1, rank: 1, playerName: currentUsernames.consistent[0], score: 88.7 },
+          { id: 2, rank: 2, playerName: currentUsernames.consistent[1], score: 86.4 },
+          { id: 3, rank: 3, playerName: currentUsernames.consistent[2], score: 84.2 },
+          { id: 4, rank: 4, playerName: currentUsernames.consistent[3], score: 82.9 },
+          { id: 5, rank: 5, playerName: 'Demo User', score: 81.6, isCurrentUser: true }
         ]
       },
       {
@@ -141,18 +153,6 @@ export default function DashboardPage() {
           { id: 3, rank: 3, playerName: currentUsernames.performance[2], score: 89.5 },
           { id: 4, rank: 4, playerName: currentUsernames.performance[3], score: 87.3 },
           { id: 5, rank: 5, playerName: 'Demo User', score: 85.1, isCurrentUser: true }
-        ]
-      },
-      {
-        title: t('dashboard.participation_streaks'),
-        description: t('dashboard.participation_streaks_desc'),
-        scoreFormat: 'weeks',
-        entries: [
-          { id: 1, rank: 1, playerName: currentUsernames.streaks[0], score: 15 },
-          { id: 2, rank: 2, playerName: currentUsernames.streaks[1], score: 12 },
-          { id: 3, rank: 3, playerName: currentUsernames.streaks[2], score: 10 },
-          { id: 4, rank: 4, playerName: 'Demo User', score: 8, isCurrentUser: true },
-          { id: 5, rank: 5, playerName: currentUsernames.streaks[3], score: 7 }
         ]
       }
     ];

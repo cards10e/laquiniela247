@@ -632,6 +632,38 @@ export default function HistoryPage() {
               </h2>
             </div>
 
+            {/* Summary Stats */}
+            {filteredBets.length > 0 && (
+              <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="card text-center">
+                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                    {t('history.total_bets')}
+                  </div>
+                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    {filteredBets.length}
+                  </div>
+                </div>
+                
+                <div className="card text-center">
+                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                    {t('history.total_wagered')}
+                  </div>
+                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                    <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
+                  </div>
+                </div>
+                
+                <div className="card text-center">
+                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                    {t('history.total_winnings')}
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
               {/* Consolidated Filter Tabs */}
               <div className="flex mb-8 border-b-2 border-secondary-200 dark:border-secondary-700">
                 {(['all_types', 'la_quiniela', 'single_bets'] as BetTypeFilter[]).map((type) => (
@@ -855,38 +887,6 @@ export default function HistoryPage() {
                     {t('dashboard.place_first_bet')}
                   </a>
                 )}
-              </div>
-            )}
-
-            {/* Summary Stats */}
-            {filteredBets.length > 0 && (
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card text-center">
-                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                    {t('history.total_bets')}
-                  </div>
-                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                    {filteredBets.length}
-                  </div>
-                </div>
-                
-                <div className="card text-center">
-                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                    {t('history.total_wagered')}
-                  </div>
-                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                    <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.amount, 0)} />
-                  </div>
-                </div>
-                
-                <div className="card text-center">
-                  <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                    {t('history.total_winnings')}
-                  </div>
-                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                    <FormattedAmount amount={filteredBets.reduce((sum, bet) => sum + bet.winnings, 0)} />
-                  </div>
-                </div>
               </div>
             )}
           </div>

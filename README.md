@@ -2,6 +2,20 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.38 - UI/UX Enhancement: Improved Layout Organization
+
+### 🎨 **Enhanced User Interface Organization**
+- **History Page Summary Stats Relocation**: Moved Total Bets, Total Wagered, and Total Winnings to prominent position under "Betting Performance and History" header
+- **Dashboard Leaderboard Reorganization**: Rearranged leaderboard cards to prioritize Biggest Winners, Participation Streaks, and Most Consistent categories
+- **Better Information Hierarchy**: Key performance metrics now appear in logical positions for improved user experience
+- **Zero Breaking Changes**: All functionality preserved with enhanced visual organization and better user flow
+
+### 🏆 **Optimized User Experience**
+- **Performance Metrics Priority**: Financial and engagement statistics displayed prominently in both history and dashboard views
+- **Improved Visual Flow**: Summary statistics appear immediately after section headers for better information architecture
+- **Maintained Responsiveness**: All responsive design and mobile optimization preserved across layout improvements
+- **Consistent Design Language**: No visual design changes, only improved positioning and organization of existing elements
+
 ## 🎯 Version 2.0.29 - Admin Panel: Enhanced Game Creation Date Validation
 
 ### 🛠️ **Enhanced Date Validation & Error Handling**

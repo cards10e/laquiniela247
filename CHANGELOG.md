@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.38] - 2025-06-19
+### 🎨 UI/UX Enhancement: Improved Layout Organization
+- **History Page Summary Stats Relocation**: Moved Total Bets, Total Wagered, and Total Winnings from bottom to prominent position under "Betting Performance and History" header
+  - **Enhanced Visual Hierarchy**: Summary statistics now appear immediately after section header for better user experience
+  - **Preserved Functionality**: All conditional rendering, responsive design, and data calculations remain unchanged
+  - **Minimal Code Change**: Simple cut-and-paste operation with proper spacing adjustments
+  - **Better User Flow**: Key performance metrics visible before detailed betting history for improved information architecture
+
+### 🏆 Dashboard Leaderboard Reorganization
+- **Optimized Card Order**: Rearranged La Quiniela 247 Leaderboard cards to prioritize most relevant categories
+  - **New Order**: 1) Biggest Winners (Total Winnings), 2) Participation Streaks (Consecutive Weeks), 3) Most Consistent (Best Average)
+  - **User-Focused Prioritization**: Financial performance and engagement metrics displayed prominently
+  - **Preserved All Categories**: Weekly Winners and Best Performance remain available in positions 4-5
+  - **Zero Breaking Changes**: All data, functionality, and styling preserved with simple array reordering
+
+### 🎯 Enhanced User Experience
+- **Improved Information Priority**: Most important metrics (winnings, participation, consistency) displayed first
+- **Better Visual Flow**: History page statistics appear in logical position within performance section
+- **Maintained Responsiveness**: All responsive design and mobile optimization preserved
+- **Consistent Theming**: No visual design changes, only improved layout organization
+
+### Technical Implementation
+- **Minimal Code Impact**: Both changes implemented through simple array/element reordering
+- **No Database Changes**: Pure frontend layout improvements with zero backend modifications
+- **Preserved State Logic**: All conditional rendering and data processing logic unchanged
+- **Maintainable Architecture**: Changes align with existing component structure and patterns
+
+### Fixed
+- History page summary stats appearing at bottom instead of with performance section
+- Suboptimal leaderboard card order not prioritizing user engagement metrics
+
+### Enhanced
+- Information hierarchy in history page with stats prominently displayed
+- Dashboard leaderboard organization with user-focused category prioritization
+- Overall user experience through better layout organization
+
 ## [2.0.37] - 2025-06-19
 ### 🛠️ Translation Fix: Week Number Display
 - **Fixed Week Number Interpolation**: Resolved issue where "Jornada {weekNumber} - Liga MX" was displaying literal `{weekNumber}` instead of actual week number
