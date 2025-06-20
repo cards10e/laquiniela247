@@ -116,9 +116,12 @@ export default function HistoryPage() {
       console.log('[DEBUG] Response data type:', typeof response.data);
       console.log('[DEBUG] Response data length:', Array.isArray(response.data) ? response.data.length : 'not array');
       
-      // Temporarily force mock data to always show for debugging
-      if (true || !response.data || (Array.isArray(response.data) && response.data.length === 0)) {
-        console.log('Using enhanced demo data (forced for debugging)');
+      // Check if user is demo user or if there's no real data
+      const isDemoUser = user?.email === 'demo@laquiniela247.mx';
+      const hasNoData = !response.data || (Array.isArray(response.data) && response.data.length === 0);
+      
+      if (isDemoUser || hasNoData) {
+        console.log('Using enhanced demo data - Demo user:', isDemoUser, 'No data:', hasNoData);
         setBets([
           // La Quiniela Bets
           {
