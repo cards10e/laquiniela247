@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.39] - 2025-06-20
+### 🚨 CRITICAL SECURITY FIX: Betting System Deadline Enforcement
+- **Fixed Expired Game Betting Vulnerability**: Resolved critical security issue where users could place bets on games after betting deadlines had passed
+  - **Root Cause**: API returned ALL games from multiple weeks but frontend used calendar-based filtering instead of deadline-based filtering
+  - **Architectural Fix**: Complete redesign of game filtering logic to respect individual game betting deadlines
+  - **Week 99 Resolution**: Fixed interference from demo Week 99 by updating status from `OPEN` to `FINISHED`
+
+### 🔧 Backend API Enhancements (`/api/games/current-week`)
+- **Individual Game Deadlines**: Each game now includes its specific `bettingDeadline` from the week it belongs to
+- **Enhanced UserBet Mapping**: Fixed bet inclusion logic and TypeScript compatibility for game-bet associations
+- **Debug Logging**: Added comprehensive logging to trace bet mapping and deadline calculations
+- **Deadline String Conversion**: Proper ISO string formatting for client-side deadline comparisons
+
+### 🎯 Frontend Logic Overhaul (`bet.tsx`)
+- **Deadline-Based Filtering**: Games filtered by actual betting deadlines instead of calendar week logic
+- **Existing Bets Display**: Shows games with existing bets even if deadlines have expired (read-only mode)
+- **Enhanced Betting Prevention**: `canBetOnGame()` function checks individual deadlines AND existing bet status
+- **Dynamic Banner Status**: Red/green banner based on actual availability of bettable games
+- **Improved Week Selection**: Prioritizes weeks with valid deadlines, falls back to weeks with existing bets
+
+### 🛡️ Security Improvements
+- **Deadline Enforcement**: Impossible to place new bets on games after their specific deadline has passed
+- **Proper Game Isolation**: Each game's deadline checked individually instead of using primary week deadline for all games
+- **Existing Bet Protection**: Users can view their placed bets even after deadlines expire
+- **Admin Data Integrity**: Week 99 status correction preserves all existing demo data while fixing interference
+
+### 🎮 User Experience Enhancements
+- **Clear Status Indicators**: Red banner shows "Fecha Límite Pasada" when no new bets possible
+- **Existing Bets Section**: Green success messages display user's completed predictions clearly
+- **Proper Week Display**: Shows correct week number ("Jornada 26") based on next available betting week
+- **No False Promises**: Betting interface only shows when games are actually available for new bets
+
+### 🔍 Database Corrections
+- **Week 99 Status Fix**: Updated demo Week 99 from `OPEN` to `FINISHED` to prevent API interference
+- **Zero Breaking Changes**: All existing bets, games, and user data preserved during fix
+- **Architecture Preservation**: Week 99 demo infrastructure maintained for testing purposes
+
+### Fixed
+- **CRITICAL**: Users could place bets on games after betting deadlines had passed
+- API returning games from multiple weeks without proper deadline filtering  
+- Frontend calendar-based filtering ignoring actual game betting deadlines
+- Week 99 interfering with current week selection due to `OPEN` status
+- Banner showing green when no bettable games were actually available
+- Existing bets not displayed when deadlines expired
+- Mixed deadline logic causing security vulnerabilities
+
+### Enhanced
+- Individual game deadline enforcement for bulletproof betting security
+- Existing bet display for better user experience after deadlines pass
+- Dynamic status indicators based on actual game availability  
+- Proper week selection prioritizing bettable games
+- Debug logging for better system monitoring and troubleshooting
+- API response format with complete deadline information for frontend filtering
+
 ## [2.0.38] - 2025-06-19
 ### 🎨 UI/UX Enhancement: Improved Layout Organization
 - **History Page Summary Stats Relocation**: Moved Total Bets, Total Wagered, and Total Winnings from bottom to prominent position under "Betting Performance and History" header

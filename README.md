@@ -2,6 +2,38 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.39 - CRITICAL SECURITY FIX: Betting System Deadline Enforcement
+
+### 🚨 **Critical Betting Security Vulnerability Resolution**
+- **Fixed Expired Game Betting**: Resolved critical security issue where users could place bets on games after betting deadlines had passed
+- **Complete Architecture Overhaul**: Redesigned game filtering logic to respect individual game betting deadlines instead of calendar-based filtering
+- **Week 99 Database Fix**: Corrected demo Week 99 interference by updating status from `OPEN` to `FINISHED` preserving all existing data
+- **Zero Breaking Changes**: All existing bets, games, and user data preserved during comprehensive security fix
+
+### 🛡️ **Enhanced Security & Data Integrity**
+- **Individual Game Deadline Enforcement**: Each game's specific betting deadline checked individually preventing any expired game betting
+- **Proper Game Isolation**: Games filtered by actual deadlines rather than primary week deadline for bulletproof security
+- **Existing Bet Protection**: Users can view placed bets after deadlines expire while preventing new bets on expired games
+- **Admin Data Integrity**: Database corrections maintain all demo infrastructure while fixing API interference issues
+
+### 🔧 **Technical Excellence & API Enhancement**
+- **Backend API Improvements**: Enhanced `/api/games/current-week` with individual game deadlines and improved bet mapping logic
+- **Frontend Logic Overhaul**: Complete redesign of `bet.tsx` with deadline-based filtering and dynamic status indicators
+- **Debug Logging System**: Comprehensive logging for bet mapping, deadline calculations, and system monitoring
+- **TypeScript Compatibility**: Enhanced type safety and proper ISO string formatting for reliable client-side operations
+
+### 🎮 **Superior User Experience**
+- **Clear Status Indicators**: Red/green banners based on actual game availability with "Fecha Límite Pasada" messaging
+- **Existing Bets Display**: Green success messages show completed predictions clearly even after deadlines expire
+- **Proper Week Navigation**: Shows correct week numbers based on next available betting opportunities
+- **No False Promises**: Betting interface only appears when games are actually available for new bets
+
+### 🌟 **Security Implementation Highlights**
+- **Deadline-Based Filtering**: Games filtered by actual betting deadlines instead of calendar week logic
+- **Enhanced Betting Prevention**: `canBetOnGame()` function checks individual deadlines AND existing bet status
+- **Dynamic Banner Status**: Real-time status based on actual availability of bettable games
+- **Improved Week Selection**: Prioritizes weeks with valid deadlines, falls back to weeks with existing bets
+
 ## 🎯 Version 2.0.38 - UI/UX Enhancement: Improved Layout Organization
 
 ### 🎨 **Enhanced User Interface Organization**

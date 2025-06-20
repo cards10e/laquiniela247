@@ -100,49 +100,54 @@ const getCurrentWeekGames = (games: Game[]): Game[] => {
     return [];
   }
   
+  // CRITICAL FIX: Since fetchBettingData already filters for valid deadlines,
+  // just show games from the week with the earliest deadline (which should be consistent)
+  const gamesByWeek = games.reduce((acc, game) => {
+    const weekId = game.weekId || 0;
+    if (!acc[weekId]) acc[weekId] = [];
+    acc[weekId].push(game);
+    return acc;
+  }, {} as Record<number, Game[]>);
+  
+  console.log('🚨 [CURRENT WEEK FILTER] Games grouped by week:', Object.keys(gamesByWeek).map(weekId => ({
+    weekId,
+    gameCount: gamesByWeek[Number(weekId)].length,
+  })));
+  
+  // Find the week with the earliest deadline (most urgent for betting)
   const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
-  startOfWeek.setHours(0, 0, 0, 0);
+  let bestWeek: Game[] = [];
+  let earliestValidDeadline: Date | null = null;
   
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(endOfWeek.getDate() + 6); // Sunday
-  endOfWeek.setHours(23, 59, 59, 999);
-  
-  console.log('🚨 [CURRENT WEEK FILTER] Current week range:', startOfWeek.toLocaleDateString(), 'to', endOfWeek.toLocaleDateString());
-  console.log('🚨 [CURRENT WEEK FILTER] All games with dates:', games.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate, parsed: new Date(g.gameDate).toLocaleDateString() })));
-  
-  // Filter games happening this calendar week
-  const currentWeekGames = games.filter(game => {
-    const gameDate = new Date(game.gameDate);
-    return gameDate >= startOfWeek && gameDate <= endOfWeek;
+  Object.values(gamesByWeek).forEach(weekGames => {
+    // All games should already have valid deadlines from fetchBettingData filtering
+    if (weekGames.length > 0 && weekGames[0].bettingDeadline) {
+      const weekDeadline = new Date(weekGames[0].bettingDeadline);
+      
+      // For valid deadlines (non-expired), prefer earliest
+      if (weekDeadline > now) {
+        if (!earliestValidDeadline || weekDeadline < earliestValidDeadline) {
+          earliestValidDeadline = weekDeadline;
+          bestWeek = weekGames;
+        }
+      }
+      // If no valid deadlines found yet, use any week with existing bets
+      else if (bestWeek.length === 0 && weekGames.some(g => g.userBet?.prediction)) {
+        bestWeek = weekGames;
+        console.log('🚨 [CURRENT WEEK FILTER] Using expired week with existing bets:', weekGames[0].weekId);
+      }
+    }
   });
   
-  console.log('🚨 [CURRENT WEEK FILTER] Games this week:', currentWeekGames.length);
-  console.log('🚨 [CURRENT WEEK FILTER] Current week games:', currentWeekGames.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate })));
-  
-  // If no games this week, show next upcoming week with games
-  if (currentWeekGames.length === 0) {
-    console.log('🚨 [CURRENT WEEK FILTER] No games this week, finding next week...');
-    // Find the earliest upcoming game
-    const futureGames = games.filter(game => new Date(game.gameDate) > now);
-    if (futureGames.length === 0) return [];
-    
-    const earliestGame = futureGames.reduce((earliest, game) => 
-      new Date(game.gameDate) < new Date(earliest.gameDate) ? game : earliest
-    );
-    
-    console.log('🚨 [CURRENT WEEK FILTER] Earliest upcoming game is in week:', earliestGame.weekId);
-    
-    // Return all games from the same week as the earliest game
-    const nextWeekGames = games.filter(game => game.weekId === earliestGame.weekId);
-    console.log('🚨 [CURRENT WEEK FILTER] Showing next week games:', nextWeekGames.length);
-    console.log('🚨 [CURRENT WEEK FILTER] Next week games:', nextWeekGames.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate })));
-    return nextWeekGames;
+  // If no week found with deadlines, just return first week
+  if (bestWeek.length === 0 && Object.keys(gamesByWeek).length > 0) {
+    const firstWeekId = Object.keys(gamesByWeek)[0];
+    bestWeek = gamesByWeek[Number(firstWeekId)];
+    console.log('🚨 [CURRENT WEEK FILTER] No deadlines found, showing first week:', firstWeekId);
   }
   
-  console.log('🚨 [CURRENT WEEK FILTER] Showing current week games:', currentWeekGames.length);
-  return currentWeekGames;
+  console.log('🚨 [CURRENT WEEK FILTER] Selected games from week:', bestWeek[0]?.weekId, 'count:', bestWeek.length);
+  return bestWeek;
 };
 
 export default function BetPage() {
@@ -260,24 +265,57 @@ export default function BetPage() {
             userBet: game.userBet,
             weekId: game.weekNumber,
             bettingClosed: false, // Handled by backend filtering now
-            bettingDeadline: gamesData.week?.bettingDeadline,
+            bettingDeadline: game.bettingDeadline, // CRITICAL FIX: Use game's individual deadline from API
             weekStatus: 'open' // All games from this endpoint are from open weeks
           };
         }).filter(Boolean);
-        // Filter out past games - only show games that haven't started yet
+        
+        // CRITICAL FIX: Filter games by betting deadline validity, not match time
         const now = new Date();
-        const futureGames = mappedGames.filter((game: Game) => {
-          const gameDate = new Date(game.gameDate);
-          return gameDate > now; // Only games in the future
+        const gamesWithValidDeadlines = mappedGames.filter((game: Game) => {
+          if (!game.bettingDeadline) return false;
+          const deadline = new Date(game.bettingDeadline);
+          return deadline > now; // Only games with non-expired betting deadlines
         });
         
-        console.log('[Bet Debug] Mapped games from all open weeks:', mappedGames);
-        console.log('[Bet Debug] Future games after filtering:', futureGames);
-        setGames(futureGames);
+        // ALSO include games with existing bets (to show current bets in progress)
+        const gamesWithExistingBets = mappedGames.filter((game: Game) => {
+          return game.userBet && game.userBet.prediction;
+        });
+        
+        // Combine: games you can bet on + games you already bet on
+        const allRelevantGames = [...gamesWithValidDeadlines];
+        gamesWithExistingBets.forEach((gameWithBet: Game) => {
+          // Only add if not already in the valid deadlines list
+          if (!gamesWithValidDeadlines.some((g: Game) => g.id === gameWithBet.id)) {
+            allRelevantGames.push(gameWithBet);
+          }
+        });
+        
+        // CRITICAL FIX: If no games with valid deadlines but we have existing bets,
+        // ensure we show the week for the existing bets
+        if (gamesWithValidDeadlines.length === 0 && gamesWithExistingBets.length > 0) {
+          console.log('[Bet Debug] No valid deadlines, but showing existing bets from expired games');
+        }
+        
+        console.log('[Bet Debug] Mapped games from all open weeks:', mappedGames.length);
+        console.log('[Bet Debug] Games with valid betting deadlines:', gamesWithValidDeadlines.length);
+        console.log('[Bet Debug] Games with existing bets:', gamesWithExistingBets.length);
+        console.log('[Bet Debug] All relevant games to show:', allRelevantGames.length);
+        console.log('[Bet Debug] Games breakdown:', allRelevantGames.map(g => ({ 
+          id: g.id, 
+          week: g.weekId, 
+          teams: `${g.homeTeamName} vs ${g.awayTeamName}`,
+          deadline: g.bettingDeadline,
+          expired: g.bettingDeadline ? new Date(g.bettingDeadline) <= now : 'no-deadline',
+          hasBet: !!g.userBet?.prediction
+        })));
+        
+        setGames(allRelevantGames);
         
         // Populate predictions state from existing userBet data
         const existingPredictions: Record<number, PredictionType> = {};
-        futureGames.forEach((game: Game) => {
+        allRelevantGames.forEach((game: Game) => {
           if (game.userBet && game.userBet.prediction) {
             existingPredictions[game.id] = game.userBet.prediction.toLowerCase() as PredictionType;
           }
@@ -582,20 +620,23 @@ export default function BetPage() {
 
   // Check if user can bet on this game
   const canBetOnGame = (game: Game) => {
-    // Can't bet if user already has a bet
-    if (game.userBet) return false;
+    // Can't bet if no current week
+    if (!currentWeek) return false;
     
-    // Can't bet if betting is closed for this game
-    if (game.bettingClosed) return false;
+    // Can't bet if user already has a bet on this game
+    if (game.userBet && game.userBet.prediction) return false;
     
     // Can't bet if current week doesn't allow betting
     if (!currentWeek || currentWeek.status.toLowerCase() !== 'open') return false;
     
-    // Check if betting deadline has passed for the current week
-    if (currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)) {
+    // CRITICAL FIX: Check individual game deadline if available, otherwise use week deadline
+    const deadlineToCheck = game.bettingDeadline || currentWeek.bettingDeadline;
+    if (deadlineToCheck && new Date() >= new Date(deadlineToCheck)) {
+      console.log('🚨 [BETTING VALIDATION] Game', game.id, 'deadline passed:', deadlineToCheck);
       return false;
     }
     
+    console.log('🚨 [BETTING VALIDATION] Game', game.id, 'betting allowed, deadline:', deadlineToCheck);
     return true;
   };
 
@@ -767,9 +808,10 @@ export default function BetPage() {
           
           {currentWeek && (
             <div className={`text-white rounded-lg p-6 mb-6 ${
-              currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline) 
-                ? 'bg-error-600' 
-                : 'bg-primary-600'
+              // CRITICAL FIX: Check if any displayed games are actually bettable
+              filteredGames.some(game => canBetOnGame(game))
+                ? 'bg-primary-600' 
+                : 'bg-error-600'
             }`}>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
@@ -782,14 +824,15 @@ export default function BetPage() {
                     </p>
                   )}
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)
-                      ? 'bg-error-800 text-error-100'
-                      : 'bg-warning-600 text-secondary-900'
+                    // CRITICAL FIX: Check if any displayed games are actually bettable
+                    filteredGames.some(game => canBetOnGame(game))
+                      ? 'bg-warning-600 text-secondary-900'
+                      : 'bg-error-800 text-error-100'
                   }`}>
-                    {currentWeek.bettingDeadline && new Date() >= new Date(currentWeek.bettingDeadline)
-                      ? t('betting.betting_closed_short')
-                      : t('dashboard.open_for_betting')
-                    }
+                    {/* CRITICAL FIX: Show correct status based on actual games shown */}
+                    {filteredGames.some(game => canBetOnGame(game))
+                      ? t('betting.open_for_betting')
+                      : t('betting.deadline_passed')}
                   </span>
                 </div>
                 <div className="mt-4 sm:mt-0 bg-secondary-900 text-white px-4 py-2 rounded-lg">

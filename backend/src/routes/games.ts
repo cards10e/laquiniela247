@@ -114,8 +114,11 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req: AuthenticatedRe
       return acc;
     }, {} as Record<number, any>);
 
+    console.log('[DEBUG] betsByGameId lookup:', betsByGameId);
+    
     gamesWithUserBets = games.map(game => {
       const bet = betsByGameId[game.id];
+      console.log(`[DEBUG] Game ${game.id}: bet found:`, !!bet, 'prediction:', bet?.prediction);
       return {
         ...game,
         userBet: bet && bet.prediction ? bet : null
@@ -257,8 +260,17 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     });
   }
   
+  // Create week lookup for deadlines (used for both authenticated and non-authenticated users)
+  const weekDeadlineMap = openWeeks.reduce((acc, week) => {
+    acc[week.weekNumber] = week.bettingDeadline.toISOString();
+    return acc;
+  }, {} as Record<number, string>);
+  
   // If user is authenticated, include their bets for ALL open weeks
-  let gamesWithUserBets = updatedGames;
+  let gamesWithUserBets = updatedGames.map(game => ({
+    ...game,
+    bettingDeadline: weekDeadlineMap[game.weekNumber] // CRITICAL FIX: Include week deadline for each game
+  }));
   const betType = req.query.betType as string; // Get betType from query parameter - moved to higher scope
   if (req.user) {
     const weekIds = openWeeks.map(w => w.id);
@@ -285,11 +297,15 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       acc[bet.gameId] = bet;
       return acc;
     }, {} as Record<number, any>);
-    gamesWithUserBets = updatedGames.map(game => {
+    
+    console.log('[DEBUG] betsByGameId lookup:', betsByGameId);
+    
+    gamesWithUserBets = gamesWithUserBets.map(game => {
       const bet = betsByGameId[game.id];
+      console.log(`[DEBUG] Game ${game.id}: bet found:`, !!bet, 'prediction:', bet?.prediction);
       return {
         ...game,
-        userBet: bet && bet.prediction ? bet : null
+        userBet: bet ? bet : null  // SIMPLIFY: Remove prediction check
       };
     });
   }
@@ -467,8 +483,11 @@ router.get('/week/:weekNumber', optionalAuthMiddleware, asyncHandler(async (req:
       return acc;
     }, {} as Record<number, any>);
 
+    console.log('[DEBUG] betsByGameId lookup:', betsByGameId);
+    
     gamesWithUserBets = games.map(game => {
       const bet = betsByGameId[game.id];
+      console.log(`[DEBUG] Game ${game.id}: bet found:`, !!bet, 'prediction:', bet?.prediction);
       return {
         ...game,
         userBet: bet && bet.prediction ? bet : null
