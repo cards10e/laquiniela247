@@ -112,8 +112,13 @@ export default function HistoryPage() {
     try {
       const response = await axios.get('/api/bets/history');
       
-      if (!response.data || response.data.length === 0) {
-        console.log('No betting history found, using enhanced demo data');
+      console.log('[DEBUG] API Response:', response.data);
+      console.log('[DEBUG] Response data type:', typeof response.data);
+      console.log('[DEBUG] Response data length:', Array.isArray(response.data) ? response.data.length : 'not array');
+      
+      // Temporarily force mock data to always show for debugging
+      if (true || !response.data || (Array.isArray(response.data) && response.data.length === 0)) {
+        console.log('Using enhanced demo data (forced for debugging)');
         setBets([
           // La Quiniela Bets
           {
@@ -593,8 +598,6 @@ export default function HistoryPage() {
     }
   };
 
-
-
   if (loading) {
     return (
       <Layout title={t('history.title')}>
@@ -642,8 +645,6 @@ export default function HistoryPage() {
                   </button>
                 ))}
               </div>
-
-
 
             {/* Betting History Cards */}
             {filteredBets.length > 0 ? (
