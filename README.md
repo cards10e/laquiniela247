@@ -2,6 +2,48 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.40 - Enhanced Betting Summary & Dynamic Prediction Tracking
+
+### 🎯 **Fixed Critical Betting Summary Double-Counting**
+- **Resolved UI Consistency Issue**: Fixed critical bug where "Total Predictions Made" displayed "4/4" when should show "2/4" to match banner
+- **Root Cause Resolution**: Eliminated double-counting where existing bets AND current selections were incorrectly summed together
+- **Tab-Specific Logic**: Implemented proper separation between Single Bets and La Quiniela prediction counting
+- **Real-time Updates**: Prediction counters now update instantly when users select/deselect teams without page refresh
+
+### 🔧 **Advanced Dynamic Prediction Counter Implementation**
+- **Smart Counting Algorithm**: Each game counted only once - either existing bet OR current selection to prevent inflation
+- **Tab-Separated Calculations**: 
+  - **La Quiniela**: `filteredGames.filter(game => game.userBet || predictions[game.id]).length`
+  - **Single Bets**: Leverages existing `singleBetSummary.totalBets` with proper bet type filtering
+- **Backend Integration**: Utilizes existing `?betType=${tab}` API filtering for accurate tab-specific data
+- **Instant Visual Feedback**: Sidebar prediction counts respond immediately to user selections
+
+### 🌐 **Enhanced Localization & Context Clarity**
+- **History Page Title Update**: Enhanced betting history section header for better clarity
+  - **English**: "Betting Performance and History" → "Betting and Performance History - All Types"
+  - **Spanish**: "Rendimiento y Historial de Apuestas" → "Historial de Apuestas y Rendimiento - Todos los Tipos"
+- **Context Enhancement**: "All Types" addition clarifies inclusion of both Single Bets and La Quiniela
+- **Natural Translation**: Spanish version maintains grammatical flow while adding clarifying context
+
+### 🎮 **Superior User Experience & Consistency**
+- **Unified Progress Indicators**: Banner and sidebar now show identical prediction counts eliminating confusion
+- **Tab-Specific Context**: Users see only relevant prediction counts for their current betting mode
+- **Clear Progress Tracking**: "Total de Predicciones Realizadas" accurately reflects actual betting progress
+- **Visual Consistency**: Consistent green success styling for all prediction count displays
+
+### 🔍 **Enhanced Debugging & Quality Assurance**
+- **Comprehensive Debug Logging**: Added detailed console logging for prediction count troubleshooting
+- **Game Breakdown Analysis**: Detailed tracking shows which games have bets vs selections for debugging
+- **TypeScript Excellence**: All changes compile successfully with zero type errors
+- **Real-time Monitoring**: Debug logs help verify correct calculation logic during user interactions
+
+### 🌟 **Key Benefits**
+- **Accurate Prediction Tracking**: Sidebar matches banner text for consistent user experience
+- **No Cross-Contamination**: Single Bets and Parlay betting modes properly separated
+- **Instant User Feedback**: Real-time counter updates without server round-trips
+- **Enhanced Localization**: Clearer context in history page titles for better user understanding
+- **Robust Debugging**: Comprehensive logging system for ongoing quality assurance
+
 ## 🎯 Version 2.0.39 - CRITICAL SECURITY FIX: Betting System Deadline Enforcement
 
 ### 🚨 **Critical Betting Security Vulnerability Resolution**

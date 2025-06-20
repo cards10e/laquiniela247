@@ -92,62 +92,56 @@ function FormattedAmount({ amount, originalCurrency, className }: FormattedAmoun
 }
 
 // Utility function to get current week games only
-const getCurrentWeekGames = (games: Game[]): Game[] => {
-  console.log('🚨 [CURRENT WEEK FILTER] FUNCTION CALLED WITH', games.length, 'GAMES');
+const getAllRelevantGames = (games: Game[]): Game[] => {
+  console.log('🚨 [ALL RELEVANT GAMES] FUNCTION CALLED WITH', games.length, 'GAMES');
   
   if (!games || games.length === 0) {
-    console.log('🚨 [CURRENT WEEK FILTER] NO GAMES PROVIDED, RETURNING EMPTY ARRAY');
+    console.log('🚨 [ALL RELEVANT GAMES] NO GAMES PROVIDED, RETURNING EMPTY ARRAY');
     return [];
   }
   
-  // CRITICAL FIX: Since fetchBettingData already filters for valid deadlines,
-  // just show games from the week with the earliest deadline (which should be consistent)
-  const gamesByWeek = games.reduce((acc, game) => {
-    const weekId = game.weekId || 0;
-    if (!acc[weekId]) acc[weekId] = [];
-    acc[weekId].push(game);
-    return acc;
-  }, {} as Record<number, Game[]>);
-  
-  console.log('🚨 [CURRENT WEEK FILTER] Games grouped by week:', Object.keys(gamesByWeek).map(weekId => ({
-    weekId,
-    gameCount: gamesByWeek[Number(weekId)].length,
-  })));
-  
-  // Find the week with the earliest deadline (most urgent for betting)
+  // CRITICAL FIX: Show ALL games that are either:
+  // 1. Available for betting (deadline not passed) - SHOW FIRST
+  // 2. Have existing user bets (regardless of deadline) - SHOW AFTER
   const now = new Date();
-  let bestWeek: Game[] = [];
-  let earliestValidDeadline: Date | null = null;
   
-  Object.values(gamesByWeek).forEach(weekGames => {
-    // All games should already have valid deadlines from fetchBettingData filtering
-    if (weekGames.length > 0 && weekGames[0].bettingDeadline) {
-      const weekDeadline = new Date(weekGames[0].bettingDeadline);
-      
-      // For valid deadlines (non-expired), prefer earliest
-      if (weekDeadline > now) {
-        if (!earliestValidDeadline || weekDeadline < earliestValidDeadline) {
-          earliestValidDeadline = weekDeadline;
-          bestWeek = weekGames;
-        }
-      }
-      // If no valid deadlines found yet, use any week with existing bets
-      else if (bestWeek.length === 0 && weekGames.some(g => g.userBet?.prediction)) {
-        bestWeek = weekGames;
-        console.log('🚨 [CURRENT WEEK FILTER] Using expired week with existing bets:', weekGames[0].weekId);
-      }
+  const gamesAvailableForBetting: Game[] = [];
+  const gamesWithExistingBets: Game[] = [];
+  
+  games.forEach(game => {
+    const hasExistingBet = game.userBet && game.userBet.prediction;
+    const canStillBet = game.bettingDeadline && new Date(game.bettingDeadline) > now;
+    
+    console.log('🚨 [GAME FILTER]', game.id, 'week:', game.weekId, 'hasExistingBet:', hasExistingBet, 'canStillBet:', canStillBet);
+    
+    // Prioritize current betting opportunities
+    if (canStillBet) {
+      gamesAvailableForBetting.push(game);
+    }
+    // Then show existing bets (but avoid duplicates if game is in both categories)
+    else if (hasExistingBet) {
+      gamesWithExistingBets.push(game);
     }
   });
   
-  // If no week found with deadlines, just return first week
-  if (bestWeek.length === 0 && Object.keys(gamesByWeek).length > 0) {
-    const firstWeekId = Object.keys(gamesByWeek)[0];
-    bestWeek = gamesByWeek[Number(firstWeekId)];
-    console.log('🚨 [CURRENT WEEK FILTER] No deadlines found, showing first week:', firstWeekId);
-  }
+  // Sort each category by week number (ascending = earliest weeks first)
+  const sortByWeek = (a: Game, b: Game) => (a.weekId || 0) - (b.weekId || 0);
+  gamesAvailableForBetting.sort(sortByWeek);
+  gamesWithExistingBets.sort(sortByWeek);
   
-  console.log('🚨 [CURRENT WEEK FILTER] Selected games from week:', bestWeek[0]?.weekId, 'count:', bestWeek.length);
-  return bestWeek;
+  // Combine: current betting week first, then previous weeks with bets
+  const relevantGames = [...gamesAvailableForBetting, ...gamesWithExistingBets];
+  
+  console.log('🚨 [ALL RELEVANT GAMES] Available for betting:', gamesAvailableForBetting.length, 'games');
+  console.log('🚨 [ALL RELEVANT GAMES] With existing bets:', gamesWithExistingBets.length, 'games');
+  console.log('🚨 [ALL RELEVANT GAMES] Final order:', relevantGames.map(g => ({ 
+    id: g.id, 
+    week: g.weekId, 
+    canBet: g.bettingDeadline && new Date(g.bettingDeadline) > now,
+    hasBet: !!g.userBet?.prediction 
+  })));
+  
+  return relevantGames;
 };
 
 export default function BetPage() {
@@ -182,9 +176,9 @@ export default function BetPage() {
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
-  // Apply current week filtering (only for regular users, not admins)
+  // Apply relevant games filtering (only for regular users, not admins)
   // Admins see all games for management purposes
-  const filteredGames = isAdmin ? games : getCurrentWeekGames(games);
+  const filteredGames = isAdmin ? games : getAllRelevantGames(games);
   
   // Debug: Show filtering status
   console.log('[Filtering Debug] isAdmin:', isAdmin, 'user role:', user?.role);
@@ -270,58 +264,30 @@ export default function BetPage() {
           };
         }).filter(Boolean);
         
-        // CRITICAL FIX: Filter games by betting deadline validity, not match time
-        const now = new Date();
-        const gamesWithValidDeadlines = mappedGames.filter((game: Game) => {
-          if (!game.bettingDeadline) return false;
-          const deadline = new Date(game.bettingDeadline);
-          return deadline > now; // Only games with non-expired betting deadlines
-        });
-        
-        // ALSO include games with existing bets (to show current bets in progress)
-        const gamesWithExistingBets = mappedGames.filter((game: Game) => {
-          return game.userBet && game.userBet.prediction;
-        });
-        
-        // Combine: games you can bet on + games you already bet on
-        const allRelevantGames = [...gamesWithValidDeadlines];
-        gamesWithExistingBets.forEach((gameWithBet: Game) => {
-          // Only add if not already in the valid deadlines list
-          if (!gamesWithValidDeadlines.some((g: Game) => g.id === gameWithBet.id)) {
-            allRelevantGames.push(gameWithBet);
-          }
-        });
-        
-        // CRITICAL FIX: If no games with valid deadlines but we have existing bets,
-        // ensure we show the week for the existing bets
-        if (gamesWithValidDeadlines.length === 0 && gamesWithExistingBets.length > 0) {
-          console.log('[Bet Debug] No valid deadlines, but showing existing bets from expired games');
-        }
-        
-        console.log('[Bet Debug] Mapped games from all open weeks:', mappedGames.length);
-        console.log('[Bet Debug] Games with valid betting deadlines:', gamesWithValidDeadlines.length);
-        console.log('[Bet Debug] Games with existing bets:', gamesWithExistingBets.length);
-        console.log('[Bet Debug] All relevant games to show:', allRelevantGames.length);
-        console.log('[Bet Debug] Games breakdown:', allRelevantGames.map(g => ({ 
+        // CRITICAL FIX: Don't filter here - let getAllRelevantGames() handle filtering
+        // The API already returns all relevant games with existing bets included
+        console.log('[Bet Debug] All games from API:', mappedGames.length);
+        console.log('[Bet Debug] Games breakdown:', mappedGames.map((g: Game) => ({ 
           id: g.id, 
           week: g.weekId, 
           teams: `${g.homeTeamName} vs ${g.awayTeamName}`,
           deadline: g.bettingDeadline,
-          expired: g.bettingDeadline ? new Date(g.bettingDeadline) <= now : 'no-deadline',
-          hasBet: !!g.userBet?.prediction
+          hasBet: !!g.userBet?.prediction,
+          prediction: g.userBet?.prediction
         })));
         
-        setGames(allRelevantGames);
+        setGames(mappedGames);
         
         // Populate predictions state from existing userBet data
         const existingPredictions: Record<number, PredictionType> = {};
-        allRelevantGames.forEach((game: Game) => {
+        mappedGames.forEach((game: Game) => {
           if (game.userBet && game.userBet.prediction) {
             existingPredictions[game.id] = game.userBet.prediction.toLowerCase() as PredictionType;
           }
         });
         setPredictions(existingPredictions);
         console.log('[Bet Debug] Populated predictions from userBet:', existingPredictions);
+        console.log('[Bet Debug] Current tab:', tab, '| Games with bets:', mappedGames.filter((g: Game) => g.userBet).length, '| API URL:', url);
       }
       
       // Set the primary week from the response
@@ -640,13 +606,22 @@ export default function BetPage() {
     return true;
   };
 
-  // Variables for parlay section
+  // Variables for game sections - maintain order from getAllRelevantGames
+  // Since getAllRelevantGames already puts current betting games first, then existing bets,
+  // we split based on this order while preserving it
+  const now = new Date();
+  const gamesAvailableForBetting = filteredGames.filter(g => g.bettingDeadline && new Date(g.bettingDeadline) > now);
+  const gamesWithExistingBets = filteredGames.filter(g => g.userBet && g.userBet.prediction && (!g.bettingDeadline || new Date(g.bettingDeadline) <= now));
+  
+  // Legacy variables for compatibility with existing UI sections
+  // Note: filteredGames should already be filtered by betType from API, but we'll ensure tab separation
   const gamesWithBets = filteredGames.filter(g => g.userBet && g.userBet.prediction);
   const gamesWithoutBets = filteredGames.filter(g => !g.userBet || !g.userBet.prediction);
   const hasAnyBets = gamesWithBets.length > 0;
   
-  console.log('🎮 [RENDER DEBUG] gamesWithBets:', gamesWithBets.map(g => ({ id: g.id, weekId: g.weekId })));
-  console.log('🎮 [RENDER DEBUG] gamesWithoutBets:', gamesWithoutBets.map(g => ({ id: g.id, weekId: g.weekId })));
+  console.log('🎮 [RENDER DEBUG] gamesAvailableForBetting:', gamesAvailableForBetting.map(g => ({ id: g.id, weekId: g.weekId })));
+  console.log('🎮 [RENDER DEBUG] gamesWithExistingBets:', gamesWithExistingBets.map(g => ({ id: g.id, weekId: g.weekId })));
+  console.log('🎮 [RENDER DEBUG] Total order preserved:', filteredGames.map(g => ({ id: g.id, weekId: g.weekId, canBet: g.bettingDeadline && new Date(g.bettingDeadline) > now, hasBet: !!g.userBet?.prediction })));
 
   if (loading) {
     return (
@@ -831,7 +806,7 @@ export default function BetPage() {
                   }`}>
                     {/* CRITICAL FIX: Show correct status based on actual games shown */}
                     {filteredGames.some(game => canBetOnGame(game))
-                      ? t('betting.open_for_betting')
+                      ? t('dashboard.open_for_betting')
                       : t('betting.deadline_passed')}
                   </span>
                 </div>
@@ -880,124 +855,199 @@ export default function BetPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Games List for Single Bets */}
                 <div className="lg:col-span-2">
-                  <div className="space-y-4">
-                    {filteredGames.map((game) => {
-                      const hasUserBet = isUserBet(game.userBet);
-                      return (
-                        <div key={game.id} className="card">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                            <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-                              <div className="flex items-center space-x-2">
-                                <TeamLogo 
-                                  teamName={game.homeTeamName}
-                                  logoUrl={game.homeTeamLogo}
-                                  className="team-logo"
-                                  alt={game.homeTeamName}
-                                />
-                                <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
-                              </div>
-                              <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
-                                <TeamLogo 
-                                  teamName={game.awayTeamName}
-                                  logoUrl={game.awayTeamLogo}
-                                  className="team-logo"
-                                  alt={game.awayTeamName}
-                                />
-                              </div>
-                            </div>
-                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                              {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <div className="space-y-6">
+                    {/* Success Banner - only show if there are existing bets */}
+                    {hasAnyBets && (
+                      <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-6">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-lg">✓</span>
                             </div>
                           </div>
-                          {/* Prediction Buttons or User Bet Info */}
-                          {canBetOnGame(game) ? (
-                            <div className="grid grid-cols-3 gap-2 mb-2">
-                              <button
-                                onClick={() => handlePredictionChange(game.id, 'home')}
-                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'home' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
-                              >
-                                {t('betting.home_team')}
-                                <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
-                              </button>
-                              <button
-                                onClick={() => handlePredictionChange(game.id, 'draw')}
-                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'draw' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
-                              >
-                                {t('betting.draw')}
-                              </button>
-                              <button
-                                onClick={() => handlePredictionChange(game.id, 'away')}
-                                className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'away' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
-                              >
-                                {t('betting.away_team')}
-                                <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
-                              </button>
-                            </div>
-                          ) : game.userBet ? (
-                            <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                              <div>
-                                <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
-                                <span className="ml-2">
-                                  {t('betting.your_prediction')}: <b>{
-                                    (() => {
-                                      const pred = (game.userBet?.prediction || '').toLowerCase();
-                                      if (pred === 'home') return t('betting.home_team');
-                                      if (pred === 'away') return t('betting.away_team');
-                                      if (pred === 'draw') return t('betting.draw');
-                                      return game.userBet?.prediction;
-                                    })()
-                                  }</b>
-                                </span>
+                          <div className="ml-3">
+                            <h3 className="text-lg font-medium text-success-800 dark:text-success-200">
+                              {gamesWithoutBets.length === 0 ? t('betting.all_bets_placed') : t('betting.you_have_placed_bets')}
+                            </h3>
+                            <p className="text-success-700 dark:text-success-300">
+                              {t('betting.bets_placed_count', { 
+                                placed: gamesWithBets.length, 
+                                total: filteredGames.length 
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Games with Existing Bets */}
+                    {gamesWithBets.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+                          {t('betting.active_bets_placed')}
+                        </h4>
+                        <div className="space-y-4">
+                          {gamesWithBets.map((game) => (
+                            <div key={game.id} className="card opacity-75">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+                                  <div className="flex items-center space-x-2">
+                                    <TeamLogo 
+                                      teamName={game.homeTeamName}
+                                      logoUrl={game.homeTeamLogo}
+                                      className="team-logo"
+                                      alt={game.homeTeamName}
+                                    />
+                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
+                                  </div>
+                                  <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
+                                    <TeamLogo 
+                                      teamName={game.awayTeamName}
+                                      logoUrl={game.awayTeamLogo}
+                                      className="team-logo"
+                                      alt={game.awayTeamName}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                  {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
                               </div>
-                              {game.userBet?.isCorrect !== null && game.userBet?.isCorrect !== undefined && (
-                                <span className={`ml-4 font-bold ${game.userBet.isCorrect ? 'text-success-700 dark:text-success-300' : 'text-danger-700 dark:text-danger-300'}`}>
-                                  {game.userBet.isCorrect ? t('betting.correct') : t('betting.incorrect')}
-                                </span>
+                              
+                              {/* Show existing prediction */}
+                              <div className="mb-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="font-semibold text-success-700 dark:text-success-300">{t('betting.bet_placed')}</span>
+                                    <span className="ml-2">
+                                      {t('betting.your_prediction')}: <b>{
+                                        (() => {
+                                          const pred = (game.userBet?.prediction || '').toLowerCase();
+                                          if (pred === 'home') return game.homeTeamName;
+                                          if (pred === 'away') return game.awayTeamName;
+                                          if (pred === 'draw') return t('betting.draw');
+                                          return game.userBet?.prediction;
+                                        })()
+                                      }</b>
+                                    </span>
+                                  </div>
+                                  {game.userBet?.isCorrect !== null && game.userBet?.isCorrect !== undefined && (
+                                    <span className={`font-bold ${game.userBet.isCorrect ? 'text-success-700 dark:text-success-300' : 'text-danger-700 dark:text-danger-300'}`}>
+                                      {game.userBet.isCorrect ? t('betting.correct') : t('betting.incorrect')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Games Available for Betting */}
+                    {gamesWithoutBets.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
+                          {t('betting.games_available_to_bet')}
+                        </h4>
+                        <div className="space-y-4">
+                          {gamesWithoutBets.map((game) => (
+                            <div key={game.id} className="card">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+                                  <div className="flex items-center space-x-2">
+                                    <TeamLogo 
+                                      teamName={game.homeTeamName}
+                                      logoUrl={game.homeTeamLogo}
+                                      className="team-logo"
+                                      alt={game.homeTeamName}
+                                    />
+                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.homeTeamName}</span>
+                                  </div>
+                                  <span className="text-secondary-500 dark:text-secondary-400 font-bold">VS</span>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">{game.awayTeamName}</span>
+                                    <TeamLogo 
+                                      teamName={game.awayTeamName}
+                                      logoUrl={game.awayTeamLogo}
+                                      className="team-logo"
+                                      alt={game.awayTeamName}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                  {new Date(game.gameDate).toLocaleDateString()} {new Date(game.gameDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              </div>
+                              {/* Prediction Buttons or Closed Notice */}
+                              {canBetOnGame(game) ? (
+                                <div className="grid grid-cols-3 gap-2 mb-2">
+                                  <button
+                                    onClick={() => handlePredictionChange(game.id, 'home')}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'home' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                                  >
+                                    {t('betting.home_team')}
+                                    <div className="text-xs opacity-75 mt-1">{game.homeTeamName}</div>
+                                  </button>
+                                  <button
+                                    onClick={() => handlePredictionChange(game.id, 'draw')}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'draw' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                                  >
+                                    {t('betting.draw')}
+                                  </button>
+                                  <button
+                                    onClick={() => handlePredictionChange(game.id, 'away')}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-colors ${predictions[game.id] === 'away' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-600'}`}
+                                  >
+                                    {t('betting.away_team')}
+                                    <div className="text-xs opacity-75 mt-1">{game.awayTeamName}</div>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="mb-2 p-3 bg-error-50 dark:bg-error-900/20 rounded-lg text-center">
+                                  <span className="font-semibold text-error-700 dark:text-error-300">
+                                    🔒 {t('betting.betting_closed_short')}
+                                  </span>
+                                  <div className="text-sm text-error-600 dark:text-error-400 mt-1">
+                                    {game.bettingDeadline && (
+                                      t('betting.betting_closed_on', {
+                                        date: new Date(game.bettingDeadline).toLocaleDateString(),
+                                        time: new Date(game.bettingDeadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                      })
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {/* Bet Amount and Place Bet */}
+                              {canBetOnGame(game) && (
+                                <div className="flex items-center gap-1 mt-2">
+                                  <CurrencySelector size="sm" className="w-14 text-xs" />
+                                  <input
+                                    type="number"
+                                    min={10}
+                                    max={1000}
+                                    value={singleBetAmounts[game.id] || 50}
+                                    onChange={e => setSingleBetAmounts(prev => ({ ...prev, [game.id]: Number(e.target.value) }))}
+                                    className="form-input w-16 text-sm"
+                                    placeholder="50"
+                                  />
+                                  <button
+                                    onClick={() => handleSingleBet(game.id)}
+                                    disabled={singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10}
+                                    className={`btn-primary text-sm px-3 py-1 ${singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10 ? 'btn-disabled' : ''}`}
+                                  >
+                                    {singleSubmitting[game.id] ? <div className="spinner-sm mr-1"></div> : null}
+                                    {t('betting.place_bet')}
+                                  </button>
+                                </div>
                               )}
                             </div>
-                          ) : (
-                            <div className="mb-2 p-3 bg-error-50 dark:bg-error-900/20 rounded-lg text-center">
-                              <span className="font-semibold text-error-700 dark:text-error-300">
-                                🔒 {t('betting.betting_closed_short')}
-                              </span>
-                              <div className="text-sm text-error-600 dark:text-error-400 mt-1">
-                                {game.bettingDeadline && (
-                                  t('betting.betting_closed_on', {
-                                    date: new Date(game.bettingDeadline).toLocaleDateString(),
-                                    time: new Date(game.bettingDeadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                  })
-                                )}
-                              </div>
-                            </div>
-                          )}
-                          {/* Bet Amount and Place Bet */}
-                          {canBetOnGame(game) && (
-                            <div className="flex items-center gap-1 mt-2">
-                              <CurrencySelector size="sm" className="w-14 text-xs" />
-                              <input
-                                type="number"
-                                min={10}
-                                max={1000}
-                                value={singleBetAmounts[game.id] || 50}
-                                onChange={e => setSingleBetAmounts(prev => ({ ...prev, [game.id]: Number(e.target.value) }))}
-                                className="form-input w-16 text-sm"
-                                placeholder="50"
-                              />
-                              <button
-                                onClick={() => handleSingleBet(game.id)}
-                                disabled={singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10}
-                                className={`btn-primary text-sm px-3 py-1 ${singleSubmitting[game.id] || !predictions[game.id] || (singleBetAmounts[game.id] || 50) < 10 ? 'btn-disabled' : ''}`}
-                              >
-                                {singleSubmitting[game.id] ? <div className="spinner-sm mr-1"></div> : null}
-                                {t('betting.place_bet')}
-                              </button>
-                            </div>
-                          )}
+                          ))}
                         </div>
-                      );
-                    })}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="lg:col-span-1">
@@ -1006,14 +1056,19 @@ export default function BetPage() {
                     <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
                       {t('betting.bet_summary')}
                     </h3>
-                    {/* Active Bets Count */}
+                    {/* Total Predictions Made */}
                     <div className="mb-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-secondary-600 dark:text-secondary-400">
-                          {t('betting.active_bets')}
+                          {t('betting.total_predictions_made')}
                         </span>
-                        <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                          {singleBetSummary.totalBets}
+                        <span className="font-bold text-success-600 dark:text-success-400">
+                          {(() => {
+                            // For Single Bets tab: use singleBetSummary which already counts both
+                            // existing bets and current selections for this tab only
+                            console.log(`[Single Tab Debug] singleBetSummary.totalBets: ${singleBetSummary.totalBets}, total: ${filteredGames.length}`);
+                            return singleBetSummary.totalBets;
+                          })()} / {filteredGames.length}
                         </span>
                       </div>
                     </div>
@@ -1240,9 +1295,22 @@ export default function BetPage() {
                     </h3>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-secondary-600 dark:text-secondary-400">{t('betting.predictions_made')}</span>
+                        <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_predictions_made')}</span>
                         <span className="font-bold text-success-600 dark:text-success-400">
-                          {gamesWithBets.length} / {filteredGames.length}
+                          {(() => {
+                            // For La Quiniela (parlay) tab: count total games with predictions
+                            // Count each game only once - either it has a bet OR a current selection
+                            const totalPredictions = filteredGames.filter(game => 
+                              game.userBet || predictions[game.id]
+                            ).length;
+                            console.log(`[Parlay Tab Debug] totalPredictions: ${totalPredictions}, total: ${filteredGames.length}`);
+                            console.log(`[Parlay Tab Debug] Games breakdown:`, filteredGames.map(g => ({ 
+                              id: g.id, 
+                              hasBet: !!g.userBet, 
+                              hasSelection: !!predictions[g.id] 
+                            })));
+                            return totalPredictions;
+                          })()} / {filteredGames.length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">

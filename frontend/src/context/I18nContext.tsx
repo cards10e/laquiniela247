@@ -143,6 +143,7 @@ const translations = {
       bet_amount_range: "Minimum $10, Maximum $1000",
       bet_summary: "Bet Summary",
       predictions_made: "Predictions Made",
+      total_predictions_made: "Total Predictions Made",
       potential_winnings: "Potential Winnings",
       confirm_bet: "Confirm Bet",
       bet_placed: "Bet placed successfully!",
@@ -228,7 +229,7 @@ const translations = {
     history: {
       title: "Betting History",
       track_performance_desc: "Track your betting performance and history",
-      betting_performance_and_history: "Betting Performance and History",
+      betting_performance_and_history: "Betting and Performance History - All Types",
       filter_by: "Filter by",
       all_bets: "All Bets",
       won: "Won",
@@ -558,6 +559,7 @@ const translations = {
       bet_amount_range: "Mínimo $10, Máximo $1000",
       bet_summary: "Resumen de Apuesta",
       predictions_made: "Predicciones Realizadas",
+      total_predictions_made: "Total de Predicciones Realizadas",
       potential_winnings: "Ganancias Potenciales",
       confirm_bet: "Confirmar Apuesta",
       bet_placed: "¡Apuesta realizada con éxito!",
@@ -643,7 +645,7 @@ const translations = {
     history: {
       title: "Historial de Apuestas",
       track_performance_desc: "Rastrea tu rendimiento y historial de apuestas",
-      betting_performance_and_history: "Rendimiento y Historial de Apuestas",
+      betting_performance_and_history: "Historial de Apuestas y Rendimiento - Todos los Tipos",
       filter_by: "Filtrar por",
       all_bets: "Todas las Apuestas",
       won: "Ganadas",
