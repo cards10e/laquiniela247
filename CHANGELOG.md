@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.37] - 2025-06-19
+### 🛠️ Translation Fix: Week Number Display
+- **Fixed Week Number Interpolation**: Resolved issue where "Jornada {weekNumber} - Liga MX" was displaying literal `{weekNumber}` instead of actual week number
+  - **Root Cause**: Translation system uses `%{param}` format but translation strings were using `{param}` format
+  - **Template String Fix**: Updated both English and Spanish translations to use correct `%{weekNumber}` format
+  - **Parameter Interpolation**: Translation function now properly replaces parameters with actual values
+
+### 🔧 Technical Details
+- **Translation Format Standardization**: 
+  - **Before**: `"Jornada {weekNumber} - Liga MX"` - literal display of placeholder
+  - **After**: `"Jornada %{weekNumber} - Liga MX"` - proper parameter interpolation
+  - **Consistent Pattern**: Aligns with existing translation system using `%{param}` format throughout codebase
+  - **Both Languages**: Fixed in both English ("Week %{weekNumber} - Liga MX") and Spanish versions
+
+### Fixed
+- Week number displaying as literal "{weekNumber}" instead of actual week number (e.g., "25")
+- Translation parameter interpolation not working for week_info translation key
+- Inconsistent parameter format between translation strings and translation function
+
+### Enhanced
+- Proper week number display in betting interface header
+- Consistent translation parameter format across all translation keys
+- Reliable parameter interpolation for dynamic content display
+
 ## [2.0.29] - 2025-06-19
 ### 🛠️ Admin Panel: Enhanced Game Creation Date Validation
 - **Fixed "Invalid Time Value" Error**: Resolved critical issue where admin game creation would fail with "Invalid time value" error

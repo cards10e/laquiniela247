@@ -3640,7 +3640,225 @@ You want to move "Most Consistent" and "Biggest Winners" to be 1st and 2nd. Let 
 
 ---
 
+```diff
+      // Mock leaderboard data matching the requested categories
+      const mockData: LeaderboardCategory[] = [
+-       {
+-         title: t('dashboard.weekly_winners'),
+-         description: t('dashboard.weekly_winners_desc'),
+-         scoreFormat: 'perfect',
+-         entries: [
+-           { id: 1, rank: 1, playerName: currentUsernames.weekly[0], score: 100, weekNumber: 28 },
+-           { id: 2, rank: 2, playerName: currentUsernames.weekly[1], score: 100, weekNumber: 27 },
+-           { id: 3, rank: 3, playerName: currentUsernames.weekly[2], score: 100, weekNumber: 26 },
+-           { id: 4, rank: 4, playerName: currentUsernames.weekly[3], score: 100, weekNumber: 25 }
+-         ]
+-       },
+-       {
+-         title: t('dashboard.best_performance'),
+-         description: t('dashboard.best_performance_desc'),
+-         scoreFormat: 'percentage',
+-         entries: [
+-           { id: 1, rank: 1, playerName: currentUsernames.performance[0], score: 94.2 },
+-           { id: 2, rank: 2, playerName: currentUsernames.performance[1], score: 91.8 },
+-           { id: 3, rank: 3, playerName: currentUsernames.performance[2], score: 89.5 },
+-           { id: 4, rank: 4, playerName: currentUsernames.performance[3], score: 87.3 },
+-           { id: 5, rank: 5, playerName: 'Demo User', score: 85.1, isCurrentUser: true }
+-         ]
+-       },
+        {
+          title: t('dashboard.most_consistent'),
+```
 
+```diff
+          ]
+        },
++       {
++         title: t('dashboard.weekly_winners'),
++         description: t('dashboard.weekly_winners_desc'),
++         scoreFormat: 'perfect',
++         entries: [
++           { id: 1, rank: 1, playerName: currentUsernames.weekly[0], score: 100, weekNumber: 28 },
++           { id: 2, rank: 2, playerName: currentUsernames.weekly[1], score: 100, weekNumber: 27 },
++           { id: 3, rank: 3, playerName: currentUsernames.weekly[2], score: 100, weekNumber: 26 },
++           { id: 4, rank: 4, playerName: currentUsernames.weekly[3], score: 100, weekNumber: 25 }
++         ]
++       },
++       {
++         title: t('dashboard.best_performance'),
++         description: t('dashboard.best_performance_desc'),
++         scoreFormat: 'percentage',
++         entries: [
++           { id: 1, rank: 1, playerName: currentUsernames.performance[0], score: 94.2 },
++           { id: 2, rank: 2, playerName: currentUsernames.performance[1], score: 91.8 },
++           { id: 3, rank: 3, playerName: currentUsernames.performance[2], score: 89.5 },
++           { id: 4, rank: 4, playerName: currentUsernames.performance[3], score: 87.3 },
++           { id: 5, rank: 5, playerName: 'Demo User', score: 85.1, isCurrentUser: true }
++         ]
++       },
+        {
+          title: t('dashboard.participation_streaks'),
+```
+
+---
+
+Perfect! Now let me build and deploy this change:
+
+---
+
+```bash
+npm run build
+```
+
+```
+batman@saturn laquiniela247 % npm run build
+
+> laquiniela247-standalone@2.0.1 build
+> npm run build:frontend && npm run build:backend
+
+
+> laquiniela247-standalone@2.0.1 build:frontend
+> cd frontend && npm run build
+
+
+> laquiniela247-frontend@2.0.4 build
+> next build
+
+  ▲ Next.js 14.2.29
+  - Environments: .env.local, .env.production
+  - Experiments (use with caution):
+    · optimizeCss
+
+ ✓ Linting and checking validity of types    
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+ ✓ Collecting page data    
+   Generating static pages (0/10)  [=   ]Inlined 2.21 kB (4% of original 49.99 kB) of _next/static/css/cf2c5
+97aa4d92e89.css.
+Time 58.943625
+Inlined 9.39 kB (18% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 146.156792
+Inlined 4.38 kB (8% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 156.01325
+Inlined 4.36 kB (8% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 145.371541
+Inlined 4.38 kB (8% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 172.125167
+Inlined 4.38 kB (8% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 199.398458
+Inlined 4.38 kB (8% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 107.053792
+Inlined 1.84 kB (3% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 26.718
+Inlined 4.38 kB (8% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 46.476625
+Inlined 1.84 kB (3% of original 49.99 kB) of _next/static/css/cf2c597aa4d92e89.css.
+Time 37.68225
+ ✓ Generating static pages (10/10)
+ ✓ Collecting build traces    
+ ✓ Finalizing page optimization    
+
+Route (pages)                              Size     First Load JS
+┌ ○ /                                      484 B           122 kB
+├   /_app                                  0 B             121 kB
+├ ○ /404                                   181 B           122 kB
+├ ○ /admin (362 ms)                        13.5 kB         140 kB
+├ ○ /bet (362 ms)                          5.86 kB         133 kB
+├ ○ /dashboard (312 ms)                    4.66 kB         150 kB
+├ ○ /history                               3.96 kB         152 kB
+├ ○ /login (338 ms)                        3.15 kB         127 kB
+├ ○ /profile (336 ms)                      4.08 kB         128 kB
+└ ○ /register                              3.57 kB         127 kB
++ First Load JS shared by all              129 kB
+  ├ chunks/framework-14efab3c3d1ed63b.js   44.8 kB
+  ├ chunks/main-568eaabdf560e375.js        38.4 kB
+  ├ chunks/pages/_app-322125c626a6715b.js  37.4 kB
+  └ other shared chunks (total)            8.47 kB
+
+○  (Static)  prerendered as static content
+
+
+> laquiniela247-standalone@2.0.1 build:backend
+> cd backend && npm run build
+
+
+> laquiniela247-backend@2.0.4 build
+> tsc && tsc-alias
+
+batman@saturn laquiniela247 %
+```
+
+---
+
+```bash
+git add . && git commit -m "feat: reorder dashboard leaderboard - Most Consistent and Biggest Winners now first and second (v2.0.36)" && git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git add . && git commit -m "feat: reorder dashboard leaderboard - Most Consist
+ent and Biggest Winners now figit add . && git commit -m "feat: reorder dashboard leaderboard - Most Consist
+ent and Biggest Winners now first and second (v2.0.36)" && git push origin main
+[main 912dd2f] feat: reorder dashboard leaderboard - Most Consistent and Biggest Winners now first and secon
+d (v2.0.36)
+ 2 files changed, 532 insertions(+), 24 deletions(-)
+Enumerating objects: 17, done.
+Counting objects: 100% (17/17), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (9/9), done.
+Writing objects: 100% (9/9), 4.59 KiB | 2.29 MiB/s, done.
+Total 9 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   ce4a9f7..912dd2f  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! ✅ **Dashboard Leaderboard Reordered Successfully (Version 2.0.36)**
+
+## 🎯 **Changes Made**
+
+I've successfully reordered the **La Quiniela 247 Leaderboard** sections on the dashboard as requested:
+
+### **New Order:**
+1. **🥇 Most Consistent** (was 3rd, now 1st)
+2. **🥈 Biggest Winners** (was 4th, now 2nd)  
+3. **🥉 Weekly Winners** (was 1st, now 3rd)
+4. **4️⃣ Best Performance** (was 2nd, now 4th)
+5. **5️⃣ Participation Streaks** (unchanged, still 5th)
+
+### **What Users Will See:**
+- **"Most Consistent"** leaderboard will appear in the **first position** (top-left)
+- **"Biggest Winners"** leaderboard will appear in the **second position** (top-center or top-right depending on screen size)
+- All other sections follow in the new order
+
+### **Visual Impact:**
+The dashboard will now prominently feature the players with the best consistency and highest winnings at the top of the leaderboard section, making these achievements more visible to users when they visit their dashboard.
+
+The changes are now live in production! 🚀
+
+---
+
+_**User**_
+
+can you fix "Jornada {weekNumber} - Liga MX"
+
+---
+
+_**Assistant**_
+
+I can see in the image that it's showing "Jornada {weekNumber} - Liga MX" with the literal `{weekNumber}` placeholder instead of the actual week number. This is a template string interpolation issue.
+
+Let me find and fix this:
+
+---
+
+<details>
+            <summary>Grep search for "Jornada \\{weekNumber\\}" • **0** files</summary>
+        
+No results found
+</details>
 
 ---
 
