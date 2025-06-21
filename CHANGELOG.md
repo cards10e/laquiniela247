@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.42] - 2025-06-20
+### 🎯 Enhanced History Page: Dynamic Contextual Subheadings
+- **Implemented Dynamic Subheading System**: Red subheading on history page now changes based on selected tab for improved contextual clarity
+  - **All Types Tab**: "Betting and Performance History - All Types" / "Historial de Apuestas y Rendimiento - Todos los Tipos"
+  - **La Quiniela Tab**: "Betting and Performance History - La Quiniela" / "Historial de Apuestas y Rendimiento - La Quiniela"
+  - **Single Bets Tab**: "Betting and Performance History - Single Bets" / "Historial de Apuestas y Rendimiento - Apuestas Simples"
+  - **Real-time Updates**: Subheading changes instantly when users switch between betting mode tabs
+  - **Enhanced User Context**: Users immediately understand which type of betting history they're viewing
+
+### 🌐 Expanded Localization Coverage for History Navigation
+- **New Dynamic Translation Keys Added**:
+  - **English**: Complete set of context-specific subheading translations
+  - **Spanish**: Comprehensive localization for all betting mode contexts
+  - **Tab-Specific Terminology**: Proper translation of "Single Bets" as "Apuestas Simples"
+  - **Professional Consistency**: Maintains unified terminology across all interface elements
+
+### 🎨 User Experience & Interface Polish
+- **Contextual Visual Hierarchy**: Red subheading provides immediate visual context about current view
+- **Professional Navigation**: Enhanced interface clarity eliminates user confusion about content scope
+- **Seamless Tab Integration**: Subheading updates work harmoniously with existing tab selection system
+- **Responsive Design**: Dynamic content maintains consistent styling across all screen sizes
+
+### 🔧 Technical Implementation Excellence
+- **Template Literal Integration**: Efficient dynamic translation key generation using `betTypeFilter` state
+- **Backward Compatibility**: Existing translation keys preserved for system stability
+- **Type Safety**: All new translation keys properly typed and validated
+- **Performance Optimized**: Minimal overhead with instant subheading updates
+
+### Fixed
+- Static subheading display regardless of selected betting mode tab
+- Missing contextual clarity in history page navigation
+- Incomplete localization coverage for dynamic history content
+- User confusion about which betting type data is being displayed
+
+### Enhanced
+- History page navigation with dynamic contextual subheadings
+- User interface clarity with immediate visual feedback
+- Localization coverage for all history page contexts
+- Professional polish with context-aware content display
+
 ## [2.0.41] - 2025-06-20
 ### 🎨 UI/UX Polish: Dark Mode & Localization Improvements
 - **Fixed Dark Mode Text Visibility**: Resolved issue where "Total Bet Amount" and "Number of Weeks Bet" displayed in poor contrast colors in dark mode

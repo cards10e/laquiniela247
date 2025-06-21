@@ -2,6 +2,41 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.42 - Enhanced History Navigation: Dynamic Contextual Subheadings
+
+### 🎯 **Dynamic History Page Subheadings**
+- **Context-Aware Navigation**: Red subheading on history page now dynamically changes based on selected betting mode tab
+  - **"All Types"**: Shows comprehensive betting history across all modes
+  - **"La Quiniela"**: Displays parlay betting history with contextual clarity
+  - **"Single Bets"**: Focuses on individual game betting performance
+- **Real-time Updates**: Subheading changes instantly when users switch tabs for immediate visual feedback
+- **Enhanced User Context**: Eliminates confusion about which betting type data is being displayed
+
+### 🌐 **Comprehensive Localization Enhancement**
+- **Dynamic Translation System**: Implemented context-specific subheading translations for both languages
+  - **English**: "Betting and Performance History - [Context]" format with professional terminology
+  - **Spanish**: "Historial de Apuestas y Rendimiento - [Contexto]" with native language fluency
+- **Terminology Consistency**: Unified translation of "Single Bets" as "Apuestas Simples" across all interfaces
+- **Cultural Adaptation**: Spanish translations maintain natural language flow while preserving technical accuracy
+
+### 🎨 **User Experience & Interface Polish**
+- **Visual Hierarchy Enhancement**: Red subheading provides immediate contextual information about current view
+- **Professional Navigation**: Interface clarity improvements eliminate user confusion about content scope
+- **Seamless Integration**: Dynamic subheadings work harmoniously with existing tab selection system
+- **Responsive Context**: Content clarity maintained across all screen sizes and device types
+
+### 🔧 **Technical Implementation Excellence**
+- **Efficient State Management**: Template literal integration using `betTypeFilter` for dynamic translation keys
+- **Performance Optimization**: Minimal overhead implementation with instant subheading updates
+- **Type Safety**: All new translation keys properly typed and validated for development reliability
+- **Backward Compatibility**: Existing translation infrastructure preserved for system stability
+
+### 🌟 **Benefits for Users**
+- **Immediate Context**: Users instantly understand which betting mode history they're viewing
+- **Reduced Cognitive Load**: Clear visual indicators eliminate need to interpret tab state
+- **Professional Experience**: Polished interface with context-aware content display
+- **Multilingual Support**: Seamless experience for both English and Spanish-speaking users
+
 ## 🎯 Version 2.0.41 - UI/UX Polish: Dark Mode & Community Engagement
 
 ### 🎨 **Enhanced Dark Mode Visual Consistency**

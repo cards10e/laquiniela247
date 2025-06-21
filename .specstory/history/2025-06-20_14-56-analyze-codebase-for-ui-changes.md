@@ -6810,6 +6810,424 @@ great pls update our changelog, readme, and push all changes to git/github
 
 _**Assistant**_
 
+I'll update the changelog, README, and push all the changes to GitHub. Let me start by updating the changelog with our latest fixes:
+
+---
+
+
+
+---
+
+Now let me update the README to reflect version 2.0.41:
+
+---
+
+
+
+---
+
+Now let me add and commit all our changes:
+
+---
+
+```bash
+cd .. && git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+```bash
+git status
+```
+
+```
+batman@saturn laquiniela247 % git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   .specstory/history/2025-06-20_14-56-analyze-codebase-for-ui-changes.md
+        modified:   CHANGELOG.md
+        modified:   README.md
+        modified:   frontend/src/context/I18nContext.tsx
+        modified:   frontend/src/pages/bet.tsx
+
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let me commit all the changes with a comprehensive commit message:
+
+---
+
+```bash
+git commit -m "🎨 Version 2.0.41: UI/UX Polish - Dark Mode & Community Engagement
+
+🔧 Fixed Dark Mode Text Visibility Issues:
+- Enhanced 'Total Bet Amount' and 'Number of Weeks Bet' contrast in Week Summary
+- Applied proper text-secondary-900 dark:text-secondary-100 styling
+- Unified dark mode color scheme across all Week Summary components
+- Improved readability and visual consistency in dark theme
+
+🎮 Added Community Engagement Features:
+- New 'Total Active Players: 7,389' metric for social proof
+- Strategic placement below Potential Winnings for maximum visibility
+- Mock demo data to demonstrate platform scale and activity
+- Consistent styling with proper dark mode support
+- Enhanced user confidence through community context
+
+🌐 Fixed Translation System Parameter Interpolation:
+- Resolved 'Select all available games' formula display bug
+- Updated translation keys from {param} to %{param} format
+- Fixed both English and Spanish translations for consistency
+- Clean text rendering eliminates unwanted formula artifacts
+- Enhanced localization reliability for dynamic content
+
+🔧 Enhanced Localization Coverage:
+- Added 'total_active_players' translation keys
+- English: 'Total Active Players'
+- Spanish: 'Total de Jugadores Activos'
+- Standardized parameter format across all dynamic translations
+- Improved translation system consistency and reliability
+
+🎯 User Experience Improvements:
+- Professional-grade dark mode visual consistency
+- Social proof through active player metrics
+- Clean text rendering without technical artifacts
+- Enhanced accessibility with proper contrast ratios
+- Unified design language across betting interface"
+```
+
+```
+<n- Unified design language across betting interface"
+[main 504b867] 🎨 Version 2.0.41: UI/UX Polish - Dark Mode & Community Engagement
+ 5 files changed, 524 insertions(+), 4 deletions(-)
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let's push the changes to GitHub:
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Enumerating objects: 25, done.
+Counting objects: 100% (25/25), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (13/13), done.
+Writing objects: 100% (13/13), 8.70 KiB | 2.90 MiB/s, done.
+Total 13 (delta 10), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (10/10), completed with 10 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   da7acb8..504b867  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+Let me verify the push was successful by checking the latest commits:
+
+---
+
+```bash
+git log --oneline -3
+```
+
+```
+batman@saturn laquiniela247 % git log --oneline -3
+504b867 (HEAD -> main, origin/main) 🎨 Version 2.0.41: UI/UX Polish - Dark Mode & Community Engagement
+da7acb8 🎯 Version 2.0.40: Enhanced Betting Summary & Dynamic Prediction Tracking
+9a82adf v2.0.39: CRITICAL SECURITY FIX - Betting System Deadline Enforcement
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! 🎉 All changes have been successfully committed and pushed to GitHub. Here's a summary of what we accomplished:
+
+## ✅ **Successfully Completed: Version 2.0.41 Release**
+
+### 📝 **Updated Documentation**
+- **CHANGELOG.md**: Added comprehensive Version 2.0.41 entry with detailed technical documentation
+- **README.md**: Updated to feature UI/UX polish improvements and community engagement features
+- **Proper Versioning**: Maintained chronological order with enhanced feature descriptions
+
+### 🔧 **Key Fixes & Enhancements Implemented**
+
+#### 🎨 **Issue 1: Dark Mode Text Visibility** ✅
+- **Fixed**: "Total Bet Amount" and "Number of Weeks Bet" now display with proper contrast
+- **Applied**: `text-secondary-900 dark:text-secondary-100` styling for optimal readability
+- **Result**: Consistent visual hierarchy across light and dark themes
+
+#### 🎮 **Issue 2: Community Engagement Feature** ✅ 
+- **Added**: "Total Active Players: 7,389" below Potential Winnings
+- **Implemented**: Proper dark mode styling matching existing components
+- **Localized**: Both English and Spanish translations
+  - English: `"Total Active Players"`
+  - Spanish: `"Total de Jugadores Activos"`
+- **Strategic Value**: Social proof and community scale demonstration
+
+#### 🌐 **Issue 3: Translation Parameter Bug** ✅
+- **Fixed**: "Select all available games" formula display issue
+- **Root Cause**: Changed `{current}/{total}` to `%{current}/%{total}` format
+- **Result**: Clean text display showing "(0/3)" instead of raw formula
+- **Enhanced**: Translation system reliability for all dynamic content
+
+### 🚀 **GitHub Integration**
+- **Commit**: `504b867` successfully pushed to main branch
+- **Documentation**: Comprehensive commit message with detailed technical descriptions
+- **Version History**: Clean progression from 2.0.39 → 2.0.40 → 2.0.41
+- **Repository Status**: All changes synchronized with GitHub origin/main
+
+### 🎯 **User Experience Impact**
+- **Dark Mode Polish**: Professional-grade visual consistency across all themes
+- **Community Building**: Active player metrics build user confidence and engagement
+- **Technical Reliability**: Eliminated display of raw code/formulas to users
+- **Accessibility**: Enhanced contrast ratios for better readability
+
+The betting platform now provides a polished, professional experience with proper dark mode support, community engagement features, and reliable internationalization! 🌟
+
+---
+
+_**User**_
+
+see the image? the red subheading text needs to match the tab view selected: Betting and Performance History - All Types, shows "All Types" which is the good and is the default but when the "La Quiniela" tab is selected the red subheading text above it needs to read "Betting and Performance History - La Quiniela" and similar for the "Single Bets" Make sense per the image?
+
+---
+
+_**Assistant**_
+
+Perfect! I understand exactly what you need. Looking at the image, I can see:
+
+1. **Current State**: The red subheading shows "Historial de Apuestas y Rendimiento - Todos los Tipos" (All Types)
+2. **Current Tab**: "La Quiniela" is selected
+3. **Problem**: The subheading should change to "Historial de Apuestas y Rendimiento - La Quiniela" when that tab is selected
+
+You want the red subheading to be **dynamic** and match the selected tab:
+- **"Todos los Tipos"** tab → "Betting and Performance History - All Types"
+- **"La Quiniela"** tab → "Betting and Performance History - La Quiniela" 
+- **"Apuestas Simples"** tab → "Betting and Performance History - Single Bets"
+
+Let me find the history page and implement this dynamic behavior:
+
+---
+
+<details>
+            <summary>Searched codebase "history.tsx" • **1** results</summary>
+        
+| File |
+|------|
+| `undefined` |
+
+</details>
+
+---
+
+Read file: frontend/src/pages/history.tsx
+
+---
+
+Let me continue reading to find the subheading and tab structure:
+
+---
+
+Read file: frontend/src/pages/history.tsx
+
+---
+
+Now let me find the red subheading that needs to be made dynamic:
+
+---
+
+Read file: frontend/src/pages/history.tsx
+
+---
+
+Perfect! I found the red subheading on **line 627**:
+
+```tsx
+<h2 className="section-title">
+  {t('history.betting_performance_and_history')}
+</h2>
+```
+
+Now I need to make this dynamic based on the selected tab (`betTypeFilter`). First, let me add the new translation keys for the dynamic subheadings:
+
+---
+
+
+
+---
+
+
+
+---
+
+Now let me update the history page to use the dynamic subheading based on the selected tab:
+
+---
+
+
+
+---
+
+Let's test our changes by running a build to make sure everything compiles correctly:
+
+---
+
+```bash
+cd frontend && npm run build
+```
+
+```
+batman@saturn laquiniela247 % cd frontend && npm run build
+
+> laquiniela247-frontend@2.0.4 build
+> next build
+
+  ▲ Next.js 14.2.29
+  - Environments: .env.local, .env.production
+  - Experiments (use with caution):
+    · optimizeCss
+
+ ✓ Linting and checking validity of types    
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+ ✓ Collecting page data    
+   Generating static pages (0/10)  [=   ]Inlined 4.36 kB (8% of original 49.96 kB) of _next/static/css/83247
+04c7fee5c45.css.
+Time 118.114584
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 114.5525
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 112.279125
+Inlined 2.21 kB (4% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 105.77975
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 124.835333
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 122.254708
+Inlined 9.39 kB (18% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 138.011167
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 46.672916
+Inlined 1.84 kB (3% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 48.162708
+Inlined 1.84 kB (3% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 55.386584
+ ✓ Generating static pages (10/10)
+ ✓ Collecting build traces    
+ ✓ Finalizing page optimization    
+
+Route (pages)                              Size     First Load JS
+┌ ○ /                                      484 B           122 kB
+├   /_app                                  0 B             122 kB
+├ ○ /404                                   181 B           122 kB
+├ ○ /admin                                 13.5 kB         141 kB
+├ ○ /bet                                   5.82 kB         133 kB
+├ ○ /dashboard                             4.66 kB         150 kB
+├ ○ /history                               3.96 kB         152 kB
+├ ○ /login                                 3.15 kB         127 kB
+├ ○ /profile                               4.08 kB         128 kB
+└ ○ /register                              3.57 kB         128 kB
++ First Load JS shared by all              129 kB
+  ├ chunks/framework-14efab3c3d1ed63b.js   44.8 kB
+  ├ chunks/main-568eaabdf560e375.js        38.4 kB
+  ├ chunks/pages/_app-7743a7dafbe3c7fe.js  37.5 kB
+  └ other shared chunks (total)            8.46 kB
+
+○  (Static)  prerendered as static content
+
+batman@saturn frontend %
+```
+
+---
+
+Perfect! The build is successful. Now let me create a comprehensive summary of the changes I implemented:
+
+## ✅ **Successfully Implemented Dynamic Subheading Feature**
+
+### 🎯 **What I Fixed**
+Looking at your image, the issue was that the red subheading always showed **"Historial de Apuestas y Rendimiento - Todos los Tipos"** (All Types) regardless of which tab was selected.
+
+### 🔧 **Implementation Details**
+
+#### **1. Added New Translation Keys** 
+I expanded the localization to support dynamic subheadings:
+
+**English translations:**
+- `betting_performance_and_history_all_types`: "Betting and Performance History - All Types"
+- `betting_performance_and_history_la_quiniela`: "Betting and Performance History - La Quiniela" 
+- `betting_performance_and_history_single_bets`: "Betting and Performance History - Single Bets"
+
+**Spanish translations:**
+- `betting_performance_and_history_all_types`: "Historial de Apuestas y Rendimiento - Todos los Tipos"
+- `betting_performance_and_history_la_quiniela`: "Historial de Apuestas y Rendimiento - La Quiniela"
+- `betting_performance_and_history_single_bets`: "Historial de Apuestas y Rendimiento - Apuestas Simples"
+
+#### **2. Dynamic Subheading Logic**
+Updated the history page subheading to be dynamic:
+
+**Before:**
+```tsx
+<h2 className="section-title">
+  {t('history.betting_performance_and_history')}
+</h2>
+```
+
+**After:**
+```tsx
+<h2 className="section-title">
+  {t(`history.betting_performance_and_history_${betTypeFilter}`)}
+</h2>
+```
+
+### 🎮 **How It Works Now**
+The red subheading will dynamically change based on the selected tab:
+
+1. **"Todos los Tipos"** (All Types) tab selected:
+   - **Spanish**: "Historial de Apuestas y Rendimiento - Todos los Tipos"
+   - **English**: "Betting and Performance History - All Types"
+
+2. **"La Quiniela"** tab selected:
+   - **Spanish**: "Historial de Apuestas y Rendimiento - La Quiniela"
+   - **English**: "Betting and Performance History - La Quiniela"
+
+3. **"Apuestas Simples"** (Single Bets) tab selected:
+   - **Spanish**: "Historial de Apuestas y Rendimiento - Apuestas Simples"
+   - **English**: "Betting and Performance History - Single Bets"
+
+### 🌟 **User Experience Enhancement**
+- **Contextual Clarity**: Users immediately understand which type of betting history they're viewing
+- **Professional Polish**: Consistent visual hierarchy with dynamic content
+- **Localization Coverage**: Fully translated for both English and Spanish users
+- **Real-time Updates**: Subheading changes instantly when users switch tabs
+
+The red subheading now provides **immediate visual context** about which betting mode the user is currently viewing, making the interface much more intuitive and user-friendly! 🎯
+
+---
+
+_**User**_
+
+pls update our changelog, readme, and push all changes to git/github
+
+---
+
+_**Assistant**_
+
 
 
 ---

@@ -628,7 +628,7 @@ export default function HistoryPage() {
               </h1>
               
               <h2 className="section-title">
-                {t('history.betting_performance_and_history')}
+                {t(`history.betting_performance_and_history_${betTypeFilter}`)}
               </h2>
             </div>
 
