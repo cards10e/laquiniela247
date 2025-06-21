@@ -6384,6 +6384,432 @@ Read file: CHANGELOG.md
 
 ---
 
+Let me continue reading to see the end of the latest version and add our new changes:
+
+---
+
+Read file: CHANGELOG.md
+
+---
+
+Now let me add our new version to the changelog:
+
+---
+
+
+
+---
+
+Now let's update the README to reflect our improvements:
+
+---
+
+Read file: README.md
+
+---
+
+Let me update the README to reflect version 2.0.40:
+
+---
+
+
+
+---
+
+Now let me check the current git status and commit all our changes:
+
+---
+
+```bash
+cd .. && git status
+```
+
+```
+batman@saturn frontend % cd .. && git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .specstory/history/2025-06-20_14-56-analyze-codebase-for-ui-changes.md
+        modified:   CHANGELOG.md
+        modified:   README.md
+        modified:   frontend/src/context/I18nContext.tsx
+        modified:   frontend/src/pages/bet.tsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! Now let me add all the changes and commit them:
+
+---
+
+```bash
+git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+```bash
+git commit -m "🎯 Version 2.0.40: Enhanced Betting Summary & Dynamic Prediction Tracking
+
+🔧 Fixed Critical Betting Summary Double-Counting Issue:
+- Resolved UI bug where 'Total Predictions Made' showed '4/4' instead of '2/4'
+- Eliminated double-counting of existing bets + current selections
+- Implemented tab-specific filtering to count each game only once
+- Sidebar now matches banner text for consistent user experience
+
+🎮 Dynamic Prediction Counter Implementation:
+- Enhanced La Quiniela tab with proper game filtering logic
+- Improved Single Bets tab using existing singleBetSummary calculation
+- Real-time updates when users select/deselect teams
+- Tab-separated counting prevents cross-contamination between betting modes
+
+🌐 Enhanced History Page Localization:
+- Updated section title to 'Betting and Performance History - All Types'
+- Spanish: 'Historial de Apuestas y Rendimiento - Todos los Tipos'
+- Added 'All Types' context for clarity about Single Bets + La Quiniela inclusion
+- Maintained natural translation flow in both languages
+
+🔍 Quality Assurance & Debugging:
+- Added comprehensive console logging for prediction count troubleshooting
+- Game breakdown analysis shows bets vs selections for debugging
+- TypeScript compilation successful with zero errors
+- Enhanced monitoring for ongoing quality verification
+
+✅ User Experience Improvements:
+- Unified progress indicators across banner and sidebar
+- Tab-specific context showing only relevant prediction counts
+- Clear progress tracking with accurate reflection of betting status
+- Instant visual feedback without server round-trips"
+```
+
+```
+< Instant visual feedback without server round-trips"
+[main da7acb8] 🎯 Version 2.0.40: Enhanced Betting Summary & Dynamic Prediction Tracking
+ 5 files changed, 2298 insertions(+), 207 deletions(-)
+batman@saturn laquiniela247 %
+```
+
+---
+
+Now let's push the changes to GitHub:
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Enumerating objects: 25, done.
+Counting objects: 100% (25/25), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (13/13), done.
+Writing objects: 100% (13/13), 25.00 KiB | 3.12 MiB/s, done.
+Total 13 (delta 10), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (10/10), completed with 10 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   9a82adf..da7acb8  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+Perfect! Let me verify the push was successful by checking the latest commits:
+
+---
+
+```bash
+git log --oneline -3
+```
+
+```
+batman@saturn laquiniela247 % git log --oneline -3
+da7acb8 (HEAD -> main, origin/main) 🎯 Version 2.0.40: Enhanced Betting Summary & Dynamic Prediction Trackin
+g
+9a82adf v2.0.39: CRITICAL SECURITY FIX - Betting System Deadline Enforcement
+8116515 🎨 UI/UX Enhancement v2.0.38: Improved Layout Organization
+batman@saturn laquiniela247 %
+```
+
+---
+
+Excellent! 🎉 All changes have been successfully committed and pushed to GitHub. Here's a summary of what we accomplished:
+
+## ✅ **Successfully Completed: Version 2.0.40 Release**
+
+### 📝 **Updated Documentation**
+- **CHANGELOG.md**: Added comprehensive Version 2.0.40 entry with detailed technical documentation
+- **README.md**: Updated to feature the new version with improved betting summary and prediction tracking
+- **Proper Versioning**: Maintained chronological order and consistent formatting
+
+### 🔧 **Key Changes Implemented & Documented**
+1. **Fixed Critical Betting Summary Double-Counting Issue**
+   - Resolved "4/4" vs "2/4" discrepancy between sidebar and banner
+   - Implemented tab-specific filtering to count each game only once
+
+2. **Dynamic Prediction Counter Implementation**  
+   - Enhanced La Quiniela tab with proper game filtering logic
+   - Improved Single Bets tab using existing calculation methods
+   - Real-time updates when users select/deselect teams
+
+3. **Enhanced History Page Localization**
+   - Updated section title to include "All Types" context
+   - Proper Spanish translation maintaining natural flow
+
+4. **Quality Assurance & Debugging**
+   - Added comprehensive console logging for troubleshooting
+   - Enhanced monitoring capabilities for ongoing verification
+
+### 🚀 **Git Repository Status**
+- **Commit Hash**: `da7acb8`
+- **Branch**: `main` (up to date with origin)
+- **Files Changed**: 5 files with 2,298 insertions and 207 deletions
+- **Push Status**: ✅ Successfully pushed to GitHub
+- **Remote Sync**: Local and remote repositories are synchronized
+
+### 📊 **Impact Summary**
+- **User Experience**: Fixed confusing prediction counts for better clarity
+- **Technical Quality**: Enhanced debugging capabilities and error prevention
+- **Localization**: Improved context clarity in multiple languages
+- **Code Quality**: Maintained TypeScript compliance with zero build errors
+
+The La Quiniela 247 platform now has **accurate, real-time prediction tracking** with **proper separation between betting modes** and **enhanced user experience consistency**! 🎯⚽
+
+---
+
+_**User**_
+
+see the attached image? there are three minor issues: 1. in the week summary, the total bet amount and number of weeks bet is not showing light text in dark mode 2. Below Potential Winnings, add the line “Total Active Players” with the value of 7,389. Same styling/format as ‘Number of weeks bet’ line. - the total active players will just be mock data for the demo for now. make sure this is localized 3. at the bottom text of Select all available games in dark mode why is there a formula showing?
+
+---
+
+_**Assistant**_
+
+I can see the issues in the image! Let me fix these three problems:
+
+1. **Dark mode text styling** for "Total Bet Amount" and "Number of Weeks Bet" 
+2. **Add "Total Active Players: 7,389"** below Potential Winnings
+3. **Fix the formula showing** in "Select all available games" text
+
+Let me start by examining the current code and making the fixes:
+
+---
+
+Read file: frontend/src/pages/bet.tsx
+
+---
+
+Now let me first add the translation keys for "Total Active Players":
+
+---
+
+
+
+---
+
+
+
+---
+
+Now let me fix all three issues in the bet.tsx file:
+
+---
+
+
+
+---
+
+Now let me add the "Total Active Players" line right after the Potential Winnings section:
+
+---
+
+
+
+---
+
+Now let me fix the formula issue in the "Select all available games" text. First, let me check the translation to see what might be causing this:
+
+---
+
+<details>
+            <summary>Grep search for "select_all_available_games" • **3** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/frontend/src/pages/bet.tsx` | L1378 | `{t('betting.select_all_available_games', { current: Object.keys(predictions).length, total: gamesWithoutBets.length })}` |
+| `file:///Users/batman/laquiniela247/frontend/src/context/I18nContext.tsx` | L185 | `select_all_available_games: "Select all available games ({current}/{total})",` |
+| `file:///Users/batman/laquiniela247/frontend/src/context/I18nContext.tsx` | L602 | `select_all_available_games: "Selecciona todos los juegos disponibles ({current}/{total})",` |
+| `file:///Users/batman/laquiniela247/frontend/src/context/I18nContext.tsx` | L185 | `select_all_available_games: "Select all available games ({current}/{total})",` |
+| `file:///Users/batman/laquiniela247/frontend/src/context/I18nContext.tsx` | L602 | `select_all_available_games: "Selecciona todos los juegos disponibles ({current}/{total})",` |
+
+</details>
+
+---
+
+I see the issue! The translation uses `{current}/{total}` format but our translation system expects `%{current}/%{total}` format. Let me fix this:
+
+---
+
+
+
+---
+
+
+
+---
+
+Now let's test our changes by running a build to make sure everything compiles correctly:
+
+---
+
+```bash
+cd frontend && npm run build
+```
+
+```
+batman@saturn laquiniela247 % cd frontend && npm run build
+
+> laquiniela247-frontend@2.0.4 build
+> next build
+
+  ▲ Next.js 14.2.29
+  - Environments: .env.local, .env.production
+  - Experiments (use with caution):
+    · optimizeCss
+
+ ✓ Linting and checking validity of types    
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+ ✓ Collecting page data    
+   Generating static pages (0/10)  [=   ]Inlined 2.21 kB (4% of original 49.96 kB) of _next/static/css/83247
+04c7fee5c45.css.
+Time 61.66925
+Inlined 4.36 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 136.290042
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 137.620625
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 141.300333
+Inlined 9.39 kB (18% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 149.953791
+Inlined 1.84 kB (3% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 31.198833
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 46.213542
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 87.566125
+Inlined 1.84 kB (3% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 56.861292
+Inlined 4.38 kB (8% of original 49.96 kB) of _next/static/css/8324704c7fee5c45.css.
+Time 196.131458
+ ✓ Generating static pages (10/10)
+ ✓ Collecting build traces    
+ ✓ Finalizing page optimization    
+
+Route (pages)                              Size     First Load JS
+┌ ○ /                                      484 B           122 kB
+├   /_app                                  0 B             121 kB
+├ ○ /404                                   181 B           122 kB
+├ ○ /admin                                 13.5 kB         141 kB
+├ ○ /bet                                   5.82 kB         133 kB
+├ ○ /dashboard (354 ms)                    4.66 kB         150 kB
+├ ○ /history (359 ms)                      3.96 kB         152 kB
+├ ○ /login                                 3.15 kB         127 kB
+├ ○ /profile                               4.08 kB         128 kB
+└ ○ /register                              3.57 kB         128 kB
++ First Load JS shared by all              129 kB
+  ├ chunks/framework-14efab3c3d1ed63b.js   44.8 kB
+  ├ chunks/main-568eaabdf560e375.js        38.4 kB
+  ├ chunks/pages/_app-84d5d6933947a11c.js  37.4 kB
+  └ other shared chunks (total)            8.46 kB
+
+○  (Static)  prerendered as static content
+
+batman@saturn frontend %
+```
+
+---
+
+Perfect! The build is successful. Now let me create a summary of all the fixes I made:
+
+## ✅ **Successfully Fixed All Three Issues**
+
+### 🎯 **Issue 1: Dark Mode Text Styling**
+**Fixed**: "Total Bet Amount" and "Number of Weeks Bet" now properly display in light text for dark mode
+- **Before**: `<span className="font-medium">` - no dark mode styling
+- **After**: `<span className="font-medium text-secondary-900 dark:text-secondary-100">` - proper dark mode contrast
+
+### 🎯 **Issue 2: Added "Total Active Players"**
+**Added**: New "Total Active Players: 7,389" line below Potential Winnings
+- **Location**: Positioned between Potential Winnings and Submit Button
+- **Styling**: Same format as "Number of Weeks Bet" with proper dark mode support
+- **Localization**: Added translation keys for both languages:
+  - **English**: `"Total Active Players"`
+  - **Spanish**: `"Total de Jugadores Activos"`
+- **Mock Data**: Hardcoded to `7,389` as requested for demo purposes
+
+### 🎯 **Issue 3: Fixed Formula Display**
+**Fixed**: "Select all available games" text no longer shows formula in dark mode
+- **Root Cause**: Translation used `{current}/{total}` instead of `%{current}/%{total}` format
+- **Solution**: Updated both English and Spanish translations to use proper parameter format
+- **Before**: `"Select all available games ({current}/{total})"`
+- **After**: `"Select all available games (%{current}/%{total})"`
+
+### 🔧 **Technical Implementation Details**
+
+**1. Dark Mode Text Fix:**
+```typescript
+// Applied to both Total Bet Amount and Number of Weeks Bet
+<span className="font-medium text-secondary-900 dark:text-secondary-100">
+```
+
+**2. Total Active Players Addition:**
+```typescript
+{/* Total Active Players */}
+<div className="flex justify-between items-center mb-4">
+  <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_active_players')}</span>
+  <span className="font-medium text-secondary-900 dark:text-secondary-100">7,389</span>
+</div>
+```
+
+**3. Translation Format Fix:**
+```typescript
+// English & Spanish
+select_all_available_games: "Select all available games (%{current}/%{total})"
+select_all_available_games: "Selecciona todos los juegos disponibles (%{current}/%{total})"
+```
+
+### 🌟 **Key Benefits**
+- **✅ Dark Mode Consistency**: All text now properly displays in both light and dark themes
+- **✅ Enhanced UI Information**: Users can see total active players for community engagement context
+- **✅ Clean Text Display**: No more unwanted formula rendering in dark mode
+- **✅ Proper Localization**: New "Total Active Players" text available in both English and Spanish
+- **✅ TypeScript Compliance**: All changes compile successfully with zero errors
+
+The Week Summary sidebar now displays all information consistently across light and dark modes with the additional active players metric! 🎯⚽
+
+---
+
+_**User**_
+
+great pls update our changelog, readme, and push all changes to git/github
+
+---
+
+_**Assistant**_
+
 
 
 ---

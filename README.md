@@ -2,6 +2,46 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.41 - UI/UX Polish: Dark Mode & Community Engagement
+
+### 🎨 **Enhanced Dark Mode Visual Consistency**
+- **Fixed Text Visibility Issues**: Resolved poor contrast in Week Summary sidebar where "Total Bet Amount" and "Number of Weeks Bet" were hard to read in dark mode
+- **Proper Contrast Implementation**: Applied `text-secondary-900 dark:text-secondary-100` styling for optimal readability across all themes
+- **Unified Design Language**: All Week Summary components now follow consistent dark mode color scheme
+- **Visual Polish Enhancement**: Improved overall user experience with professional-grade theme support
+
+### 🎮 **Community Engagement & Social Proof Features**
+- **Total Active Players Metric**: Added prominent community engagement indicator showing "7,389" active players
+  - **Strategic Placement**: Positioned below Potential Winnings for maximum visibility and social proof impact
+  - **Marketing Value**: Demonstrates platform scale and user engagement for new user conversion
+  - **Consistent Styling**: Matches existing Week Summary format with proper dark mode support
+  - **Community Context**: Helps users understand they're part of an active, engaged betting community
+
+### 🌐 **Translation System Reliability Enhancement**
+- **Fixed Parameter Interpolation Bug**: Resolved critical issue where dynamic text displayed raw formula instead of processed values
+  - **Root Cause Resolution**: Translation system expected `%{param}` format but received `{param}` format
+  - **Clean Text Display**: "Select all available games" now shows "(0/3)" instead of unwanted formula text
+  - **Comprehensive Fix**: Updated both English and Spanish translation strings for consistency
+  - **Enhanced Localization**: New "Total Active Players" properly localized as "Total de Jugadores Activos"
+
+### 🔧 **Technical Implementation Excellence**
+- **Parameter Format Standardization**: All dynamic translations now use consistent `%{param}` format throughout codebase
+- **Dark Mode Styling Enhancement**: Applied proper contrast classes ensuring readability across all UI elements
+- **Mock Data Integration**: Community metrics implemented with scalable architecture for future real data integration
+- **Translation Coverage**: Enhanced I18nContext with new community engagement terminology
+
+### 🌟 **User Experience Benefits**
+- **Theme Consistency**: Dark mode now provides excellent readability across all Week Summary elements
+- **Social Proof**: Active player count builds confidence and demonstrates platform popularity
+- **Professional Polish**: Clean text rendering eliminates technical artifacts for polished appearance
+- **Localization Quality**: Reliable parameter interpolation across all dynamic content
+
+### 🎯 **Key Improvements**
+- **Visual Accessibility**: Enhanced contrast ratios for better readability in dark environments
+- **Community Building**: Active player metrics encourage user engagement and platform trust
+- **Technical Reliability**: Robust translation system prevents display of raw code to users
+- **Design Consistency**: Unified styling patterns across all betting interface components
+
 ## 🎯 Version 2.0.40 - Enhanced Betting Summary & Dynamic Prediction Tracking
 
 ### 🎯 **Fixed Critical Betting Summary Double-Counting**

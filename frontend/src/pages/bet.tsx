@@ -1315,11 +1315,11 @@ export default function BetPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_bet_amount')}</span>
-                        <span className="font-medium"><FormattedAmount amount={200} /></span>
+                        <span className="font-medium text-secondary-900 dark:text-secondary-100"><FormattedAmount amount={200} /></span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-secondary-600 dark:text-secondary-400">{t('betting.number_of_weeks_bet')}</span>
-                        <span className="font-medium">{
+                        <span className="font-medium text-secondary-900 dark:text-secondary-100">{
                           (() => {
                             const weeksWithBets = new Set(filteredGames.filter(g => g.userBet).map(g => g.weekId));
                             return weeksWithBets.size || 1;
@@ -1354,6 +1354,12 @@ export default function BetPage() {
                                 <FormattedAmount amount={calculatePotentialWinnings()} />
                               </span>
                             </div>
+                          </div>
+                          
+                          {/* Total Active Players */}
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_active_players')}</span>
+                            <span className="font-medium text-secondary-900 dark:text-secondary-100">7,389</span>
                           </div>
                           
                           {/* Submit Button */}

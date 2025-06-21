@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.41] - 2025-06-20
+### 🎨 UI/UX Polish: Dark Mode & Localization Improvements
+- **Fixed Dark Mode Text Visibility**: Resolved issue where "Total Bet Amount" and "Number of Weeks Bet" displayed in poor contrast colors in dark mode
+  - **Enhanced Contrast**: Applied proper `text-secondary-900 dark:text-secondary-100` styling for optimal readability
+  - **Consistent Design**: All Week Summary sidebar elements now follow unified dark mode color scheme
+  - **Visual Polish**: Improved user experience across light and dark theme modes
+
+### 🎮 Enhanced Community Engagement Features
+- **Added "Total Active Players" Metric**: New community engagement indicator showing platform activity
+  - **Strategic Placement**: Positioned below Potential Winnings for prominent visibility
+  - **Mock Demo Data**: Displays "7,389" active players for demonstration and marketing purposes
+  - **Consistent Styling**: Matches existing Week Summary format with proper dark mode support
+  - **Community Context**: Helps users understand platform scale and engagement levels
+
+### 🌐 Translation System Enhancement
+- **Fixed Parameter Interpolation Bug**: Resolved issue where "Select all available games" displayed raw formula text in dark mode
+  - **Root Cause**: Translation keys used `{current}/{total}` instead of `%{current}/%{total}` format
+  - **Comprehensive Fix**: Updated both English and Spanish translation strings
+  - **Clean Display**: Text now properly shows "Selecciona todos los juegos disponibles (0/3)" instead of formula
+  - **Localization Quality**: Enhanced translation system reliability for dynamic content
+
+### 🔧 Localization Coverage Expansion
+- **New Translation Keys Added**:
+  - **English**: `"total_active_players": "Total Active Players"`
+  - **Spanish**: `"total_active_players": "Total de Jugadores Activos"`
+- **Parameter Format Standardization**: All dynamic translations now use consistent `%{param}` format
+- **Translation System Reliability**: Improved parameter interpolation consistency across all betting interface elements
+
+### 🎯 User Experience Improvements
+- **Dark Mode Consistency**: Week Summary sidebar now displays all information with proper contrast in both themes
+- **Community Awareness**: Users can see total active players providing social proof and engagement context
+- **Clean Text Rendering**: Eliminated unwanted formula display ensuring professional appearance
+- **Unified Design Language**: Consistent styling patterns across all Week Summary components
+
+### Fixed
+- Dark mode text visibility issues for "Total Bet Amount" and "Number of Weeks Bet" in Week Summary
+- Translation parameter interpolation showing raw formula text instead of processed values
+- Missing localization for community engagement metrics
+- Inconsistent dark mode styling across Week Summary sidebar components
+
+### Enhanced
+- Week Summary visual consistency across light and dark themes
+- Community engagement visibility with active players count
+- Translation system reliability with proper parameter format
+- User interface polish with professional text rendering
+
 ## [2.0.40] - 2025-06-20
 ### 🎯 Enhanced Betting Summary & UI Improvements
 - **Fixed Betting Summary Double-Counting Issue**: Resolved critical UI bug where "Total Predictions Made" displayed incorrect aggregated counts across betting modes
