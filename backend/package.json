@@ -15,7 +15,14 @@
     "db:reset": "npx prisma migrate reset --force",
     "generate": "npx prisma generate",
     "studio": "npx prisma studio",
-    "migrate:bet-types": "tsx src/scripts/migrateBetTypes.ts"
+    "migrate:bet-types": "tsx src/scripts/migrateBetTypes.ts",
+    "create:test-user": "tsx src/scripts/createTestUser.ts",
+    "create:test-users": "tsx src/scripts/createMultipleTestUsers.ts",
+    "create:live-test-users": "tsx src/scripts/createLiveTestUsers.ts",
+    "cleanup:test-users": "tsx src/scripts/cleanupTestUsers.ts",
+    "verify:user-isolation": "tsx src/scripts/verifyUserIsolation.ts",
+    "find:admin-password": "tsx src/scripts/findAdminPassword.ts",
+    "reset:admin-password": "tsx scripts/resetAdminPassword.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",

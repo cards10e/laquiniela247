@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.43] - 2025-06-21
+### 🔧 Admin Panel Enhancement: Week Filtering for Game Creation
+- **Implemented Past Week Filtering**: Admin game creation dropdown now filters out weeks that have already started, preventing invalid game creation
+  - **Smart Date Logic**: Only shows weeks that START after today, ensuring games are only created for future weeks
+  - **Prevents Invalid Games**: Eliminates ability to create games in weeks that are already in progress or completed
+  - **Date Comparison Fix**: Compares week start dates with current date using day-level precision (ignoring time)
+  - **User-Friendly Interface**: Dropdown only shows relevant, actionable weeks for game creation
+
+### 🐛 Build System Fix
+- **Resolved Variable Declaration Conflict**: Fixed TypeScript compilation error caused by duplicate `const today` declarations
+  - **Variable Renaming**: Changed second `today` declaration to `todayStart` for clarity and uniqueness
+  - **Build Stability**: Eliminated compilation errors preventing successful project builds
+  - **Code Quality**: Improved variable naming for better code readability and maintenance
+
+### 🎯 Administrative Workflow Improvement
+- **Enhanced Game Management**: Administrators can now only create games for appropriate future weeks
+  - **Prevents Confusion**: Eliminates selection of past weeks that would result in invalid game creation
+  - **Data Integrity**: Ensures all created games belong to weeks that haven't started yet
+  - **Streamlined Process**: Cleaner dropdown interface with only relevant week options
+
+### 🔍 Technical Implementation
+- **Week Start Date Filtering**: `return weekStartDay > todayStart` logic ensures only future weeks appear
+- **Day-Level Comparison**: Uses date-only comparison (ignoring time) for consistent filtering across timezones
+- **Maintained Compatibility**: All existing week generation and display logic preserved
+- **Zero Breaking Changes**: Existing games and weeks remain unaffected by filtering changes
+
+### Fixed
+- Admin game creation showing past weeks (like Week 25 when current date is June 21)
+- TypeScript compilation error due to duplicate variable declarations
+- Potential creation of games in weeks that have already started or ended
+- Build system failures preventing successful project compilation
+
+### Enhanced
+- Admin panel usability with intelligent week filtering
+- Code quality with proper variable naming and scope management
+- Administrative workflow efficiency by showing only actionable options
+- Build system reliability with resolved compilation conflicts
+
 ## [2.0.42] - 2025-06-20
 ### 🎯 Enhanced History Page: Dynamic Contextual Subheadings
 - **Implemented Dynamic Subheading System**: Red subheading on history page now changes based on selected tab for improved contextual clarity

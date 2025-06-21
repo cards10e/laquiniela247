@@ -450,9 +450,18 @@ export default function AdminPage() {
   ];
   allWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
 
-  // Only show weeks whose endDate is today or in the future
+  // Only show future weeks for game creation (not current or past weeks)
   const now = new Date();
-  const validWeeks = allWeeks.filter(week => new Date(week.endDate) >= now);
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today at 00:00
+  
+  const validWeeks = allWeeks.filter(week => {
+    const weekStart = new Date(week.startDate);
+    const weekStartDay = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()); // Start of week day
+    
+    // Only show weeks that START after today
+    // This prevents creating games in weeks that have already started or are starting today
+    return weekStartDay > todayStart;
+  });
 
   // Find the selected week object for date range restriction
   const selectedWeekObj = validWeeks.find(w => w.id === newGame.weekId);

@@ -27,8 +27,8 @@ export default function LoginPage() {
       if (user && user.role && user.role.toLowerCase() === 'admin') {
         router.replace('/admin');
       } else {
-        const defaultRoute = isDemoUser ? '/bet' : '/dashboard';
-        router.replace(defaultRoute);
+        // All regular users (including demo) go to betting page first
+        router.replace('/bet');
       }
     }
   }, [isAuthenticated, loading, router, user, isDemoUser]);
@@ -80,10 +80,8 @@ export default function LoginPage() {
       if (user.role && user.role.toLowerCase() === 'admin') {
         router.push('/admin');
       } else {
-        // Check if this is a demo user by email
-        const isNewDemoUser = user.email === 'demo@laquiniela247.mx';
-        const defaultRoute = isNewDemoUser ? '/bet' : '/dashboard';
-        router.push(defaultRoute);
+        // All regular users go to betting page first
+        router.push('/bet');
       }
     } catch (error: any) {
       console.error('Login error:', error);

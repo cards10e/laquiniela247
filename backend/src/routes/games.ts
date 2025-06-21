@@ -141,18 +141,42 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
   const now = new Date();
   console.log('[DEBUG] /api/games/current-week called at', now.toISOString());
   
-  // Find ALL open weeks instead of just one
-  // Admin-opened weeks should show regardless of deadline (admin override)
-  const openWeeks = await prisma.week.findMany({
-    where: {
-      status: 'OPEN'
-      // Removed bettingDeadline filter - admin-opened weeks show regardless of deadline
-    },
-    orderBy: [
-      { startDate: 'desc' },
-      { weekNumber: 'desc' }
-    ]
-  });
+  // USER FILTERING: All users (except admins) only see current betting week
+  // Admins see all open weeks for management purposes
+  const isAdmin = req.user?.role === 'ADMIN';
+  const shouldFilterToCurrentWeek = req.user && !isAdmin;
+  
+  let openWeeks;
+  if (shouldFilterToCurrentWeek) {
+    // Regular users: Only show the most current week with valid betting deadline
+    openWeeks = await prisma.week.findMany({
+      where: {
+        status: 'OPEN',
+        bettingDeadline: {
+          gt: now // Only weeks with future deadlines
+        }
+      },
+      orderBy: [
+        { bettingDeadline: 'asc' }, // Earliest deadline first (most urgent)
+        { weekNumber: 'desc' }
+      ],
+      take: 1 // Only the most current/urgent week
+    });
+    console.log('[DEBUG] Regular user - filtered to current week only:', openWeeks.map(w => w.weekNumber));
+  } else {
+    // Admins and unauthenticated users: Show ALL open weeks (existing behavior)
+    openWeeks = await prisma.week.findMany({
+      where: {
+        status: 'OPEN'
+        // Removed bettingDeadline filter - admin-opened weeks show regardless of deadline
+      },
+      orderBy: [
+        { startDate: 'desc' },
+        { weekNumber: 'desc' }
+      ]
+    });
+    console.log('[DEBUG] Admin or unauthenticated - showing all open weeks:', openWeeks.map(w => w.weekNumber));
+  }
   
   if (openWeeks.length === 0) {
     console.log('[DEBUG] No active betting weeks found');
@@ -165,8 +189,29 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
     bettingDeadline: w.bettingDeadline
   })));
   
-  // Get games from ALL open weeks
-  const weekNumbers = openWeeks.map(w => w.weekNumber);
+  // Get games from open weeks + existing bet weeks for demo users
+  let weekNumbers = openWeeks.map(w => w.weekNumber);
+  
+  // REGULAR USER EXCEPTION: Include games from weeks with existing bets
+  if (shouldFilterToCurrentWeek) {
+    const existingBetGames = await prisma.bet.findMany({
+      where: {
+        userId: req.user!.id // Safe to use ! since shouldFilterToCurrentWeek ensures req.user exists
+      },
+      include: {
+        game: {
+          select: {
+            weekNumber: true
+          }
+        }
+      }
+    });
+    
+    const existingGameWeeks = existingBetGames.map(b => b.game.weekNumber);
+    weekNumbers = [...new Set([...weekNumbers, ...existingGameWeeks])]; // Merge and deduplicate
+    console.log('[DEBUG] Regular user - including games from weeks:', weekNumbers);
+  }
+  
   const games = await prisma.game.findMany({
     where: {
       weekNumber: {
@@ -224,7 +269,7 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
       )
     );
     
-    // Refetch games with updated statuses
+    // Refetch games with updated statuses (using same weekNumbers logic)
     updatedGames = await prisma.game.findMany({
       where: {
         weekNumber: {
@@ -273,7 +318,27 @@ router.get('/current-week', optionalAuthMiddleware, asyncHandler(async (req: Aut
   }));
   const betType = req.query.betType as string; // Get betType from query parameter - moved to higher scope
   if (req.user) {
-    const weekIds = openWeeks.map(w => w.id);
+    // DEMO USER EXCEPTION: Include existing bets from previous weeks
+    // Even though we only show current week games, we need to show existing bets
+    let weekIds = openWeeks.map(w => w.id);
+    
+    if (shouldFilterToCurrentWeek) {
+      // For regular users, also include weeks where they have existing bets
+      const existingBetWeeks = await prisma.bet.findMany({
+        where: {
+          userId: req.user.id
+        },
+        select: {
+          weekId: true
+        },
+        distinct: ['weekId']
+      });
+      
+      const existingWeekIds = existingBetWeeks.map(b => b.weekId);
+      weekIds = [...new Set([...weekIds, ...existingWeekIds])]; // Merge and deduplicate
+      console.log('[DEBUG] Regular user - including existing bet weeks:', existingWeekIds);
+    }
+    
     const betFilter: any = {
       userId: req.user.id,
       weekId: {

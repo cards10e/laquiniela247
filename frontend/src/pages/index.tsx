@@ -11,13 +11,13 @@ export default function HomePage() {
   useEffect(() => {
     if (!loading) {
       if (isAuthenticated) {
-        // Demo users go to games page, regular users go to dashboard
-        router.replace(isDemoUser ? '/bet' : '/dashboard');
+        // All authenticated users go to betting page first
+        router.replace('/bet');
       } else {
         router.replace('/login');
       }
     }
-  }, [isAuthenticated, loading, isDemoUser, router]);
+  }, [isAuthenticated, loading, router]);
 
   // Show loading spinner while determining redirect
   return (

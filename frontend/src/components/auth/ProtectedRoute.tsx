@@ -21,8 +21,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
       // Case-insensitive admin check
       if (requireAdmin && (!user?.role || user.role.toLowerCase() !== 'admin')) {
-        // Redirect to dashboard if not admin
-        router.replace('/dashboard');
+        // Redirect to betting page if not admin
+        router.replace('/bet');
         return;
       }
     }

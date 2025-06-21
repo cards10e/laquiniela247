@@ -16,28 +16,26 @@ export function Header({ minimal = false }: HeaderProps) {
   const { isDemoUser } = useDemo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  let navItems = [
-    { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
-    { key: 'games', href: '/bet', label: t('navigation.games') },
-    { key: 'history', href: '/history', label: t('navigation.history') },
-    { key: 'profile', href: '/profile', label: t('navigation.profile') },
-  ];
-
   const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
 
-  // Special handling for demo users - they get regular user navigation with games first
-  if (isDemoUser) {
+  // Navigation items based on user role
+  let navItems = [];
+  
+  if (isAdmin) {
+    // Admin users: Admin panel first, then full navigation
     navItems = [
+      { key: 'admin', href: '/admin', label: t('navigation.admin_panel') },
       { key: 'games', href: '/bet', label: t('navigation.games') },
       { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
       { key: 'history', href: '/history', label: t('navigation.history') },
       { key: 'profile', href: '/profile', label: t('navigation.profile') },
     ];
-  } else if (isAdmin) {
-    // For regular admin users: keep original order
+  } else {
+    // All regular users (including demo): Games first, then dashboard
     navItems = [
-      { key: 'admin', href: '/admin', label: t('navigation.admin_panel') },
       { key: 'games', href: '/bet', label: t('navigation.games') },
+      { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
+      { key: 'history', href: '/history', label: t('navigation.history') },
       { key: 'profile', href: '/profile', label: t('navigation.profile') },
     ];
   }
@@ -48,7 +46,7 @@ export function Header({ minimal = false }: HeaderProps) {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href={isAuthenticated ? (isDemoUser ? "/bet" : "/dashboard") : "/"} className="flex items-center">
+            <Link href={isAuthenticated ? "/bet" : "/"} className="flex items-center">
               <img
                 src="/logotipo-la-quiniela-247-min-2-1-1.png"
                 alt="La Quiniela 247"

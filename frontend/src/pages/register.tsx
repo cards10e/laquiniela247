@@ -25,7 +25,7 @@ export default function RegisterPage() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    router.replace('/dashboard');
+    router.replace('/bet');
     return null;
   }
 
@@ -99,7 +99,7 @@ export default function RegisterPage() {
       });
       
       toast.success(t('auth.registration_success'));
-      router.push('/dashboard');
+      router.push('/bet');
     } catch (error: any) {
       console.error('Registration error:', error);
       
@@ -304,19 +304,7 @@ export default function RegisterPage() {
               </div>
             </form>
 
-            {/* Demo Information */}
-            <div className="mt-8 pt-6 border-t border-secondary-200 dark:border-secondary-700">
-              <h3 className="text-center text-lg font-semibold text-primary-600 dark:text-primary-400 mb-4">
-                {t('common.demo_information')}
-              </h3>
-              <p className="text-center text-sm text-secondary-600 dark:text-secondary-400 mb-4">
-                {t('common.demo_environment_notice')}
-              </p>
-              <p className="text-center text-sm text-secondary-600 dark:text-secondary-400">
-                {t('common.demo_account_available')}: <br />
-                <strong>demo@laquiniela247.mx</strong> / <strong>demo123</strong>
-              </p>
-            </div>
+
 
             {/* Back to Main Site */}
             <div className="mt-6 text-center">
