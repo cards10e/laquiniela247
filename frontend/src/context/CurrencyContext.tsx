@@ -8,7 +8,7 @@ interface CurrencyContextType {
   setCurrency: (currency: Currency) => void;
   formatAmount: (amount: number, originalCurrency?: Currency) => Promise<string>;
   getCurrencySymbol: () => string;
-  convertAmount: (amount: number, from: Currency, to: Currency) => Promise<{ amount: number; rate: number; source: string }>;
+  convertAmount: (amount: number, from: Currency, to: Currency) => Promise<{ amount: number; rate: number; source: string; validated: boolean }>;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | null>(null);
@@ -74,7 +74,14 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   };
 
   const convertAmount = async (amount: number, from: Currency, to: Currency) => {
-    return await exchangeRateService.convertCurrency(amount, from, to);
+    const result = await exchangeRateService.convertCurrency(amount, from, to);
+    
+    // 🛡️ SECURITY: Log unvalidated conversions for monitoring
+    if (!result.validated) {
+      console.warn(`⚠️ Unvalidated currency conversion: ${amount} ${from} -> ${to} (source: ${result.source})`);
+    }
+    
+    return result;
   };
 
   return (
