@@ -482,18 +482,22 @@ export default function BetPage() {
 
   // --- Single Bet Submission ---
   const handleSingleBet = async (gameId: number) => {
-    const prediction = predictions[gameId];
-    const amount = singleBetAmounts[gameId] || 50;
-    if (!prediction) {
-      toast.error(t('betting.select_prediction'));
-      return;
-    }
-    if (amount < 10) {
-      toast.error(t('betting.minimum_bet_amount'));
-      return;
-    }
+    // IMMEDIATE protection - prevent any concurrent calls
+    if (singleSubmitting[gameId]) return;
     setSingleSubmitting((prev) => ({ ...prev, [gameId]: true }));
+    
     try {
+      const prediction = predictions[gameId];
+      const amount = singleBetAmounts[gameId] || 50;
+      if (!prediction) {
+        toast.error(t('betting.select_prediction'));
+        return;
+      }
+      if (amount < 10) {
+        toast.error(t('betting.minimum_bet_amount'));
+        return;
+      }
+      
       await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
       toast.success(t('betting.bet_placed'));
       

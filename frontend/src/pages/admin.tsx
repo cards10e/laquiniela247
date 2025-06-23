@@ -9,6 +9,7 @@ import { addDays, startOfWeek, format, isAfter, isBefore } from 'date-fns';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import TeamLogo from '@/components/TeamLogo';
 import React from 'react';
+import { exchangeRateService } from '@/services/exchangeRateService';
 
 interface User {
   id: number;
@@ -66,6 +67,25 @@ interface Team {
   logoUrl?: string;
 }
 
+interface SecurityStatus {
+  securityStatus: 'SECURE' | 'WARNING' | 'CRITICAL';
+  rates: {
+    base: string;
+    timestamp: number;
+    rates: Record<string, number>;
+    source: string;
+    consensusScore?: number;
+  };
+  validation: Record<string, any>;
+}
+
+interface SecuritySettings {
+  monitoringInterval: number; // in minutes
+  alertsEnabled: boolean;
+  criticalAlertsEnabled: boolean;
+  warningAlertsEnabled: boolean;
+}
+
 export default function AdminPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -113,6 +133,19 @@ export default function AdminPage() {
   // NEW: State for expandable game cards (mobile-first UX)
   const [expandedGames, setExpandedGames] = useState<Set<number>>(new Set());
 
+  // 🛡️ SECURITY: Exchange rate monitoring state
+  const [securityData, setSecurityData] = useState<SecurityStatus | null>(null);
+  const [showSecurityDetails, setShowSecurityDetails] = useState(false);
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [lastSecurityCheck, setLastSecurityCheck] = useState<Date | null>(null);
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
+    monitoringInterval: 1, // Default: 1 minute
+    alertsEnabled: true,
+    criticalAlertsEnabled: true,
+    warningAlertsEnabled: true
+  });
+  const [securityInterval, setSecurityInterval] = useState<NodeJS.Timeout | null>(null);
+
   const [axiosInstance] = useState(() => {
     return axios.create({
       baseURL: '/api',
@@ -127,7 +160,96 @@ export default function AdminPage() {
   useEffect(() => {
     fetchAdminData();
     fetchTeams();
+    fetchSecurityStatus(); // Initial security check
   }, []);
+
+  // 🛡️ SECURITY: Real-time monitoring setup with configurable intervals
+  useEffect(() => {
+    if (securitySettings.alertsEnabled && securitySettings.monitoringInterval > 0) {
+      // Clear existing interval
+      if (securityInterval) {
+        clearInterval(securityInterval);
+      }
+
+      // Set new interval based on admin configuration (minutes to milliseconds)
+      const interval = setInterval(() => {
+        fetchSecurityStatus();
+      }, securitySettings.monitoringInterval * 60 * 1000);
+
+      setSecurityInterval(interval);
+
+      return () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
+    }
+  }, [securitySettings.monitoringInterval, securitySettings.alertsEnabled]);
+
+  // 🛡️ SECURITY: Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (securityInterval) {
+        clearInterval(securityInterval);
+      }
+    };
+  }, []);
+
+  // 🛡️ SECURITY: Exchange rate monitoring functions
+  const fetchSecurityStatus = async () => {
+    try {
+      setSecurityLoading(true);
+      const security = await exchangeRateService.verifyCurrentRates();
+      
+      // Check for status changes and trigger alerts
+      if (securityData && securitySettings.alertsEnabled) {
+        const previousStatus = securityData.securityStatus;
+        const currentStatus = security.securityStatus;
+        
+        if (previousStatus !== currentStatus) {
+          if (currentStatus === 'CRITICAL' && securitySettings.criticalAlertsEnabled) {
+            toast.error('🚨 CRITICAL: Exchange rate security degraded - using fallback rates', {
+              duration: 10000,
+              position: 'top-center'
+            });
+          } else if (currentStatus === 'WARNING' && securitySettings.warningAlertsEnabled) {
+            toast('⚠️ WARNING: Exchange rate consensus limited - reduced validation', {
+              duration: 8000,
+              position: 'top-center',
+              style: {
+                background: '#fef3c7',
+                color: '#92400e',
+                border: '1px solid #fbbf24'
+              }
+            });
+          } else if (currentStatus === 'SECURE' && previousStatus !== 'SECURE') {
+            toast.success('✅ Exchange rate security restored - full consensus achieved', {
+              duration: 5000,
+              position: 'top-center'
+            });
+          }
+        }
+      }
+      
+      setSecurityData(security);
+      setLastSecurityCheck(new Date());
+    } catch (error) {
+      console.error('Security status check failed:', error);
+      toast.error('Failed to check exchange rate security status');
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleRefreshSecurity = async () => {
+    await fetchSecurityStatus();
+    toast.success('Security status refreshed');
+  };
+
+  const handleUpdateSecuritySettings = (newSettings: Partial<SecuritySettings>) => {
+    setSecuritySettings(prev => ({ ...prev, ...newSettings }));
+    toast.success('Security monitoring settings updated');
+  };
 
   // Removed automatic refresh - users can manually refresh if needed
   // The constant 30-second refresh was causing UX issues on mobile
@@ -575,7 +697,7 @@ export default function AdminPage() {
             {/* Tab Navigation */}
             <div className="mb-8">
               <nav className="flex space-x-8 border-b border-secondary-200 dark:border-secondary-700">
-                {['overview', 'users', 'games'].map((tab) => (
+                {['overview', 'users', 'games', 'security'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -585,7 +707,16 @@ export default function AdminPage() {
                         : 'border-transparent text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200'
                     }`}
                   >
-                    {tab === 'overview' ? t('dashboard.performance_overview') : tab === 'games' ? t('admin.game_management') : tab === 'users' ? t('admin.user_management_tab') : t(`admin.${tab}`)}
+                    {tab === 'overview' 
+                      ? t('dashboard.performance_overview') 
+                      : tab === 'games' 
+                        ? t('admin.game_management') 
+                        : tab === 'users' 
+                          ? t('admin.user_management_tab')
+                          : tab === 'security'
+                            ? '🛡️ Security Monitoring'
+                            : t(`admin.${tab}`)
+                    }
                   </button>
                 ))}
               </nav>
@@ -631,6 +762,112 @@ export default function AdminPage() {
                       <span className="performance-card-value !text-success-600 dark:!text-success-400">
                         {formatCurrency(typeof stats.totalRevenue === 'number' && !isNaN(stats.totalRevenue) ? stats.totalRevenue : 125000, language)}
                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🛡️ SECURITY: Exchange Rate Security Card */}
+                <div className="mt-8">
+                  <div className="card">
+                    <div className="card-header border-b border-secondary-200 dark:border-secondary-700">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 flex items-center">
+                          🛡️ Exchange Rate Security
+                          {securityLoading && (
+                            <div className="ml-2 animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full"></div>
+                          )}
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={handleRefreshSecurity}
+                            disabled={securityLoading}
+                            className="btn-outline-sm"
+                          >
+                            {securityLoading ? 'Checking...' : 'Refresh'}
+                          </button>
+                          <button
+                            onClick={() => setShowSecurityDetails(!showSecurityDetails)}
+                            className="btn-outline-sm"
+                          >
+                            {showSecurityDetails ? 'Hide Details' : 'Show Details'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-6">
+                      {securityData ? (
+                        <div className="space-y-4">
+                          {/* Status Indicator */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-3 h-3 rounded-full ${
+                                securityData.securityStatus === 'SECURE' 
+                                  ? 'bg-green-500' 
+                                  : securityData.securityStatus === 'WARNING'
+                                    ? 'bg-yellow-500'
+                                    : 'bg-red-500'
+                              }`}></div>
+                              <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                                Status: {securityData.securityStatus}
+                              </span>
+                            </div>
+                            {lastSecurityCheck && (
+                              <span className="text-sm text-secondary-600 dark:text-secondary-400">
+                                Last check: {lastSecurityCheck.toLocaleTimeString()}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Quick Info */}
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-secondary-600 dark:text-secondary-400">Source:</span>
+                              <span className="ml-2 font-medium">{securityData.rates.source}</span>
+                            </div>
+                            <div>
+                              <span className="text-secondary-600 dark:text-secondary-400">Consensus:</span>
+                              <span className="ml-2 font-medium">
+                                {securityData.rates.consensusScore ? `${(securityData.rates.consensusScore * 100).toFixed(1)}%` : 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Expanded Details */}
+                          {showSecurityDetails && (
+                            <div className="mt-6 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                              <div className="space-y-4">
+                                <div>
+                                  <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-2">Current Rates:</h4>
+                                  <div className="bg-secondary-50 dark:bg-secondary-800 p-3 rounded text-sm">
+                                    {Object.entries(securityData.rates.rates).map(([currency, rate]) => (
+                                      <div key={currency} className="flex justify-between">
+                                        <span>{currency}:</span>
+                                        <span className="font-mono">{rate.toFixed(4)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-2">Validation Status:</h4>
+                                  <div className="bg-secondary-50 dark:bg-secondary-800 p-3 rounded text-sm">
+                                    <pre className="whitespace-pre-wrap text-xs">
+                                      {JSON.stringify(securityData.validation, null, 2)}
+                                    </pre>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="text-secondary-600 dark:text-secondary-400">
+                            Loading security status...
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1417,6 +1654,291 @@ export default function AdminPage() {
                           </div>
                         );
                       })
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 🛡️ SECURITY TAB: Dedicated Security Monitoring Tab */}
+            {activeTab === 'security' && (
+              <div className="space-y-8">
+                {/* Header */}
+                <div className="mb-8">
+                  <h2 className="section-title">
+                    🛡️ Exchange Rate Security Monitoring
+                  </h2>
+                  <p className="mt-2 text-secondary-600 dark:text-secondary-400">
+                    Real-time monitoring of exchange rate consensus, provider validation, and fraud detection.
+                  </p>
+                </div>
+
+                {/* Security Settings Card */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">⚙️ Monitoring Configuration</h3>
+                  </div>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Monitoring Interval */}
+                      <div>
+                        <label htmlFor="monitoring-interval" className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                          Monitoring Interval (minutes)
+                        </label>
+                        <select
+                          id="monitoring-interval"
+                          value={securitySettings.monitoringInterval}
+                          onChange={(e) => handleUpdateSecuritySettings({ monitoringInterval: parseInt(e.target.value) })}
+                          className="form-input"
+                        >
+                          <option value={1}>1 minute</option>
+                          <option value={2}>2 minutes</option>
+                          <option value={5}>5 minutes</option>
+                          <option value={10}>10 minutes</option>
+                          <option value={15}>15 minutes</option>
+                          <option value={30}>30 minutes</option>
+                          <option value={60}>1 hour</option>
+                        </select>
+                        <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
+                          How often to check exchange rate security automatically
+                        </p>
+                      </div>
+
+                      {/* Alert Toggles */}
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                          Alert Types
+                        </label>
+                        <div className="space-y-2">
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={securitySettings.alertsEnabled}
+                              onChange={(e) => handleUpdateSecuritySettings({ alertsEnabled: e.target.checked })}
+                              className="form-checkbox mr-2"
+                            />
+                            <span className="text-sm">Enable All Alerts</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={securitySettings.criticalAlertsEnabled}
+                              onChange={(e) => handleUpdateSecuritySettings({ criticalAlertsEnabled: e.target.checked })}
+                              disabled={!securitySettings.alertsEnabled}
+                              className="form-checkbox mr-2"
+                            />
+                            <span className="text-sm text-red-600">🚨 Critical Alerts</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={securitySettings.warningAlertsEnabled}
+                              onChange={(e) => handleUpdateSecuritySettings({ warningAlertsEnabled: e.target.checked })}
+                              disabled={!securitySettings.alertsEnabled}
+                              className="form-checkbox mr-2"
+                            />
+                            <span className="text-sm text-yellow-600">⚠️ Warning Alerts</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Status Summary */}
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                          Current Status
+                        </label>
+                        <div className="space-y-2">
+                          <div className="flex items-center">
+                            <div className={`w-3 h-3 rounded-full mr-2 ${
+                              securitySettings.alertsEnabled ? 'bg-green-500' : 'bg-gray-400'
+                            }`}></div>
+                            <span className="text-sm">
+                              Monitoring: {securitySettings.alertsEnabled ? 'Active' : 'Disabled'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                            Next check: {securitySettings.alertsEnabled ? `${securitySettings.monitoringInterval} min` : 'N/A'}
+                          </div>
+                          {lastSecurityCheck && (
+                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                              Last check: {lastSecurityCheck.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Real-time Security Status */}
+                <div className="card">
+                  <div className="card-header border-b border-secondary-200 dark:border-secondary-700">
+                    <div className="flex items-center justify-between">
+                      <h3 className="card-title flex items-center">
+                        📊 Real-time Security Dashboard
+                        {securityLoading && (
+                          <div className="ml-2 animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full"></div>
+                        )}
+                      </h3>
+                      <button
+                        onClick={handleRefreshSecurity}
+                        disabled={securityLoading}
+                        className="btn-outline-sm"
+                      >
+                        {securityLoading ? 'Checking...' : '🔄 Refresh Now'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    {securityData ? (
+                      <div className="space-y-6">
+                        {/* Security Status Overview */}
+                        <div className={`p-4 rounded-lg border ${
+                          securityData.securityStatus === 'SECURE' 
+                            ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
+                            : securityData.securityStatus === 'WARNING'
+                              ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800'
+                              : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-4 h-4 rounded-full ${
+                                securityData.securityStatus === 'SECURE' 
+                                  ? 'bg-green-500' 
+                                  : securityData.securityStatus === 'WARNING'
+                                    ? 'bg-yellow-500'
+                                    : 'bg-red-500'
+                              }`}></div>
+                              <div>
+                                <div className="font-semibold text-lg">
+                                  {securityData.securityStatus === 'SECURE' && '✅ SECURE'}
+                                  {securityData.securityStatus === 'WARNING' && '⚠️ WARNING'}
+                                  {securityData.securityStatus === 'CRITICAL' && '🚨 CRITICAL'}
+                                </div>
+                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                  {securityData.securityStatus === 'SECURE' && 'All exchange rate providers validated with consensus'}
+                                  {securityData.securityStatus === 'WARNING' && 'Limited consensus - using reduced validation'}
+                                  {securityData.securityStatus === 'CRITICAL' && 'Exchange rate security degraded - using fallback rates'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-mono">
+                                {securityData.rates.consensusScore ? `${(securityData.rates.consensusScore * 100).toFixed(1)}%` : 'N/A'}
+                              </div>
+                              <div className="text-sm text-secondary-600 dark:text-secondary-400">Consensus</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Provider Status Grid */}
+                        <div>
+                          <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-4">Provider Status</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="bg-secondary-50 dark:bg-secondary-800 p-4 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Primary Source</span>
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              </div>
+                              <div className="mt-2 text-lg font-mono">{securityData.rates.source}</div>
+                            </div>
+                            
+                            <div className="bg-secondary-50 dark:bg-secondary-800 p-4 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Last Update</span>
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              </div>
+                              <div className="mt-2 text-sm">
+                                {new Date(securityData.rates.timestamp).toLocaleString()}
+                              </div>
+                            </div>
+
+                            <div className="bg-secondary-50 dark:bg-secondary-800 p-4 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Validation Score</span>
+                                <div className={`w-2 h-2 rounded-full ${
+                                  securityData.securityStatus === 'SECURE' ? 'bg-green-500' : 
+                                  securityData.securityStatus === 'WARNING' ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}></div>
+                              </div>
+                              <div className="mt-2 text-lg font-mono">
+                                {securityData.rates.consensusScore ? `${(securityData.rates.consensusScore * 100).toFixed(1)}%` : 'N/A'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Current Exchange Rates */}
+                        <div>
+                          <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-4">Current Exchange Rates</h4>
+                          <div className="bg-secondary-50 dark:bg-secondary-800 p-4 rounded-lg">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                              {Object.entries(securityData.rates.rates).map(([currency, rate]) => (
+                                <div key={currency} className="text-center">
+                                  <div className="text-sm text-secondary-600 dark:text-secondary-400">{securityData.rates.base}/{currency}</div>
+                                  <div className="text-lg font-mono font-semibold">{rate.toFixed(4)}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Technical Details */}
+                        <div>
+                          <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-4">Technical Validation Details</h4>
+                          <div className="bg-secondary-50 dark:bg-secondary-800 p-4 rounded-lg">
+                            <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                              {JSON.stringify(securityData.validation, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+
+                        {/* Manual Actions */}
+                        <div>
+                          <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-4">Manual Actions</h4>
+                          <div className="flex flex-wrap gap-3">
+                            <button
+                              onClick={handleRefreshSecurity}
+                              disabled={securityLoading}
+                              className="btn-primary"
+                            >
+                              🔄 Force Refresh
+                            </button>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(JSON.stringify(securityData, null, 2));
+                                toast.success('Security data copied to clipboard');
+                              }}
+                              className="btn-outline"
+                            >
+                              📋 Copy Data
+                            </button>
+                            <button
+                              onClick={() => {
+                                const blob = new Blob([JSON.stringify(securityData, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `security-report-${Date.now()}.json`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                                toast.success('Security report downloaded');
+                              }}
+                              className="btn-outline"
+                            >
+                              💾 Download Report
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <div className="text-secondary-600 dark:text-secondary-400">
+                          Loading security status...
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>

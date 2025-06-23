@@ -59,72 +59,52 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
     throw createError('Cannot bet on games that have already started', 400);
   }
 
-  // Check if user already has a single bet for this game
-  const existingBet = await prisma.bet.findUnique({
-    where: {
-      userId_gameId_betType: {
-        userId,
-        gameId: validatedData.gameId,
-        betType: 'SINGLE'
-      }
-    }
-  });
-
-  if (existingBet) {
-    // Update existing bet (no transaction)
-    const updatedBet = await prisma.bet.update({
-      where: { id: existingBet.id },
-      data: {
-        prediction: validatedData.prediction,
-        updatedAt: new Date()
-      },
-      include: {
-        game: {
-          include: {
-            homeTeam: { select: { name: true, shortName: true } },
-            awayTeam: { select: { name: true, shortName: true } }
-          }
-        }
-      }
+  // ATOMIC UPSERT: Eliminates TOCTOU race condition completely
+  try {
+    console.log('[DEBUG] Processing single bet with atomic upsert:', {
+      userId,
+      weekId: game.week.id,
+      gameId: validatedData.gameId,
+      prediction: validatedData.prediction,
+      betType: 'SINGLE'
     });
-
-    res.json({
-      message: 'Bet updated successfully',
-      bet: updatedBet
-    });
-  } else {
-    // Create new bet and transaction
-    try {
-      console.log('[DEBUG] Creating new single bet:', {
-        userId,
-        weekId: game.week.id,
-        gameId: validatedData.gameId,
-        prediction: validatedData.prediction,
-        betType: 'SINGLE'
-      });
-      
-      const result = await prisma.$transaction(async (tx) => {
-        const newBet = await tx.bet.create({
-          data: {
+    
+    const result = await prisma.$transaction(async (tx) => {
+      const bet = await tx.bet.upsert({
+        where: {
+          userId_gameId_betType: {
             userId,
-            weekId: game.week.id,
             gameId: validatedData.gameId,
-            prediction: validatedData.prediction,
-            betType: 'SINGLE' // Set betType for single bets
-          },
-          include: {
-            game: {
-              include: {
-                homeTeam: { select: { name: true, shortName: true } },
-                awayTeam: { select: { name: true, shortName: true } }
-              }
+            betType: 'SINGLE'
+          }
+        },
+        create: {
+          userId,
+          weekId: game.week.id,
+          gameId: validatedData.gameId,
+          prediction: validatedData.prediction,
+          betType: 'SINGLE'
+        },
+        update: {
+          prediction: validatedData.prediction,
+          updatedAt: new Date()
+        },
+        include: {
+          game: {
+            include: {
+              homeTeam: { select: { name: true, shortName: true } },
+              awayTeam: { select: { name: true, shortName: true } }
             }
           }
-        });
-        
-        console.log('[DEBUG] Single bet created successfully:', newBet.id);
-        
-        const transaction = await tx.transaction.create({
+        }
+      });
+
+      // Only create transaction record for NEW bets (detect by comparing timestamps)
+      let transaction = null;
+      const isNewBet = Math.abs(bet.createdAt.getTime() - bet.updatedAt.getTime()) < 1000; // Within 1 second = new bet
+      
+      if (isNewBet) {
+        transaction = await tx.transaction.create({
           data: {
             userId,
             weekId: game.week.id,
@@ -133,28 +113,29 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res: express.Res
             status: 'COMPLETED'
           }
         });
-        
-        console.log('[DEBUG] Transaction created successfully:', transaction.id);
-        
-        return { newBet, transaction };
-      });
+        console.log('[DEBUG] New bet created with transaction:', bet.id, transaction.id);
+      } else {
+        console.log('[DEBUG] Existing bet updated:', bet.id);
+      }
 
-      console.log('[DEBUG] Single bet transaction completed successfully');
+      return { bet, transaction, isNewBet };
+    });
 
-      res.status(201).json({
-        message: 'Bet placed successfully',
-        bet: result.newBet,
-        transaction: result.transaction
-      });
-    } catch (error) {
-      console.error('[ERROR] Single bet creation failed:', error);
-      console.error('[ERROR] Error details:', {
-        message: (error as any).message,
-        code: (error as any).code,
-        meta: (error as any).meta
-      });
-      throw error;
-    }
+    console.log('[DEBUG] Atomic upsert completed successfully');
+
+    res.status(result.isNewBet ? 201 : 200).json({
+      message: result.isNewBet ? 'Bet placed successfully' : 'Bet updated successfully',
+      bet: result.bet,
+      ...(result.transaction && { transaction: result.transaction })
+    });
+  } catch (error) {
+    console.error('[ERROR] Atomic bet upsert failed:', error);
+    console.error('[ERROR] Error details:', {
+      message: (error as any).message,
+      code: (error as any).code,
+      meta: (error as any).meta
+    });
+    throw error;
   }
 }));
 

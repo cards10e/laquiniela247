@@ -2,7 +2,51 @@
 
 This document tracks pending improvements, technical debt, and feature enhancements for the La Quiniela 247 platform.
 
-## 🚨 High Priority
+## �� High Priority
+
+### 🎯 **Betting Page UI Enhancement: Current Week Focus**
+**Status**: ⏳ Ready for Implementation  
+**Priority**: High  
+**Issue**: Remove historical bet information to focus on current week betting only
+
+**Current State**:
+- Betting page shows historical "Active Bets Placed" section with past predictions
+- Success banner displays mixed historical and current week information
+- Week Summary sidebar combines historical statistics with current betting metrics
+- Users see cluttered interface with both actionable and historical information
+
+**Desired Enhancement**:
+- **Remove Historical Sections**: Eliminate "Active Bets Placed" and success banner for past bets
+- **Current Week Focus**: Show only "Available Games for Betting" section
+- **Enhanced Week Summary**: Focus sidebar on current week betting progress and deadlines
+- **Cleaner Mobile UX**: Reduced scrolling and better focus on actionable betting opportunities
+
+**Implementation Strategy**:
+```typescript
+// Phase 1: Safe Visual-Only Changes
+const [showCurrentWeekOnly, setShowCurrentWeekOnly] = useState(true);
+const displayGamesWithBets = showCurrentWeekOnly ? [] : gamesWithBets;
+const displayHasAnyBets = showCurrentWeekOnly ? false : hasAnyBets;
+
+// Phase 2: Enhanced Current Week Filtering
+const currentWeekGames = filteredGames.filter(g => {
+  return g.weekId === currentWeek?.weekNumber && 
+         g.bettingDeadline && 
+         new Date(g.bettingDeadline) > new Date();
+});
+```
+
+**Benefits**:
+- **Cleaner UI**: Focus on actionable current week betting only
+- **Reduced Cognitive Load**: No confusion from historical information
+- **Mobile Optimization**: Less scrolling, better mobile experience
+- **Urgency Focus**: Clear emphasis on current betting deadlines
+
+**Risk Mitigation**:
+- Feature flag approach allows easy rollback if needed
+- No modification to core business logic or data fetching
+- Backward compatibility preserved through conditional rendering
+- Progressive implementation with independent testing phases
 
 ### 🚀 **Production Deployment with Bet Types Migration**
 **Status**: ✅ Ready for Production  
@@ -131,6 +175,13 @@ if (betType && (betType === 'single' || betType === 'parlay')) {
 
 ## 📋 Completed ✅
 
+### **CRITICAL SECURITY FIXES** *(2025-06-23)*
+- ✅ **Race Condition Elimination**: Implemented atomic upsert operations preventing financial double-bet vulnerabilities
+- ✅ **Admin Access Control Fix**: Resolved privilege escalation vulnerability with proper adminMiddleware chain
+- ✅ **Currency Security Enhancement**: Multi-source consensus validation with real-time fraud detection
+- ✅ **SQL Injection Verification**: Comprehensive testing confirms complete Prisma ORM protection
+- ✅ **Admin Security Dashboard**: Real-time security monitoring with configurable alerting
+
 ### **Single Bet & Parlay System Implementation** *(2025-01-18)*
 - ✅ Database migration with intelligent bet type classification
 - ✅ Optimistic UI updates for instant user feedback  
@@ -168,12 +219,13 @@ if (betType && (betType === 'single' || betType === 'parlay')) {
 
 ## 📝 Notes
 
-**Last Updated**: 2025-01-18  
-**Version**: 2.0.25  
-**Branch**: features-bug-fixes  
+**Last Updated**: 2025-06-23  
+**Version**: 2.0.44  
+**Branch**: fix/betting-race-condition-atomic-upsert  
 
 **Development Philosophy**: 
-- Zero breaking changes approach
+- Security-first development approach
+- Zero breaking changes philosophy
 - Comprehensive testing before production
 - Documentation-first development
 - User experience prioritization 

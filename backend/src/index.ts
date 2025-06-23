@@ -17,7 +17,7 @@ import adminRoutes from '@/routes/admin';
 // Import middleware
 import { errorHandler } from '@/middleware/errorHandler';
 import { requestLogger } from '@/middleware/requestLogger';
-import { authMiddleware } from '@/middleware/auth';
+import { authMiddleware, adminMiddleware } from '@/middleware/auth';
 
 // Load environment variables
 dotenv.config({
@@ -83,7 +83,7 @@ app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/bets', authMiddleware, betRoutes);
 app.use('/api/weeks', weekRoutes);
-app.use('/api/admin', authMiddleware, adminRoutes);
+app.use('/api/admin', authMiddleware, adminMiddleware, adminRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
