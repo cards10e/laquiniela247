@@ -1067,10 +1067,10 @@ export default function BetPage() {
                   </div>
                 </div>
                 <div className="lg:col-span-1">
-                  {/* Bet Summary for Single Bets */}
+                  {/* Single Bet Summary */}
                   <div className="card sticky top-8">
                     <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
-                      {t('betting.bet_summary')}
+                      {t('betting.single_bet_summary')}
                     </h3>
                     {/* Total Predictions Made */}
                     <div className="mb-6">
@@ -1303,11 +1303,11 @@ export default function BetPage() {
                   </div>
                 </div>
                
-                {/* Week Summary Sidebar */}
+                {/* La Quiniela Bet Summary Sidebar */}
                 <div className="lg:col-span-1">
                   <div className="card sticky top-8">
                     <h3 className="subsection-title">
-                      {t('betting.week_summary')}
+                      {t('betting.la_quiniela_bet_summary')}
                     </h3>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">

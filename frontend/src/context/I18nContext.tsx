@@ -187,7 +187,10 @@ const translations = {
       active_bets_placed: "Active Bets Placed",
       you_have_placed_bets: "You have placed bets",
       select_predictions_and_amounts: "Select predictions and set amounts to see your bet summary",
-      no_games_available: "No games available"
+      no_games_available: "No games available",
+      // Dynamic bet summary titles
+      single_bet_summary: "Single Bet Summary",
+      la_quiniela_bet_summary: "La Quiniela Bet Summary"
     },
     profile: {
       title: "Profile",
@@ -607,7 +610,10 @@ const translations = {
       active_bets_placed: "Apuestas Realizadas",
       you_have_placed_bets: "Tienes apuestas realizadas",
       select_predictions_and_amounts: "Selecciona predicciones y establece cantidades para ver tu resumen de apuestas",
-      no_games_available: "No hay juegos disponibles"
+      no_games_available: "No hay juegos disponibles",
+      // Dynamic bet summary titles
+      single_bet_summary: "Resumen de Apuestas Simples",
+      la_quiniela_bet_summary: "Resumen de La Quiniela"
     },
     profile: {
       title: "Perfil",
