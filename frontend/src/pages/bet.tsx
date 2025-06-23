@@ -35,6 +35,7 @@ interface Week {
   weekNumber: number;
   status: 'upcoming' | 'open' | 'closed' | 'completed';
   bettingDeadline: string;
+  canBet?: boolean; // Optional field for betting capability
 }
 
 type PredictionType = 'home' | 'away' | 'draw';
@@ -144,6 +145,126 @@ const getAllRelevantGames = (games: Game[]): Game[] => {
   return relevantGames;
 };
 
+// Type definitions for better type safety
+type BetMode = 'single' | 'parlay';
+
+interface SingleBetSummary {
+  totalBets: number;
+  totalAmount: number;
+  potentialWinnings: number;
+}
+
+interface BetStatus {
+  canBet: boolean;
+  hasPlacedAllBets: boolean;
+  placedBetsCount: number;
+  totalGamesCount: number;
+}
+
+interface BetCalculationContext {
+  tab: BetMode;
+  showCurrentWeekOnly: boolean;
+  predictions: Record<number, PredictionType>;
+  singleBetAmounts: Record<number, number>;
+  filteredGames: Game[];
+  defaultBetAmount: number;
+  multiplier: number;
+}
+
+interface CurrentWeekCalculationResult {
+  availableGames: Game[];
+  currentWeekPredictions: string[];
+  totalBets: number;
+  totalAmount: number;
+  potentialWinnings: number;
+}
+
+interface LegacyCalculationResult {
+  pendingGames: string[];
+  placedBets: Game[];
+  pendingAmount: number;
+  placedAmount: number;
+  totalBets: number;
+  totalAmount: number;
+  potentialWinnings: number;
+}
+
+// Utility functions with proper typing
+const calculateCurrentWeekSummary = (context: BetCalculationContext): CurrentWeekCalculationResult => {
+  const { predictions, singleBetAmounts, filteredGames } = context;
+  const defaultAmount = context.defaultBetAmount;
+  
+  // Calculate available games directly (games without existing bets)
+  const availableGames: Game[] = filteredGames.filter((g: Game): g is Game => 
+    !g.userBet || !g.userBet.prediction
+  );
+  
+  const currentWeekPredictions: string[] = Object.keys(predictions).filter((gameId: string): gameId is string => {
+    const numericGameId = parseInt(gameId, 10);
+    return (
+      !isNaN(numericGameId) &&
+      Boolean(predictions[numericGameId]) &&
+      availableGames.find((game: Game) => game.id === numericGameId) !== undefined
+    );
+  });
+  
+  // Calculate amounts only for current week predictions
+  const totalAmount: number = currentWeekPredictions.reduce((sum: number, gameId: string): number => {
+    const numericGameId = parseInt(gameId, 10);
+    const betAmount = singleBetAmounts[numericGameId];
+    return sum + (typeof betAmount === 'number' && betAmount > 0 ? betAmount : defaultAmount);
+  }, 0);
+  
+  const totalBets: number = currentWeekPredictions.length;
+  const potentialWinnings: number = totalAmount * context.multiplier;
+  
+  return {
+    availableGames,
+    currentWeekPredictions,
+    totalBets,
+    totalAmount,
+    potentialWinnings
+  };
+};
+
+const calculateLegacySummary = (context: BetCalculationContext): LegacyCalculationResult => {
+  const { predictions, singleBetAmounts, filteredGames } = context;
+  const defaultAmount = context.defaultBetAmount;
+  
+  const pendingGames: string[] = Object.keys(predictions).filter((gameId: string): gameId is string => {
+    const numericGameId = parseInt(gameId, 10);
+    return !isNaN(numericGameId) && Boolean(predictions[numericGameId]);
+  });
+  
+  const placedBets: Game[] = filteredGames.filter((game: Game): game is Game => 
+    game.userBet !== undefined && game.userBet !== null
+  );
+  
+  // Calculate amounts for pending predictions
+  const pendingAmount: number = pendingGames.reduce((sum: number, gameId: string): number => {
+    const numericGameId = parseInt(gameId, 10);
+    const betAmount = singleBetAmounts[numericGameId];
+    return sum + (typeof betAmount === 'number' && betAmount > 0 ? betAmount : defaultAmount);
+  }, 0);
+  
+  // For placed bets, assume default amount each (we don't store the bet amount in the UI)
+  const placedAmount: number = placedBets.length * defaultAmount;
+  
+  const totalBets: number = pendingGames.length + placedBets.length;
+  const totalAmount: number = pendingAmount + placedAmount;
+  const potentialWinnings: number = totalAmount * context.multiplier;
+  
+  return {
+    pendingGames,
+    placedBets,
+    pendingAmount,
+    placedAmount,
+    totalBets,
+    totalAmount,
+    potentialWinnings
+  };
+};
+
 export default function BetPage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -153,28 +274,26 @@ export default function BetPage() {
   const [games, setGames] = useState<Game[]>([]);
   const [predictions, setPredictions] = useState<Record<number, PredictionType>>({});
   const [betAmount, setBetAmount] = useState<number>(50);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [tab, setTab] = useState<'parlay' | 'single'>('parlay');
-  // For single bets
+  const [loading, setLoading] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [tab, setTab] = useState<BetMode>('single');
   const [singleBetAmounts, setSingleBetAmounts] = useState<Record<number, number>>({});
   const [singleSubmitting, setSingleSubmitting] = useState<Record<number, boolean>>({});
   // Add state for tracking single bet summary
-  const [singleBetSummary, setSingleBetSummary] = useState<{ totalBets: number; totalAmount: number; potentialWinnings: number }>({
+  const [singleBetSummary, setSingleBetSummary] = useState<SingleBetSummary>({
     totalBets: 0,
     totalAmount: 0,
     potentialWinnings: 0
   });
   // Add state to store betStatus from API
-  const [betStatus, setBetStatus] = useState<{
-    canBet: boolean;
-    hasPlacedAllBets: boolean;
-    placedBetsCount: number;
-    totalGamesCount: number;
-  } | null>(null);
+  const [betStatus, setBetStatus] = useState<BetStatus | null>(null);
 
   // 🎯 PHASE 1: Current week focus feature flag
-  const [showCurrentWeekOnly] = useState(true);
+  const [showCurrentWeekOnly] = useState<boolean>(true);
+
+  // Constants for bet calculations
+  const DEFAULT_BET_AMOUNT = 50;
+  const SINGLE_BET_MULTIPLIER = 2.5;
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -374,32 +493,42 @@ export default function BetPage() {
     }));
   };
 
-  // Update single bet amounts calculation
+  // Update single bet amounts calculation with type safety
   useEffect(() => {
     if (tab === 'single') {
-      // Count BOTH pending predictions AND already placed bets
-      const pendingGames = Object.keys(predictions).filter(gameId => 
-        predictions[parseInt(gameId)]
-      );
-      const placedBets = filteredGames.filter(game => game.userBet);
-      
-      // Calculate amounts for pending predictions
-      const pendingAmount = pendingGames.reduce((sum, gameId) => 
-        sum + (singleBetAmounts[parseInt(gameId)] || 50), 0
-      );
-      
-      // For placed bets, assume $50 each (we don't store the bet amount in the UI)
-      const placedAmount = placedBets.length * 50;
-      
-      const totalBets = pendingGames.length + placedBets.length;
-      const totalAmount = pendingAmount + placedAmount;
-      const potentialWinnings = totalAmount * 2.5; // 2.5x multiplier for single bets
-      
-      setSingleBetSummary({
-        totalBets,
-        totalAmount,
-        potentialWinnings
-      });
+      const context: BetCalculationContext = {
+        tab,
+        showCurrentWeekOnly,
+        predictions,
+        singleBetAmounts,
+        filteredGames,
+        defaultBetAmount: DEFAULT_BET_AMOUNT,
+        multiplier: SINGLE_BET_MULTIPLIER
+      };
+
+      if (showCurrentWeekOnly) {
+        // Use typed current week calculation
+        const result: CurrentWeekCalculationResult = calculateCurrentWeekSummary(context);
+        
+        console.log(`[Single Bet Summary - Current Week] totalBets: ${result.totalBets}, totalAmount: ${result.totalAmount}, potentialWinnings: ${result.potentialWinnings}`);
+        
+        setSingleBetSummary({
+          totalBets: result.totalBets,
+          totalAmount: result.totalAmount,
+          potentialWinnings: result.potentialWinnings
+        });
+      } else {
+        // Use typed legacy calculation
+        const result: LegacyCalculationResult = calculateLegacySummary(context);
+        
+        console.log(`[Single Bet Summary - Legacy] totalBets: ${result.totalBets}, totalAmount: ${result.totalAmount}, potentialWinnings: ${result.potentialWinnings}`);
+        
+        setSingleBetSummary({
+          totalBets: result.totalBets,
+          totalAmount: result.totalAmount,
+          potentialWinnings: result.potentialWinnings
+        });
+      }
     } else {
       // Reset for parlay mode
       setSingleBetSummary({
@@ -408,7 +537,7 @@ export default function BetPage() {
         potentialWinnings: 0
       });
     }
-  }, [predictions, singleBetAmounts, tab, games]);
+  }, [predictions, singleBetAmounts, tab, filteredGames, showCurrentWeekOnly]);
 
   // Modified calculate function for La Quiniela fixed amounts
   const calculatePotentialWinnings = () => {
@@ -1151,7 +1280,7 @@ export default function BetPage() {
                       <p className="text-success-700 dark:text-success-300">
                         {t('betting.bets_placed_count', { 
                           placed: effectiveGamesWithBets.length, 
-                                                      total: filteredGames.length 
+                          total: filteredGames.length 
                         })}
                       </p>
                     </div>
