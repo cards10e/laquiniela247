@@ -1080,11 +1080,23 @@ export default function BetPage() {
                         </span>
                         <span className="font-bold text-success-600 dark:text-success-400">
                           {(() => {
-                            // For Single Bets tab: use singleBetSummary which already counts both
-                            // existing bets and current selections for this tab only
-                            console.log(`[Single Tab Debug] singleBetSummary.totalBets: ${singleBetSummary.totalBets}, total: ${filteredGames.length}`);
-                            return singleBetSummary.totalBets;
-                          })()} / {filteredGames.length}
+                            // 🎯 PHASE 1: For Single Bets tab with current week focus
+                            // Only count games available for current betting, not historical bets
+                            if (showCurrentWeekOnly) {
+                              // Count current selections for available games only
+                              const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
+                              console.log(`[Single Tab Debug - Current Week] currentWeekPredictions: ${currentWeekPredictions}, availableGames: ${gamesWithoutBets.length}`);
+                              console.log(`[Single Tab Debug - Current Week] Available games:`, gamesWithoutBets.map(g => ({ 
+                                id: g.id, 
+                                hasSelection: !!predictions[g.id] 
+                              })));
+                              return currentWeekPredictions;
+                            } else {
+                              // Legacy behavior: use singleBetSummary which includes historical bets
+                              console.log(`[Single Tab Debug - Legacy] singleBetSummary.totalBets: ${singleBetSummary.totalBets}, total: ${filteredGames.length}`);
+                              return singleBetSummary.totalBets;
+                            }
+                          })()} / {showCurrentWeekOnly ? gamesWithoutBets.length : filteredGames.length}
                         </span>
                       </div>
                     </div>
@@ -1314,19 +1326,31 @@ export default function BetPage() {
                         <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_predictions_made')}</span>
                         <span className="font-bold text-success-600 dark:text-success-400">
                           {(() => {
-                            // For La Quiniela (parlay) tab: count total games with predictions
-                            // Count each game only once - either it has a bet OR a current selection
-                            const totalPredictions = filteredGames.filter(game => 
-                              game.userBet || predictions[game.id]
-                            ).length;
-                            console.log(`[Parlay Tab Debug] totalPredictions: ${totalPredictions}, total: ${filteredGames.length}`);
-                            console.log(`[Parlay Tab Debug] Games breakdown:`, filteredGames.map(g => ({ 
-                              id: g.id, 
-                              hasBet: !!g.userBet, 
-                              hasSelection: !!predictions[g.id] 
-                            })));
-                            return totalPredictions;
-                          })()} / {filteredGames.length}
+                            // 🎯 PHASE 1: For La Quiniela (parlay) tab with current week focus
+                            // Only count games available for current betting, not historical bets
+                            if (showCurrentWeekOnly) {
+                              // Count current selections for available games only (no historical bets)
+                              const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
+                              console.log(`[Parlay Tab Debug - Current Week] currentWeekPredictions: ${currentWeekPredictions}, availableGames: ${gamesWithoutBets.length}`);
+                              console.log(`[Parlay Tab Debug - Current Week] Available games:`, gamesWithoutBets.map(g => ({ 
+                                id: g.id, 
+                                hasSelection: !!predictions[g.id] 
+                              })));
+                              return currentWeekPredictions;
+                            } else {
+                              // Legacy behavior: count total games with predictions (including historical)
+                              const totalPredictions = filteredGames.filter(game => 
+                                game.userBet || predictions[game.id]
+                              ).length;
+                              console.log(`[Parlay Tab Debug - Legacy] totalPredictions: ${totalPredictions}, total: ${filteredGames.length}`);
+                              console.log(`[Parlay Tab Debug - Legacy] Games breakdown:`, filteredGames.map(g => ({ 
+                                id: g.id, 
+                                hasBet: !!g.userBet, 
+                                hasSelection: !!predictions[g.id] 
+                              })));
+                              return totalPredictions;
+                            }
+                          })()} / {showCurrentWeekOnly ? gamesWithoutBets.length : filteredGames.length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
