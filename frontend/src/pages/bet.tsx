@@ -173,6 +173,9 @@ export default function BetPage() {
     totalGamesCount: number;
   } | null>(null);
 
+  // 🎯 PHASE 1: Current week focus feature flag
+  const [showCurrentWeekOnly] = useState(true);
+
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
@@ -623,6 +626,15 @@ export default function BetPage() {
   const gamesWithoutBets = filteredGames.filter(g => !g.userBet || !g.userBet.prediction);
   const hasAnyBets = gamesWithBets.length > 0;
   
+  // 🎯 PHASE 1: Safe wrapper variables for current week focus
+  const effectiveGamesWithBets = showCurrentWeekOnly ? [] : gamesWithBets;
+  const effectiveHasAnyBets = showCurrentWeekOnly ? false : hasAnyBets;
+  
+  // Debug logging for Phase 1
+  console.log('🎯 [PHASE 1] showCurrentWeekOnly:', showCurrentWeekOnly);
+  console.log('🎯 [PHASE 1] Original gamesWithBets:', gamesWithBets.length);
+  console.log('🎯 [PHASE 1] Effective gamesWithBets:', effectiveGamesWithBets.length);
+  
   console.log('🎮 [RENDER DEBUG] gamesAvailableForBetting:', gamesAvailableForBetting.map(g => ({ id: g.id, weekId: g.weekId })));
   console.log('🎮 [RENDER DEBUG] gamesWithExistingBets:', gamesWithExistingBets.map(g => ({ id: g.id, weekId: g.weekId })));
   console.log('🎮 [RENDER DEBUG] Total order preserved:', filteredGames.map(g => ({ id: g.id, weekId: g.weekId, canBet: g.bettingDeadline && new Date(g.bettingDeadline) > now, hasBet: !!g.userBet?.prediction })));
@@ -861,7 +873,7 @@ export default function BetPage() {
                 <div className="lg:col-span-2">
                   <div className="space-y-6">
                     {/* Success Banner - only show if there are existing bets */}
-                    {hasAnyBets && (
+                    {effectiveHasAnyBets && (
                       <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-6">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
@@ -875,7 +887,7 @@ export default function BetPage() {
                             </h3>
                             <p className="text-success-700 dark:text-success-300">
                               {t('betting.bets_placed_count', { 
-                                placed: gamesWithBets.length, 
+                                placed: effectiveGamesWithBets.length, 
                                 total: filteredGames.length 
                               })}
                             </p>
@@ -885,13 +897,13 @@ export default function BetPage() {
                     )}
 
                     {/* Games with Existing Bets */}
-                    {gamesWithBets.length > 0 && (
+                    {effectiveGamesWithBets.length > 0 && (
                       <div>
                         <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
                           {t('betting.active_bets_placed')}
                         </h4>
                         <div className="space-y-4">
-                          {gamesWithBets.map((game) => (
+                          {effectiveGamesWithBets.map((game) => (
                             <div key={game.id} className="card opacity-75">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                                 <div className="flex items-center space-x-4 mb-4 sm:mb-0">
@@ -1112,7 +1124,7 @@ export default function BetPage() {
           ) : (
             <div className="space-y-6">
               {/* Success Banner - only show if there are existing bets */}
-              {hasAnyBets && (
+              {effectiveHasAnyBets && (
                 <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -1126,7 +1138,7 @@ export default function BetPage() {
                       </h3>
                       <p className="text-success-700 dark:text-success-300">
                         {t('betting.bets_placed_count', { 
-                          placed: gamesWithBets.length, 
+                          placed: effectiveGamesWithBets.length, 
                                                       total: filteredGames.length 
                         })}
                       </p>
@@ -1139,13 +1151,13 @@ export default function BetPage() {
                 <div className="lg:col-span-2">
                   <div className="space-y-6">
                     {/* Games with Existing Bets */}
-                    {gamesWithBets.length > 0 && (
+                    {effectiveGamesWithBets.length > 0 && (
                       <div>
                         <h4 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
                           {t('betting.active_bets_placed')}
                         </h4>
                         <div className="space-y-4">
-                          {gamesWithBets.map((game) => (
+                          {effectiveGamesWithBets.map((game) => (
                             <div key={game.id} className="card opacity-75">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                                 <div className="flex items-center space-x-4 mb-4 sm:mb-0">
@@ -1386,7 +1398,7 @@ export default function BetPage() {
                         </>
                       )}
                       
-                      {gamesWithBets.length > 0 && gamesWithoutBets.length === 0 && (
+                      {effectiveGamesWithBets.length > 0 && gamesWithoutBets.length === 0 && (
                         <div className="p-4 bg-info-50 dark:bg-info-900/20 rounded-lg">
                           <p className="text-info-700 dark:text-info-300 text-sm text-center">
                             {t('betting.wait_for_results')}
