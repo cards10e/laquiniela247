@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
@@ -15,8 +16,15 @@ export function Header({ minimal = false }: HeaderProps) {
   const { t } = useI18n();
   const { isDemoUser } = useDemo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
+
+  // Enhanced navigation handler for production compatibility
+  const handleNavigation = (href: string) => {
+    router.push(href);
+    setMobileMenuOpen(false);
+  };
 
   // Navigation items based on user role
   let navItems = [];
@@ -59,13 +67,13 @@ export function Header({ minimal = false }: HeaderProps) {
           {!minimal && isAuthenticated && (
             <nav className="hidden md:flex space-x-8">
               {navItems.map((item) => (
-                <Link
+                <button
                   key={item.key}
-                  href={item.href}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  onClick={() => handleNavigation(item.href)}
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
                 >
                   {item.label}
-                </Link>
+                </button>
               ))}
             </nav>
           )}
@@ -113,14 +121,13 @@ export function Header({ minimal = false }: HeaderProps) {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-secondary-200 dark:border-secondary-700">
               {navItems.map((item) => (
-                <Link
+                <button
                   key={item.key}
-                  href={item.href}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => handleNavigation(item.href)}
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left cursor-pointer"
                 >
                   {item.label}
-                </Link>
+                </button>
               ))}
               <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4 pb-3">
                 <div className="flex items-center px-3">
