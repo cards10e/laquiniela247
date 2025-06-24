@@ -250,65 +250,32 @@ log_step 2 11 "Provisioning server dependencies"
 # Install Nginx if not present
 if ! ssh $SSH_OPTS $REMOTE "command -v nginx > /dev/null"; then
     log_info "Step 2/11: Installing Nginx..."
-    execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y nginx'" "install Nginx"
-    
-    # Configure Nginx
-    log_info "Step 2/11: Writing Nginx config for SSR..."
-    execute_command "ssh $SSH_OPTS $REMOTE 'cat > /etc/nginx/sites-available/default << \"NGINX_CONFIG\"
-server {
-    server_name laquiniela247demo.live;
-
-    location /api/ {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \"upgrade\";
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \"upgrade\";
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-
-    listen [::]:443 ssl ipv6only=on; # managed by Certbot
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/laquiniela247demo.live/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/laquiniela247demo.live/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-}
-server {
-    if (\$host = laquiniela247demo.live) {
-        return 301 https://\$host\$request_uri;
-    } # managed by Certbot
-
-    listen 80;
-    listen [::]:80;
-    server_name laquiniela247demo.live;
-    return 404; # managed by Certbot
-}
-NGINX_CONFIG'" "write SSR Nginx config"
-
-    execute_command "ssh $SSH_OPTS $REMOTE 'ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/'" "enable Nginx site"
-    execute_command "ssh $SSH_OPTS $REMOTE 'nginx -t && systemctl restart nginx'" "test and restart Nginx"
-    verify_service "nginx"
+    execute_command "ssh $SSH_OPTS $REMOTE 'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo \"Waiting for apt lock...\"; sleep 5; done'" "wait for apt lock"
+    execute_command "ssh $SSH_OPTS $REMOTE 'DEBIAN_FRONTEND=noninteractive apt install -y nginx'" "install Nginx"
+    execute_command "ssh $SSH_OPTS $REMOTE 'systemctl enable nginx'" "enable Nginx service"
+    log_info "Step 2/11: Nginx installed successfully (configuration skipped)"
 fi
 
 # Install required packages
 log_info "Step 2/11: Installing required packages..."
-execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y curl git build-essential'" "install required packages"
+execute_command "ssh $SSH_OPTS $REMOTE 'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo \"Waiting for apt lock...\"; sleep 5; done'" "wait for apt lock"
+execute_command "ssh $SSH_OPTS $REMOTE 'DEBIAN_FRONTEND=noninteractive apt install -y curl git build-essential'" "install required packages"
 
 # Install Node.js if not present or if version is not 18.x
 if ! ssh $SSH_OPTS $REMOTE "command -v node > /dev/null && node -v | grep -q 'v18'"; then
-    log_info "Step 2/11: Installing Node.js 18..."
-    execute_command "ssh $SSH_OPTS $REMOTE 'curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -'" "add NodeSource repository"
-    execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y nodejs'" "install Node.js"
+    log_info "Step 2/11: Installing Node.js 18 via binary..."
+    
+    # Remove any existing Node.js
+    execute_command "ssh $SSH_OPTS $REMOTE 'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo \"Waiting for apt lock...\"; sleep 5; done'" "wait for apt lock"
+    execute_command "ssh $SSH_OPTS $REMOTE 'DEBIAN_FRONTEND=noninteractive apt remove -y nodejs npm || true'" "remove existing Node.js"
+    
+    # Download and install Node.js 18.x binary directly
+    execute_command "ssh $SSH_OPTS $REMOTE 'cd /tmp && curl -fsSL https://nodejs.org/dist/v18.20.4/node-v18.20.4-linux-x64.tar.xz -o node.tar.xz'" "download Node.js binary"
+    execute_command "ssh $SSH_OPTS $REMOTE 'cd /tmp && tar -xf node.tar.xz'" "extract Node.js binary"
+    execute_command "ssh $SSH_OPTS $REMOTE 'cd /tmp && cp -r node-v18.20.4-linux-x64/* /usr/local/'" "install Node.js binary"
+    execute_command "ssh $SSH_OPTS $REMOTE 'ln -sf /usr/local/bin/node /usr/bin/node'" "create node symlink"
+    execute_command "ssh $SSH_OPTS $REMOTE 'ln -sf /usr/local/bin/npm /usr/bin/npm'" "create npm symlink"
+    execute_command "ssh $SSH_OPTS $REMOTE 'rm -rf /tmp/node*'" "cleanup Node.js installation files"
     
     # Verify Node.js version
     execute_command "ssh $SSH_OPTS $REMOTE 'node -v'" "verify Node.js version"
@@ -316,6 +283,7 @@ if ! ssh $SSH_OPTS $REMOTE "command -v node > /dev/null && node -v | grep -q 'v1
         log_error "Node.js 18 installation failed or incorrect version installed"
         exit 1
     fi
+    log_success "Node.js 18 installed successfully"
 fi
 
 # Install PM2 if not present
@@ -324,10 +292,17 @@ if ! ssh $SSH_OPTS $REMOTE "command -v pm2 > /dev/null"; then
     execute_command "ssh $SSH_OPTS $REMOTE 'npm install -g pm2'" "install PM2"
 fi
 
+# Install tsx globally on remote server for TypeScript execution
+if ! ssh $SSH_OPTS $REMOTE "command -v tsx > /dev/null"; then
+    log_info "Step 2/11: Installing tsx globally on remote server..."
+    execute_command "ssh $SSH_OPTS $REMOTE 'npm install -g tsx'" "install tsx globally on remote server"
+fi
+
 # Install MySQL if not present
 if ! ssh $SSH_OPTS $REMOTE "command -v mysql > /dev/null"; then
     log_info "Step 2/11: Installing MySQL..."
-    execute_command "ssh $SSH_OPTS $REMOTE 'apt install -y mysql-server'" "install MySQL server"
+    execute_command "ssh $SSH_OPTS $REMOTE 'while sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo \"Waiting for apt lock...\"; sleep 5; done'" "wait for apt lock"
+    execute_command "ssh $SSH_OPTS $REMOTE 'DEBIAN_FRONTEND=noninteractive apt install -y mysql-server'" "install MySQL server"
     execute_command "ssh $SSH_OPTS $REMOTE 'systemctl enable mysql && systemctl start mysql'" "enable and start MySQL"
     verify_service "mysql"
 fi
@@ -459,8 +434,16 @@ fi
 
 # 8. RESTART NODE.JS APP (PM2)
 log_step 8 11 "Restarting Node.js app with PM2"
+
+# Install dependencies and prepare backend on remote server
+log_info "Step 8/11: Installing backend dependencies on remote server..."
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/backend && npm install'" "install backend dependencies on remote server"
+
+log_info "Step 8/11: Generating Prisma client on remote server..."
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/backend && npx prisma generate'" "generate Prisma client on remote server"
+
 log_info "Step 8/11: Starting frontend (Next.js SSR) with PM2..."
-execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && pm2 delete laquiniela-frontend || true && pm2 start npm --name laquiniela-frontend -- start'" "start frontend SSR with PM2"
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && npm install && pm2 delete laquiniela-frontend || true && pm2 start npm --name laquiniela-frontend -- start'" "start frontend SSR with PM2"
 verify_pm2_process "laquiniela-frontend"
 
 log_info "Step 8/11: Starting backend (Express) with PM2..."
@@ -469,18 +452,17 @@ verify_pm2_process "laquiniela-backend"
 log_step_complete 8 11 "Restarting Node.js app with PM2"
 log_info "3 steps remaining..."
 
-# 9. RESTART NGINX
-log_step 9 11 "Restarting Nginx"
-log_info "Step 9/11: Restarting Nginx service..."
-execute_command "ssh $SSH_OPTS $REMOTE 'systemctl restart nginx'" "restart Nginx"
-verify_service "nginx"
-log_step_complete 9 11 "Restarting Nginx"
+# 9. SKIP NGINX RESTART (NOT CONFIGURED)
+log_step 9 11 "Skipping Nginx restart"
+log_info "Step 9/11: Skipping Nginx restart (configuration not managed by deployment script)"
+log_warning "Note: Nginx is installed but not configured. Manual configuration required."
+log_step_complete 9 11 "Skipping Nginx restart"
 log_info "1 step remaining..."
 
 # Final verification (keep this as a final check)
 log_step 11 11 "Performing final service verification"
 log_info "Step 11/11: Verifying all services..."
-verify_service "nginx"
+log_info "Skipping nginx verification (not configured by deployment script)"
 verify_service "mysql"
 verify_pm2_process "laquiniela-frontend"
 verify_pm2_process "laquiniela-backend"
