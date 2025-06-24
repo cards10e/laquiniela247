@@ -342,7 +342,7 @@ log_info "7 steps remaining..."
 # 5. UPLOAD PROJECT FILES
 log_step 5 11 "Uploading project files"
 log_info "Step 5/11: Uploading project files to server..."
-execute_command "rsync -av -e \"ssh $SSH_OPTS\" --exclude '.git' ./ $REMOTE:$REMOTE_PATH" "upload project files"
+execute_command "rsync -av -e \"ssh $SSH_OPTS\" --exclude '.git' --exclude 'node_modules' --exclude 'frontend/.next' --exclude 'backend/dist' --exclude '.DS_Store' --exclude '*.log' ./ $REMOTE:$REMOTE_PATH" "upload project files"
 
 # Enable rate limiting for production deployment
 log_info "Step 5/11: Enabling rate limiting for production..."
