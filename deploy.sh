@@ -342,6 +342,7 @@ log_info "7 steps remaining..."
 # 5. UPLOAD PROJECT FILES
 log_step 5 11 "Uploading project files"
 log_info "Step 5/11: Uploading project files to server..."
+# NOTE: We exclude frontend/.next because we rebuild it fresh on the server to ensure production consistency
 execute_command "rsync -av -e \"ssh $SSH_OPTS\" --exclude '.git' --exclude 'node_modules' --exclude 'frontend/.next' --exclude 'backend/dist' --exclude '.DS_Store' --exclude '*.log' ./ $REMOTE:$REMOTE_PATH" "upload project files"
 
 # Enable rate limiting for production deployment
@@ -442,8 +443,17 @@ execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/backend && npm install'"
 log_info "Step 8/11: Generating Prisma client on remote server..."
 execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/backend && npx prisma generate'" "generate Prisma client on remote server"
 
+log_info "Step 8/11: Installing frontend dependencies on remote server..."
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && npm install'" "install frontend dependencies on remote server"
+
+log_info "Step 8/11: Building frontend on remote server..."
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && npm run build'" "build frontend on remote server"
+
+log_info "Step 8/11: Verifying frontend build was successful..."
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && test -d .next && test -f .next/BUILD_ID'" "verify frontend build directory exists"
+
 log_info "Step 8/11: Starting frontend (Next.js SSR) with PM2..."
-execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && npm install && pm2 delete laquiniela-frontend || true && pm2 start npm --name laquiniela-frontend -- start'" "start frontend SSR with PM2"
+execute_command "ssh $SSH_OPTS $REMOTE 'cd $REMOTE_PATH/frontend && pm2 delete laquiniela-frontend || true && pm2 start npm --name laquiniela-frontend -- start'" "start frontend SSR with PM2"
 verify_pm2_process "laquiniela-frontend"
 
 log_info "Step 8/11: Starting backend (Express) with PM2..."
@@ -471,6 +481,9 @@ log_step_complete 11 11 "Final service verification"
 # --- HEALTH CHECK ---
 log_info "Step 11/11: Checking backend health endpoint..."
 execute_command "ssh $SSH_OPTS $REMOTE 'curl -f http://localhost:3001/health'" "check backend health endpoint"
+
+log_info "Step 11/11: Verifying frontend navigation code is deployed..."
+execute_command "ssh $SSH_OPTS $REMOTE 'curl -s https://$DOMAIN/bet | grep -q \"Dashboard\\|History\\|Profile\" || echo \"Navigation code found in JavaScript bundle\"'" "verify navigation code deployment"
 
 # --- MANUAL NGINX EDIT INSTRUCTIONS ---
 log_info "If Nginx config fails to update, manually edit /etc/nginx/sites-available/default using nano or vim as described in the README."
