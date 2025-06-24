@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.47] - 2025-06-24
+### 🎯 Betting Interface Fix: Complete Current Week Bet Visibility Restored
+- **FIXED: Demo User Game Filtering - Missing Existing Bets Display (Issue #13)**: Resolved critical user experience issue where existing bets were not visible
+  - **Root Cause**: Frontend filtering logic bug in `frontend/src/pages/bet.tsx` where `effectiveGamesWithBets` was hardcoded to empty array when `showCurrentWeekOnly = true`
+  - **Impact**: Users could only see games available for new bets, but couldn't review their existing current week bets
+  - **Solution**: Removed conditional filtering that hid existing bets, restoring complete betting interface visibility
+  - **User Experience**: Both "Active Bets Placed" and "Games Available to Bet" sections now display properly
+
+### 🔧 Frontend Logic Optimization
+- **Enhanced Betting Interface Consistency**:
+  ```typescript
+  // BEFORE (BROKEN)
+  const effectiveGamesWithBets = showCurrentWeekOnly ? [] : gamesWithBets;
+  const effectiveHasAnyBets = showCurrentWeekOnly ? false : hasAnyBets;
+  
+  // AFTER (FIXED)
+  const effectiveGamesWithBets = gamesWithBets;
+  const effectiveHasAnyBets = hasAnyBets;
+  ```
+
+- **Restored Complete Betting View**:
+  - **Single Bets Tab**: Now shows existing single bets + available games for single betting
+  - **La Quiniela Tab**: Now shows existing parlay bets + available games for parlay betting
+  - **Production Parity**: Local development and production environments now behave identically
+  - **Current Week Focus**: Maintained proper current week filtering while showing complete bet status
+
+### 🎮 User Experience Impact
+- **Bet Review Capability**: Users can now see their existing bets for the current week alongside available betting opportunities
+- **Confusion Elimination**: Resolved user confusion about "missing" placed bets that appeared to disappear
+- **Interface Completeness**: Both betting modes (single and parlay) show comprehensive current week status
+- **Visual Consistency**: Proper sections display for both existing bets and new betting opportunities
+
+### Fixed
+- Missing "Active Bets Placed" section in betting interface (Issue #13)
+- Demo users only seeing games without existing bets instead of complete betting view
+- Production/development inconsistency in bet display behavior
+- Frontend filtering logic hiding existing bets when current week focus enabled
+
+### Enhanced
+- Complete betting interface visibility showing both existing and available bets
+- Consistent user experience between Single Bets and La Quiniela tabs
+- Proper current week betting status review functionality
+- Production deployment with verified functionality restoration
+
 ## [2.0.46] - 2025-06-24
 ### 🔧 Navigation System Fix: Simple Solution to Production Issue
 - **FIXED: Production Navigation Links Failure (Bug #15)**: Resolved recurring production-only navigation issue with simple, reliable solution

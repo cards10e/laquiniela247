@@ -75,13 +75,13 @@ Your app comes with these pre-seeded users:
 
 ### Demo User
 - **Email**: `demo@laquiniela247.mx`
-- **Password**: `demo123`
+- **Password**: 
 - **Role**: USER
 - **Purpose**: Has sample betting data for demonstrations
 
 ### Admin User
 - **Email**: `admin@laquiniela247.mx`
-- **Password**: `admin123`
+- **Password**: 
 - **Role**: ADMIN
 - **Purpose**: Full admin access to manage games, users, etc.
 

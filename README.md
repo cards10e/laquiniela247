@@ -2,6 +2,26 @@
 
 A modern web application for managing and participating in sports predictions.
 
+## 🎯 Version 2.0.47 - Betting Interface Fix: Complete Current Week Bet Visibility Restored
+
+### 🎯 **Missing Existing Bets Display Fixed**
+- **✅ RESOLVED: Demo User Game Filtering Issue** - Fixed Bug #13: Users could only see games available for new bets, missing existing bet review capability
+- **✅ COMPLETE BETTING INTERFACE** - Restored both "Active Bets Placed" and "Games Available to Bet" sections for comprehensive current week view
+- **✅ FRONTEND LOGIC FIX** - Corrected filtering bug where `effectiveGamesWithBets` was hardcoded to empty array when `showCurrentWeekOnly = true`
+- **✅ USER EXPERIENCE RESTORED** - Both Single Bets and La Quiniela tabs now show complete betting status for current week
+- **✅ PRODUCTION PARITY** - Local development and production environments now behave identically
+
+### 🔧 **Frontend Logic Optimization**
+- **Simplified Conditional Logic**: Removed buggy `showCurrentWeekOnly` filtering that was hiding existing bets from users
+- **Enhanced Bet Visibility**: Users can now review their existing current week bets alongside available betting opportunities
+- **Interface Completeness**: Both betting modes (single and parlay) display comprehensive current week status
+- **Confusion Elimination**: Resolved user confusion about "missing" placed bets that appeared to disappear
+
+### 🎮 **User Experience Impact**
+- **Bet Review Capability**: Complete visibility of existing bets for current week alongside new betting opportunities
+- **Visual Consistency**: Proper sections display for both existing bets and new betting opportunities across all betting modes
+- **Production Deployment**: Fix verified and deployed to `https://laquiniela247demo.live` with confirmed functionality restoration
+
 ## 🎯 Version 2.0.46 - Navigation System Fix: Simple Solution to Production Issue
 
 ### 🔧 **Production Navigation Links Fixed**

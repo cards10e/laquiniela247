@@ -337,11 +337,11 @@ export default function BetPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Apply relevant games filtering (only for regular users, not admins)
-  // Admins see all games for management purposes
-  // Memoize filteredGames to prevent infinite re-renders
+  // Backend already handles all user role and bet type filtering correctly
+  // No additional frontend filtering needed - just use the games as returned by API
   const filteredGames = useMemo(() => {
-    return isAdmin ? games : getAllRelevantGames(games);
-  }, [games, isAdmin]);
+    return games; // Backend handles: user role, bet type, deadlines, existing bets
+  }, [games]);
   
   // Define fetch functions before useEffect that uses them
   const fetchAdminGamesData = useCallback(async (): Promise<void> => {
@@ -765,8 +765,9 @@ export default function BetPage() {
     const hasAnyBets = gamesWithBets.length > 0;
     
     // 🎯 PHASE 1: Safe wrapper variables for current week focus
-    const effectiveGamesWithBets = showCurrentWeekOnly ? [] : gamesWithBets;
-    const effectiveHasAnyBets = showCurrentWeekOnly ? false : hasAnyBets;
+    // FIXED: Always show existing bets for current week (both existing and available games)
+    const effectiveGamesWithBets = gamesWithBets;
+    const effectiveHasAnyBets = hasAnyBets;
 
     return {
       gamesAvailableForBetting,
