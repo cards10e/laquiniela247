@@ -5,7 +5,6 @@ import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { NavigationLink } from '@/components/navigation/NavigationLink';
 
 interface HeaderProps {
   minimal?: boolean;
@@ -61,36 +60,35 @@ export function Header({ minimal = false }: HeaderProps) {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Enterprise-Level Implementation */}
+          {/* Desktop Navigation - Simple Next.js Links */}
           {!minimal && isAuthenticated && (
-            <nav className="hidden md:flex space-x-8" role="navigation" aria-label="Main navigation">
+            <nav className="hidden md:flex space-x-8">
               {navItems.map((item) => (
-                <NavigationLink
+                <Link
                   key={item.key}
                   href={item.href}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  aria-label={`Navigate to ${item.label}`}
+                  className="text-secondary-100 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {item.label}
-                </NavigationLink>
+                </Link>
               ))}
             </nav>
           )}
 
           {/* Right side controls */}
           <div className="flex items-center space-x-4">
-            <LanguageToggle className="text-secondary-100 dark:text-white" />
-            <ThemeToggle className="text-secondary-100 dark:text-white" />
+            <LanguageToggle className="text-secondary-100" />
+            <ThemeToggle className="text-secondary-100" />
 
             {/* User menu for authenticated users */}
             {!minimal && isAuthenticated && (
               <div className="hidden md:flex items-center space-x-4">
-                <span className="text-sm text-secondary-100 dark:text-white">
+                <span className="text-sm text-secondary-100">
                   {user?.firstName} {user?.lastName}
                 </span>
                 <button
                   onClick={logout}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="text-secondary-100 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {t('navigation.logout')}
                 </button>
@@ -101,7 +99,7 @@ export function Header({ minimal = false }: HeaderProps) {
             {!minimal && isAuthenticated && (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors"
+                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-secondary-100 hover:text-primary-600 hover:bg-secondary-100 transition-colors"
                 aria-expanded="false"
               >
                 <span className="sr-only">Open main menu</span>
@@ -115,24 +113,23 @@ export function Header({ minimal = false }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile Menu - Enterprise-Level Implementation */}
+        {/* Mobile Menu - Simple Next.js Links */}
         {!minimal && isAuthenticated && mobileMenuOpen && (
-          <div className="md:hidden" role="navigation" aria-label="Mobile navigation">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-secondary-200 dark:border-secondary-700">
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-secondary-200">
               {navItems.map((item) => (
-                <NavigationLink
+                <Link
                   key={item.key}
                   href={item.href}
                   onClick={closeMobileMenu}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
-                  aria-label={`Navigate to ${item.label}`}
+                  className="text-secondary-100 hover:text-primary-600 block px-3 py-2 rounded-md text-base font-medium transition-colors"
                 >
                   {item.label}
-                </NavigationLink>
+                </Link>
               ))}
-              <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4 pb-3">
+              <div className="border-t border-secondary-200 pt-4 pb-3">
                 <div className="flex items-center px-3">
-                  <span className="text-sm text-secondary-100 dark:text-white">
+                  <span className="text-sm text-secondary-100">
                     {user?.firstName} {user?.lastName}
                   </span>
                 </div>
@@ -141,7 +138,7 @@ export function Header({ minimal = false }: HeaderProps) {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="mt-3 text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
+                  className="mt-3 text-secondary-100 hover:text-primary-600 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
                 >
                   {t('navigation.logout')}
                 </button>
