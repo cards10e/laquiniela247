@@ -21,10 +21,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
 
   // Function to generate possible local logo paths based on team name
   const getLocalLogoPath = (name: string): string => {
-    console.log('TeamLogo: Looking for logo for team:', name); // Debug log
-    
     const mappedName = getTeamMappedName(name);
-    console.log('TeamLogo: Mapped', name, 'to', mappedName); // Debug log
     
     // Try different file name patterns that exist in your public folder
     const possiblePaths = [
@@ -36,7 +33,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
       `/${mappedName}-150x150.jpeg`
     ];
 
-    console.log('TeamLogo: Trying path:', possiblePaths[localPathIndex]); // Debug log
+    // Path selection debug removed
     return possiblePaths[localPathIndex] || possiblePaths[0]; // Return the current pattern
   };
 

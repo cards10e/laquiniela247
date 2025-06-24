@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
@@ -94,10 +94,7 @@ function FormattedAmount({ amount, originalCurrency, className }: FormattedAmoun
 
 // Utility function to get current week games only
 const getAllRelevantGames = (games: Game[]): Game[] => {
-  console.log('🚨 [ALL RELEVANT GAMES] FUNCTION CALLED WITH', games.length, 'GAMES');
-  
   if (!games || games.length === 0) {
-    console.log('🚨 [ALL RELEVANT GAMES] NO GAMES PROVIDED, RETURNING EMPTY ARRAY');
     return [];
   }
   
@@ -113,7 +110,7 @@ const getAllRelevantGames = (games: Game[]): Game[] => {
     const hasExistingBet = game.userBet && game.userBet.prediction;
     const canStillBet = game.bettingDeadline && new Date(game.bettingDeadline) > now;
     
-    console.log('🚨 [GAME FILTER]', game.id, 'week:', game.weekId, 'hasExistingBet:', hasExistingBet, 'canStillBet:', canStillBet);
+    // Game filter debug removed
     
     // Prioritize current betting opportunities
     if (canStillBet) {
@@ -133,14 +130,7 @@ const getAllRelevantGames = (games: Game[]): Game[] => {
   // Combine: current betting week first, then previous weeks with bets
   const relevantGames = [...gamesAvailableForBetting, ...gamesWithExistingBets];
   
-  console.log('🚨 [ALL RELEVANT GAMES] Available for betting:', gamesAvailableForBetting.length, 'games');
-  console.log('🚨 [ALL RELEVANT GAMES] With existing bets:', gamesWithExistingBets.length, 'games');
-  console.log('🚨 [ALL RELEVANT GAMES] Final order:', relevantGames.map(g => ({ 
-    id: g.id, 
-    week: g.weekId, 
-    canBet: g.bettingDeadline && new Date(g.bettingDeadline) > now,
-    hasBet: !!g.userBet?.prediction 
-  })));
+  // Debug logs removed to prevent console spam
   
   return relevantGames;
 };
@@ -265,6 +255,50 @@ const calculateLegacySummary = (context: BetCalculationContext): LegacyCalculati
   };
 };
 
+// Add interfaces for API responses
+interface AdminGameResponse {
+  id: number;
+  homeTeam?: { name: string; logoUrl?: string };
+  awayTeam?: { name: string; logoUrl?: string };
+  matchDate: string;
+  status?: string;
+  weekNumber?: number;
+  week?: { weekNumber: number };
+  homeScore?: number;
+  awayScore?: number;
+}
+
+interface BettingDataResponse {
+  games: Array<{
+    id: number;
+    homeTeam?: { name: string; logoUrl?: string };
+    awayTeam?: { name: string; logoUrl?: string };
+    matchDate: string;
+    status?: string;
+    homeScore?: number;
+    awayScore?: number;
+    userBet?: {
+      prediction: string;
+      isCorrect: boolean | null;
+    };
+    weekNumber: number;
+    bettingDeadline?: string;
+  }>;
+  week: {
+    id: number;
+    weekNumber: number;
+    status: string;
+    bettingDeadline: string;
+    canBet?: boolean;
+  };
+  betStatus: BetStatus;
+  canBet: boolean;
+}
+
+interface ApiErrorResponse {
+  error: string;
+}
+
 export default function BetPage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -298,71 +332,78 @@ export default function BetPage() {
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
+  // Ref to prevent duplicate API calls
+  const isLoadingRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Apply relevant games filtering (only for regular users, not admins)
   // Admins see all games for management purposes
-  const filteredGames = isAdmin ? games : getAllRelevantGames(games);
+  // Memoize filteredGames to prevent infinite re-renders
+  const filteredGames = useMemo(() => {
+    return isAdmin ? games : getAllRelevantGames(games);
+  }, [games, isAdmin]);
   
-  // Debug: Show filtering status
-  console.log('[Filtering Debug] isAdmin:', isAdmin, 'user role:', user?.role);
-  console.log('[Filtering Debug] Original games count:', games.length);
-  console.log('[Filtering Debug] Filtered games count:', filteredGames.length);
-  console.log('[Filtering Debug] Games being shown:', filteredGames.map(g => ({ id: g.id, weekId: g.weekId, date: g.gameDate })));
-  
-  // Debug the derived variables used in rendering
-  console.log('🎮 [RENDER DEBUG] About to compute gamesWithBets and gamesWithoutBets from filteredGames');
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchAdminGamesData();
-    } else {
-      fetchBettingData();
-    }
-  }, [isAdmin, tab]); // Add tab dependency to refetch data when tab changes
-
-  // Removed automatic refresh - users can manually refresh if needed
-  // The constant 30-second refresh was causing UX issues on mobile
-
-  const fetchAdminGamesData = async () => {
+  // Define fetch functions before useEffect that uses them
+  const fetchAdminGamesData = useCallback(async (): Promise<void> => {
+    if (isLoadingRef.current) return; // Prevent duplicate calls
+    
     try {
+      isLoadingRef.current = true;
       setLoading(true);
-      const response = await axios.get('/api/admin/games');
-      const adminGames = response.data.games.map((game: any) => ({
+      const response = await axios.get<{ games: AdminGameResponse[] }>('/api/admin/games');
+      const adminGames: Game[] = response.data.games.map((game: AdminGameResponse): Game => ({
         id: game.id,
         homeTeamName: game.homeTeam?.name || 'TBD',
         awayTeamName: game.awayTeam?.name || 'TBD',
         homeTeamLogo: game.homeTeam?.logoUrl,
         awayTeamLogo: game.awayTeam?.logoUrl,
         gameDate: game.matchDate,
-        status: game.status?.toLowerCase() || 'scheduled',
+        status: (game.status?.toLowerCase() as Game['status']) || 'scheduled',
         weekId: game.weekNumber || game.week?.weekNumber,
         homeScore: game.homeScore,
         awayScore: game.awayScore,
       }));
-      console.log('[Admin Games Debug] Fetched games:', adminGames.map((g: Game) => ({ id: g.id, status: g.status, weekId: g.weekId, gameDate: g.gameDate })));
       setGames(adminGames);
     } catch (error) {
       console.error('Failed to fetch admin games data:', error);
       setGames([]);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
-  };
+  }, []); // No dependencies needed for admin data fetch
 
-  const fetchBettingData = async () => {
+  const fetchBettingData = useCallback(async (): Promise<void> => {
+    if (isLoadingRef.current) {
+      return; // Prevent duplicate calls
+    }
+    
+    // Set loading before abort controller to prevent race conditions
+    isLoadingRef.current = true;
+    setLoading(true);
+    
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    
     try {
       // Fetch all open weeks and their games from the updated endpoint
       // Pass betType parameter to filter bets by single/parlay
       const url = `/api/games/current-week${tab ? `?betType=${tab}` : ''}`;
-      const gamesRes = await axios.get(url);
+      const gamesRes = await axios.get<BettingDataResponse>(url, {
+        signal: abortControllerRef.current.signal
+      });
       const gamesData = gamesRes.data;
       
-      console.log('[Bet Debug] Multi-week games response:', gamesData);
-      console.log('[Bet Debug] betStatus from API:', gamesData?.betStatus);
-      console.log('[Bet Debug] API URL called:', url);
+      // Bet debug logs removed
       
       if (gamesData && gamesData.games) {
         // Map backend games to frontend shape with defensive checks
-        const mappedGames = (gamesData.games || []).map((game: any) => {
+        const mappedGames: Game[] = (gamesData.games || []).map((game): Game | null => {
           if (!game.homeTeam || !game.awayTeam) {
             console.warn('[Bet Debug] Skipping game with missing team:', game);
             return null;
@@ -375,28 +416,22 @@ export default function BetPage() {
             homeTeamLogo: game.homeTeam?.logoUrl || '',
             awayTeamLogo: game.awayTeam?.logoUrl || '',
             gameDate: game.matchDate || '',
-            status: (game.status || '').toLowerCase(),
+            status: (game.status?.toLowerCase() as Game['status']) || 'scheduled',
             homeScore: game.homeScore,
             awayScore: game.awayScore,
-            userBet: game.userBet,
+            userBet: game.userBet ? {
+              prediction: game.userBet.prediction.toLowerCase() as PredictionType,
+              isCorrect: game.userBet.isCorrect
+            } : undefined,
             weekId: game.weekNumber,
             bettingClosed: false, // Handled by backend filtering now
             bettingDeadline: game.bettingDeadline, // CRITICAL FIX: Use game's individual deadline from API
             weekStatus: 'open' // All games from this endpoint are from open weeks
           };
-        }).filter(Boolean);
+        }).filter((game): game is Game => game !== null);
         
         // CRITICAL FIX: Don't filter here - let getAllRelevantGames() handle filtering
         // The API already returns all relevant games with existing bets included
-        console.log('[Bet Debug] All games from API:', mappedGames.length);
-        console.log('[Bet Debug] Games breakdown:', mappedGames.map((g: Game) => ({ 
-          id: g.id, 
-          week: g.weekId, 
-          teams: `${g.homeTeamName} vs ${g.awayTeamName}`,
-          deadline: g.bettingDeadline,
-          hasBet: !!g.userBet?.prediction,
-          prediction: g.userBet?.prediction
-        })));
         
         setGames(mappedGames);
         
@@ -408,15 +443,14 @@ export default function BetPage() {
           }
         });
         setPredictions(existingPredictions);
-        console.log('[Bet Debug] Populated predictions from userBet:', existingPredictions);
-        console.log('[Bet Debug] Current tab:', tab, '| Games with bets:', mappedGames.filter((g: Game) => g.userBet).length, '| API URL:', url);
+        // Bet debug logs removed
       }
       
       // Set the primary week from the response
       if (gamesData && gamesData.week) {
         setCurrentWeek({
           ...gamesData.week,
-          status: gamesData.week.status || 'closed', // Keep original status from API
+          status: (gamesData.week.status as Week['status']) || 'closed', // Type cast API status
           canBet: gamesData.canBet || false
         });
       }
@@ -424,74 +458,53 @@ export default function BetPage() {
       // Store betStatus from API response
       if (gamesData && gamesData.betStatus) {
         setBetStatus(gamesData.betStatus);
-        console.log('[Bet Debug] Stored betStatus from API:', gamesData.betStatus);
+        // BetStatus debug removed
       }
     } catch (error) {
+      // Don't handle AbortError - it's expected when cancelling requests
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+      
       console.error('Failed to fetch betting data:', error);
-      // Set mock data for demo
-      /*
-      setCurrentWeek({
-        id: 1,
-        weekNumber: 15,
-        status: 'open',
-        bettingDeadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-      });
-      setGames([
-        {
-          id: 1,
-          homeTeamName: 'Club América',
-          awayTeamName: 'Chivas Guadalajara',
-          gameDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        },
-        {
-          id: 2,
-          homeTeamName: 'Cruz Azul',
-          awayTeamName: 'Pumas UNAM',
-          gameDate: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        },
-        {
-          id: 3,
-          homeTeamName: 'Tigres UANL',
-          awayTeamName: 'Monterrey',
-          gameDate: new Date(Date.now() + 26 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        },
-        {
-          id: 4,
-          homeTeamName: 'León',
-          awayTeamName: 'Santos Laguna',
-          gameDate: new Date(Date.now() + 27 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        },
-        {
-          id: 5,
-          homeTeamName: 'Toluca',
-          awayTeamName: 'Atlas',
-          gameDate: new Date(Date.now() + 28 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        },
-        {
-          id: 6,
-          homeTeamName: 'Pachuca',
-          awayTeamName: 'Necaxa',
-          gameDate: new Date(Date.now() + 29 * 60 * 60 * 1000).toISOString(),
-          status: 'scheduled'
-        }
-      ]);
-      */
+      setGames([]);
+      setCurrentWeek(null);
+      setBetStatus(null);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
-  };
+  }, [tab]); // Dependencies: tab affects the API call
 
-  const handlePredictionChange = (gameId: number, prediction: PredictionType) => {
+  // useEffect for fetching data - wait for user to be loaded
+  useEffect(() => {
+    // Don't make API calls until user object is loaded
+    if (!user) {
+      return;
+    }
+    
+    if (isAdmin) {
+      fetchAdminGamesData();
+    } else {
+      fetchBettingData();
+    }
+  }, [user, isAdmin, tab]); // Include user in dependencies to wait for it to load
+
+  // Cleanup effect to abort any pending requests on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  const handlePredictionChange = useCallback((gameId: number, prediction: PredictionType): void => {
     setPredictions(prev => ({
       ...prev,
       [gameId]: prediction
     }));
-  };
+  }, []);
 
   // Update single bet amounts calculation with type safety
   useEffect(() => {
@@ -510,7 +523,7 @@ export default function BetPage() {
         // Use typed current week calculation
         const result: CurrentWeekCalculationResult = calculateCurrentWeekSummary(context);
         
-        console.log(`[Single Bet Summary - Current Week] totalBets: ${result.totalBets}, totalAmount: ${result.totalAmount}, potentialWinnings: ${result.potentialWinnings}`);
+        // Summary calculation debug removed
         
         setSingleBetSummary({
           totalBets: result.totalBets,
@@ -521,7 +534,7 @@ export default function BetPage() {
         // Use typed legacy calculation
         const result: LegacyCalculationResult = calculateLegacySummary(context);
         
-        console.log(`[Single Bet Summary - Legacy] totalBets: ${result.totalBets}, totalAmount: ${result.totalAmount}, potentialWinnings: ${result.potentialWinnings}`);
+        // Legacy summary calculation debug removed
         
         setSingleBetSummary({
           totalBets: result.totalBets,
@@ -540,24 +553,24 @@ export default function BetPage() {
   }, [predictions, singleBetAmounts, tab, filteredGames, showCurrentWeekOnly]);
 
   // Modified calculate function for La Quiniela fixed amounts
-  const calculatePotentialWinnings = () => {
+  const calculatePotentialWinnings = useCallback((): number => {
     if (tab === 'parlay') {
       // Fixed amounts for La Quiniela
       return Object.keys(predictions).length === filteredGames.length ? 2000 : 0;
     }
     // For single bets, return summary calculation
     return singleBetSummary.potentialWinnings;
-  };
+  }, [tab, predictions, filteredGames.length, singleBetSummary.potentialWinnings]);
 
   // Modified bet amount for La Quiniela
-  const getEffectiveBetAmount = () => {
+  const getEffectiveBetAmount = useCallback((): number => {
     if (tab === 'parlay') {
       return 200; // Fixed amount for La Quiniela
     }
     return singleBetSummary.totalAmount;
-  };
+  }, [tab, singleBetSummary.totalAmount]);
 
-  const timeUntilDeadline = (deadline: string) => {
+  const timeUntilDeadline = useCallback((deadline: string): string => {
     const now = new Date();
     const deadlineDate = new Date(deadline);
     const diff = deadlineDate.getTime() - now.getTime();
@@ -571,10 +584,10 @@ export default function BetPage() {
     if (days > 0) return `${days}d ${hours}h ${minutes}m`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
-  };
+  }, [t]);
 
-  // Utility function to calculate game date range
-  const getGameDateRange = () => {
+  // Memoized utility function to calculate game date range
+  const getGameDateRange = useMemo((): string | null => {
     if (!filteredGames.length) return null;
     
     const dates = filteredGames
@@ -600,7 +613,7 @@ export default function BetPage() {
       // Date range
       return `${startDate.toLocaleDateString(undefined, formatOptions)} - ${endDate.toLocaleDateString(undefined, formatOptions)}`;
     }
-  };
+  }, [filteredGames]);
 
   // Type guard for userBet
   function isUserBet(bet: any): bet is { prediction: string; isCorrect: boolean | null } {
@@ -734,39 +747,48 @@ export default function BetPage() {
     // CRITICAL FIX: Check individual game deadline if available, otherwise use week deadline
     const deadlineToCheck = game.bettingDeadline || currentWeek.bettingDeadline;
     if (deadlineToCheck && new Date() >= new Date(deadlineToCheck)) {
-      console.log('🚨 [BETTING VALIDATION] Game', game.id, 'deadline passed:', deadlineToCheck);
       return false;
     }
     
-    console.log('🚨 [BETTING VALIDATION] Game', game.id, 'betting allowed, deadline:', deadlineToCheck);
     return true;
   };
 
-  // Variables for game sections - maintain order from getAllRelevantGames
-  // Since getAllRelevantGames already puts current betting games first, then existing bets,
-  // we split based on this order while preserving it
-  const now = new Date();
-  const gamesAvailableForBetting = filteredGames.filter(g => g.bettingDeadline && new Date(g.bettingDeadline) > now);
-  const gamesWithExistingBets = filteredGames.filter(g => g.userBet && g.userBet.prediction && (!g.bettingDeadline || new Date(g.bettingDeadline) <= now));
+  // Memoize computed game sections to prevent re-renders
+  const gamesSections = useMemo(() => {
+    const now = new Date();
+    const gamesAvailableForBetting = filteredGames.filter(g => g.bettingDeadline && new Date(g.bettingDeadline) > now);
+    const gamesWithExistingBets = filteredGames.filter(g => g.userBet && g.userBet.prediction && (!g.bettingDeadline || new Date(g.bettingDeadline) <= now));
+    
+    // Legacy variables for compatibility with existing UI sections
+    const gamesWithBets = filteredGames.filter(g => g.userBet && g.userBet.prediction);
+    const gamesWithoutBets = filteredGames.filter(g => !g.userBet || !g.userBet.prediction);
+    const hasAnyBets = gamesWithBets.length > 0;
+    
+    // 🎯 PHASE 1: Safe wrapper variables for current week focus
+    const effectiveGamesWithBets = showCurrentWeekOnly ? [] : gamesWithBets;
+    const effectiveHasAnyBets = showCurrentWeekOnly ? false : hasAnyBets;
+
+    return {
+      gamesAvailableForBetting,
+      gamesWithExistingBets,
+      gamesWithBets,
+      gamesWithoutBets,
+      hasAnyBets,
+      effectiveGamesWithBets,
+      effectiveHasAnyBets
+    };
+  }, [filteredGames, showCurrentWeekOnly]);
   
-  // Legacy variables for compatibility with existing UI sections
-  // Note: filteredGames should already be filtered by betType from API, but we'll ensure tab separation
-  const gamesWithBets = filteredGames.filter(g => g.userBet && g.userBet.prediction);
-  const gamesWithoutBets = filteredGames.filter(g => !g.userBet || !g.userBet.prediction);
-  const hasAnyBets = gamesWithBets.length > 0;
-  
-  // 🎯 PHASE 1: Safe wrapper variables for current week focus
-  const effectiveGamesWithBets = showCurrentWeekOnly ? [] : gamesWithBets;
-  const effectiveHasAnyBets = showCurrentWeekOnly ? false : hasAnyBets;
-  
-  // Debug logging for Phase 1
-  console.log('🎯 [PHASE 1] showCurrentWeekOnly:', showCurrentWeekOnly);
-  console.log('🎯 [PHASE 1] Original gamesWithBets:', gamesWithBets.length);
-  console.log('🎯 [PHASE 1] Effective gamesWithBets:', effectiveGamesWithBets.length);
-  
-  console.log('🎮 [RENDER DEBUG] gamesAvailableForBetting:', gamesAvailableForBetting.map(g => ({ id: g.id, weekId: g.weekId })));
-  console.log('🎮 [RENDER DEBUG] gamesWithExistingBets:', gamesWithExistingBets.map(g => ({ id: g.id, weekId: g.weekId })));
-  console.log('🎮 [RENDER DEBUG] Total order preserved:', filteredGames.map(g => ({ id: g.id, weekId: g.weekId, canBet: g.bettingDeadline && new Date(g.bettingDeadline) > now, hasBet: !!g.userBet?.prediction })));
+  // Destructure memoized game sections
+  const {
+    gamesAvailableForBetting,
+    gamesWithExistingBets,
+    gamesWithBets,
+    gamesWithoutBets,
+    hasAnyBets,
+    effectiveGamesWithBets,
+    effectiveHasAnyBets
+  } = gamesSections;
 
   if (loading) {
     return (
@@ -902,13 +924,7 @@ export default function BetPage() {
     );
   }
 
-  // Render-time debug logs
-  console.log('[Render] games:', games);
-  console.log('[Render] predictions:', predictions);
-  console.log('[Render] tab:', tab);
-  console.log('[Render] currentWeek:', currentWeek);
-  console.log('[Render] isAdmin:', isAdmin);
-  console.log('[Render] loading:', loading);
+  // Render debug logs removed to prevent console spam
 
   return (
     <Layout title={t('bet_page.title')}>
@@ -938,9 +954,9 @@ export default function BetPage() {
                   <h2 className="subsection-title text-white mb-2">
                     {t('betting.week_info', { weekNumber: currentWeek.weekNumber })}
                   </h2>
-                  {getGameDateRange() && (
+                  {getGameDateRange && (
                     <p className="text-white/80 text-sm mb-3">
-                      📅 {getGameDateRange()}
+                      📅 {getGameDateRange}
                     </p>
                   )}
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
@@ -1214,15 +1230,9 @@ export default function BetPage() {
                             if (showCurrentWeekOnly) {
                               // Count current selections for available games only
                               const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
-                              console.log(`[Single Tab Debug - Current Week] currentWeekPredictions: ${currentWeekPredictions}, availableGames: ${gamesWithoutBets.length}`);
-                              console.log(`[Single Tab Debug - Current Week] Available games:`, gamesWithoutBets.map(g => ({ 
-                                id: g.id, 
-                                hasSelection: !!predictions[g.id] 
-                              })));
                               return currentWeekPredictions;
                             } else {
                               // Legacy behavior: use singleBetSummary which includes historical bets
-                              console.log(`[Single Tab Debug - Legacy] singleBetSummary.totalBets: ${singleBetSummary.totalBets}, total: ${filteredGames.length}`);
                               return singleBetSummary.totalBets;
                             }
                           })()} / {showCurrentWeekOnly ? gamesWithoutBets.length : filteredGames.length}
@@ -1460,23 +1470,12 @@ export default function BetPage() {
                             if (showCurrentWeekOnly) {
                               // Count current selections for available games only (no historical bets)
                               const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
-                              console.log(`[Parlay Tab Debug - Current Week] currentWeekPredictions: ${currentWeekPredictions}, availableGames: ${gamesWithoutBets.length}`);
-                              console.log(`[Parlay Tab Debug - Current Week] Available games:`, gamesWithoutBets.map(g => ({ 
-                                id: g.id, 
-                                hasSelection: !!predictions[g.id] 
-                              })));
                               return currentWeekPredictions;
                             } else {
                               // Legacy behavior: count total games with predictions (including historical)
                               const totalPredictions = filteredGames.filter(game => 
                                 game.userBet || predictions[game.id]
                               ).length;
-                              console.log(`[Parlay Tab Debug - Legacy] totalPredictions: ${totalPredictions}, total: ${filteredGames.length}`);
-                              console.log(`[Parlay Tab Debug - Legacy] Games breakdown:`, filteredGames.map(g => ({ 
-                                id: g.id, 
-                                hasBet: !!g.userBet, 
-                                hasSelection: !!predictions[g.id] 
-                              })));
                               return totalPredictions;
                             }
                           })()} / {showCurrentWeekOnly ? gamesWithoutBets.length : filteredGames.length}
