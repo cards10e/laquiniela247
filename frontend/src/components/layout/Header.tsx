@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { NavigationLink } from '@/components/navigation/NavigationLink';
 
 interface HeaderProps {
   minimal?: boolean;
@@ -16,13 +16,11 @@ export function Header({ minimal = false }: HeaderProps) {
   const { t } = useI18n();
   const { isDemoUser } = useDemo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const router = useRouter();
 
   const isAdmin = user?.role && user.role.toLowerCase() === 'admin';
 
-  // Enhanced navigation handler for production compatibility
-  const handleNavigation = (href: string) => {
-    router.push(href);
+  // Mobile menu close handler
+  const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
 
@@ -63,17 +61,18 @@ export function Header({ minimal = false }: HeaderProps) {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Enterprise-Level Implementation */}
           {!minimal && isAuthenticated && (
-            <nav className="hidden md:flex space-x-8">
+            <nav className="hidden md:flex space-x-8" role="navigation" aria-label="Main navigation">
               {navItems.map((item) => (
-                <button
+                <NavigationLink
                   key={item.key}
-                  onClick={() => handleNavigation(item.href)}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+                  href={item.href}
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  aria-label={`Navigate to ${item.label}`}
                 >
                   {item.label}
-                </button>
+                </NavigationLink>
               ))}
             </nav>
           )}
@@ -116,18 +115,20 @@ export function Header({ minimal = false }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile Menu - Enterprise-Level Implementation */}
         {!minimal && isAuthenticated && mobileMenuOpen && (
-          <div className="md:hidden">
+          <div className="md:hidden" role="navigation" aria-label="Mobile navigation">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-secondary-200 dark:border-secondary-700">
               {navItems.map((item) => (
-                <button
+                <NavigationLink
                   key={item.key}
-                  onClick={() => handleNavigation(item.href)}
-                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left cursor-pointer"
+                  href={item.href}
+                  onClick={closeMobileMenu}
+                  className="text-secondary-100 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
+                  aria-label={`Navigate to ${item.label}`}
                 >
                   {item.label}
-                </button>
+                </NavigationLink>
               ))}
               <div className="border-t border-secondary-200 dark:border-secondary-700 pt-4 pb-3">
                 <div className="flex items-center px-3">

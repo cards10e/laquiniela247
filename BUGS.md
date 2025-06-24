@@ -326,6 +326,72 @@
 - **Testing Status**: In progress - deployed fix to production for validation
 - **Impact**: Complete blocking of admin game creation functionality
 
+### 15. Production Navigation Links Non-Functional (Recurring Production Issue)
+- **Status**: Open → Microsoft Enterprise-Level Fix Required
+- **Priority**: Critical
+- **Reported By**: Production User Testing
+- **Date**: June 24, 2025
+- **Description**: Navigation links (/history, /dashboard, /profile) consistently fail in production while working perfectly in local development
+- **Recurring Pattern**: This is a **persistent production-only issue** that has been attempted multiple times with bandaid fixes
+- **Symptoms**:
+  - Navigation links work 100% in local development environment
+  - Same build deployed to production fails navigation functionality
+  - Direct URL access works (returns HTTP 200), but navigation clicks fail
+  - Issue persists across deployments and different fix attempts
+  - Both desktop and mobile navigation affected
+- **Environment**: Production only (laquiniela247demo.live) - local development unaffected
+- **Previous Fix Attempts Documented**:
+  1. **Git Commit 2b8c937** (June 24, 2025): "Fix navigation links in production"
+     - **Attempted**: Replaced Next.js Link components with button + router.push
+     - **Result**: Failed - User reported "still not working"
+     - **Analysis**: Bandaid approach using programmatic navigation
+  2. **Git History Pattern**: Multiple navigation-related commits over time
+     - **16e4b1d**: Navigation title updates 
+     - **4791026**: Demo user navigation fixes
+     - **318eed7**: Admin panel navigation consistency
+     - **ba93deb**: Localized navigation titles
+     - **0690e78**: Navigation order updates
+  3. **React Strict Mode Fix**: Disabled in development, enabled in production
+     - **Location**: `frontend/next.config.js`
+     - **Setting**: `reactStrictMode: process.env.NODE_ENV === 'production'`
+     - **Result**: Fixed double API calls but not navigation
+- **What Has NOT Been Tried**:
+  - **Server-Side Rendering Investigation**: Potential SSR/hydration mismatch
+  - **Next.js App Router Migration**: Currently using Pages Router
+  - **Middleware-Based Navigation**: Custom navigation middleware
+  - **Production Build Analysis**: Comprehensive client-side bundle analysis
+  - **Cloudflare Edge Rules**: CDN-level routing configuration
+  - **Authentication Context Issues**: Production auth state management
+  - **Environment Variable Differences**: Production vs development configuration
+  - **Network Policy Analysis**: Production security headers affecting navigation
+- **Technical Evidence**:
+  - **Direct URLs Work**: `curl https://laquiniela247demo.live/history` returns HTTP 200
+  - **SSR Pages Exist**: All pages render correctly when accessed directly
+  - **Authentication Works**: User can login and access protected content
+  - **API Calls Function**: Backend communication working properly
+  - **Static Assets Load**: CSS, JS, images all loading correctly
+- **Root Cause Hypothesis**:
+  - **Client-Side Hydration Mismatch**: SSR/CSR routing state inconsistency
+  - **Production Bundle Differences**: Webpack/Next.js optimization affecting router
+  - **Authentication Context Race Condition**: User state loading affecting navigation
+  - **Cloudflare Proxy Interference**: CDN caching affecting client-side routing
+  - **Production Security Headers**: CSP or security policies blocking navigation
+- **Required Microsoft Enterprise-Level Analysis**:
+  - **Comprehensive Next.js Bundle Analysis**: Production vs development bundle comparison
+  - **Client-Side Hydration Debugging**: SSR/CSR state synchronization verification
+  - **Network Request Analysis**: Production navigation request flow investigation
+  - **Authentication Context Audit**: Production auth state management review
+  - **CDN Configuration Review**: Cloudflare edge rules and caching behavior
+  - **Performance Profiling**: Production navigation performance bottlenecks
+- **Impact**: **Critical** - Core navigation functionality broken in production, affecting user experience and application usability
+- **Business Impact**: Users cannot navigate between key sections (history, dashboard, profile) in production environment
+- **Technical Debt**: Recurring issue indicates fundamental architectural problem requiring comprehensive solution
+- **Next Steps Required**:
+  1. **Systematic Investigation**: Production bundle analysis and SSR debugging
+  2. **Architecture Review**: Navigation pattern audit and modernization
+  3. **Comprehensive Testing**: Production environment debugging with browser dev tools
+  4. **Long-term Solution**: Fundamental navigation pattern restructuring for production reliability
+
 ## UI/UX Bugs
 
 ### 1. Light/Dark Mode Toggle
