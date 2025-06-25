@@ -421,7 +421,10 @@ const translations = {
       status_summary: "Status Summary",
       future: "Future",
       fix: "Fix",
-      details: "Details"
+      details: "Details",
+      // Security Monitoring Tab
+      security_monitoring: "Security Monitoring",
+      security_monitoring_description: "Real-time monitoring of exchange rate consensus, provider validation, and fraud detection."
     },
     themes: {
       light: "Light Mode",
@@ -844,7 +847,10 @@ const translations = {
       status_summary: "Resumen de Estado",
       future: "Futuro",
       fix: "Corregir",
-      details: "Detalles"
+      details: "Detalles",
+      // Security Monitoring Tab  
+      security_monitoring: "Monitoreo de Seguridad",
+      security_monitoring_description: "Monitoreo en tiempo real del consenso de tipos de cambio, validación de proveedores y detección de fraudes."
     },
     themes: {
       light: "Modo Claro",

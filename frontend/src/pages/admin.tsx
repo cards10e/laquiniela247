@@ -714,7 +714,7 @@ export default function AdminPage() {
                         : tab === 'users' 
                           ? t('admin.user_management_tab')
                           : tab === 'security'
-                            ? '🛡️ Security Monitoring'
+                            ? `🛡️ ${t('admin.security_monitoring')}`
                             : t(`admin.${tab}`)
                     }
                   </button>
@@ -766,111 +766,9 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* 🛡️ SECURITY: Exchange Rate Security Card */}
-                <div className="mt-8">
-                  <div className="card">
-                    <div className="card-header border-b border-secondary-200 dark:border-secondary-700">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 flex items-center">
-                          🛡️ Exchange Rate Security
-                          {securityLoading && (
-                            <div className="ml-2 animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full"></div>
-                          )}
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={handleRefreshSecurity}
-                            disabled={securityLoading}
-                            className="btn-outline-sm"
-                          >
-                            {securityLoading ? 'Checking...' : 'Refresh'}
-                          </button>
-                          <button
-                            onClick={() => setShowSecurityDetails(!showSecurityDetails)}
-                            className="btn-outline-sm"
-                          >
-                            {showSecurityDetails ? 'Hide Details' : 'Show Details'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6">
-                      {securityData ? (
-                        <div className="space-y-4">
-                          {/* Status Indicator */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-3 h-3 rounded-full ${
-                                securityData.securityStatus === 'SECURE' 
-                                  ? 'bg-green-500' 
-                                  : securityData.securityStatus === 'WARNING'
-                                    ? 'bg-yellow-500'
-                                    : 'bg-red-500'
-                              }`}></div>
-                              <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                                Status: {securityData.securityStatus}
-                              </span>
-                            </div>
-                            {lastSecurityCheck && (
-                              <span className="text-sm text-secondary-600 dark:text-secondary-400">
-                                Last check: {lastSecurityCheck.toLocaleTimeString()}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Quick Info */}
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-secondary-600 dark:text-secondary-400">Source:</span>
-                              <span className="ml-2 font-medium">{securityData.rates.source}</span>
-                            </div>
-                            <div>
-                              <span className="text-secondary-600 dark:text-secondary-400">Consensus:</span>
-                              <span className="ml-2 font-medium">
-                                {securityData.rates.consensusScore ? `${(securityData.rates.consensusScore * 100).toFixed(1)}%` : 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Expanded Details */}
-                          {showSecurityDetails && (
-                            <div className="mt-6 pt-4 border-t border-secondary-200 dark:border-secondary-700">
-                              <div className="space-y-4">
-                                <div>
-                                  <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-2">Current Rates:</h4>
-                                  <div className="bg-secondary-50 dark:bg-secondary-800 p-3 rounded text-sm">
-                                    {Object.entries(securityData.rates.rates).map(([currency, rate]) => (
-                                      <div key={currency} className="flex justify-between">
-                                        <span>{currency}:</span>
-                                        <span className="font-mono">{rate.toFixed(4)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <h4 className="font-medium text-secondary-900 dark:text-secondary-100 mb-2">Validation Status:</h4>
-                                  <div className="bg-secondary-50 dark:bg-secondary-800 p-3 rounded text-sm">
-                                    <pre className="whitespace-pre-wrap text-xs">
-                                      {JSON.stringify(securityData.validation, null, 2)}
-                                    </pre>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <div className="text-secondary-600 dark:text-secondary-400">
-                            Loading security status...
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                {/* 🛡️ SECURITY: Exchange Rate Security Card - REMOVED FROM OVERVIEW
+                    Security monitoring is now available only in the dedicated Security tab
+                */}
 
                 {/* Recent Activity */}
                 <div className="mt-12 mb-4">
@@ -1666,11 +1564,11 @@ export default function AdminPage() {
                 {/* Header */}
                 <div className="mb-8">
                   <h2 className="section-title">
-                    🛡️ Exchange Rate Security Monitoring
+                    🛡️ {t('admin.security_monitoring')}
                   </h2>
-                  <p className="mt-2 text-secondary-600 dark:text-secondary-400">
-                    Real-time monitoring of exchange rate consensus, provider validation, and fraud detection.
-                  </p>
+                                      <p className="mt-2 text-secondary-600 dark:text-secondary-400">
+                      {t('admin.security_monitoring_description')}
+                    </p>
                 </div>
 
                 {/* Security Settings Card */}
