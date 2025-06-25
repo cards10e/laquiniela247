@@ -683,182 +683,188 @@ export default function HistoryPage() {
 
             {/* Betting History Cards */}
             {filteredBets.length > 0 ? (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {filteredBets.map((bet) => (
                   <div 
                     key={bet.id} 
-                    className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-secondary-200 dark:border-secondary-700 overflow-hidden hover:shadow-xl transition-all duration-300"
+                    className="bg-white dark:bg-secondary-800 rounded-xl shadow-md border border-secondary-200 dark:border-secondary-700 overflow-hidden"
                   >
+                    {/* Mobile-First Compact Header - Always Visible */}
                     <div 
-                      className="cursor-pointer"
+                      className="cursor-pointer p-4 hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors"
                       onClick={() => setExpandedBet(expandedBet === bet.id ? null : bet.id)}
                     >
-                      {/* Bet Header */}
-                      <div className="p-6">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                          {/* Left Section - Bet Info */}
-                          <div className="flex items-center space-x-4">
-                            <div>
-                              <div className="flex items-center space-x-3 mb-2">
-                                <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
-                                  {bet.betType === 'la_quiniela' 
-                                    ? `${t('history.la_quiniela')} - ${t('dashboard.week')} ${bet.weekNumber}`
-                                    : t('history.single_bets')
-                                  }
-                                </h3>
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(bet.status)}`}>
-                                  {getStatusText(bet.status)}
-                                </span>
-                              </div>
-                              
-                              <div className="flex items-center space-x-4 text-sm text-secondary-600 dark:text-secondary-400">
-                                <div className="flex items-center space-x-1">
-                                  <FontAwesomeIcon icon={faCalendar} className="w-3 h-3" />
-                                  <span>{new Date(bet.date).toLocaleDateString()}</span>
-                                </div>
-                                <div className="flex items-center space-x-1">
-                                  <FontAwesomeIcon icon={faLightbulb} className="w-3 h-3" />
-                                  <span>
-                                    {bet.betType === 'la_quiniela' 
-                                      ? t('history.predictions_count', { count: bet.totalPredictions })
-                                      : t('history.single_prediction')
-                                    }
-                                  </span>
-                                </div>
-                              </div>
+                      <div className="flex items-center justify-between">
+                        {/* Left: Title + Status */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-base font-medium text-secondary-900 dark:text-secondary-100 truncate">
+                              {bet.betType === 'la_quiniela' 
+                                ? `${t('history.la_quiniela')} - ${t('dashboard.week')} ${bet.weekNumber}`
+                                : t('history.single_bets')
+                              }
+                            </h3>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${getStatusColor(bet.status)}`}>
+                              {getStatusText(bet.status)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-xs text-secondary-600 dark:text-secondary-400">
+                            <div className="flex items-center gap-1">
+                              <FontAwesomeIcon icon={faCalendar} className="w-3 h-3" />
+                              <span>{new Date(bet.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span>{t('history.accuracy')}: {bet.correctPredictions}/{bet.totalPredictions}</span>
+                              <span className="text-secondary-500">
+                                ({formatPercentage(bet.correctPredictions, bet.totalPredictions)})
+                              </span>
                             </div>
                           </div>
+                        </div>
 
-                          {/* Right Section - Stats */}
-                          <div className="flex items-center space-x-6">
-                            {/* Performance Stats */}
-                            <div className="text-center">
-                              <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                                {t('history.entry_fee')}
-                              </div>
-                              <div className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
-                                <FormattedAmount amount={bet.amount} />
-                              </div>
+                        {/* Right: Winnings + Expand Button */}
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="text-right">
+                            <div className="text-xs text-secondary-600 dark:text-secondary-400 mb-0.5">
+                              {t('history.winnings')}
                             </div>
-
-                            <div className="text-center">
-                              <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                                {t('history.accuracy')}
-                              </div>
-                              <div className="text-lg font-medium text-secondary-900 dark:text-secondary-100">
-                                {bet.correctPredictions}/{bet.totalPredictions}
-                                <span className="text-sm ml-1 text-secondary-500">
-                                  ({formatPercentage(bet.correctPredictions, bet.totalPredictions)})
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="text-center">
-                              <div className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
-                                {t('history.winnings')}
-                              </div>
-                              <div className={`text-lg font-medium ${
-                                bet.winnings > 0 
-                                  ? 'text-emerald-600 dark:text-emerald-400' 
-                                  : 'text-secondary-600 dark:text-secondary-400'
-                              }`}>
-                                <FormattedAmount amount={bet.winnings} />
-                              </div>
-                            </div>
-
-                            {/* Expand Button */}
-                            <div className="flex items-center space-x-2">
-                              {(() => {
-                                const badge = getPerformanceBadge(bet.correctPredictions, bet.totalPredictions, bet.betType);
-                                return badge ? (
-                                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${badge.color}`}>
-                                    <FontAwesomeIcon icon={badge.icon} className="w-3 h-3" />
-                                    <span>{badge.text}</span>
-                                  </div>
-                                ) : null;
-                              })()}
-                              
-                              <button className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-colors">
-                                <FontAwesomeIcon 
-                                  icon={expandedBet === bet.id ? faChevronUp : faChevronDown} 
-                                  className="w-3 h-3"
-                                />
-                              </button>
+                            <div className={`text-sm font-medium ${
+                              bet.winnings > 0 
+                                ? 'text-emerald-600 dark:text-emerald-400' 
+                                : 'text-secondary-600 dark:text-secondary-400'
+                            }`}>
+                              <FormattedAmount amount={bet.winnings} />
                             </div>
                           </div>
+                          
+                          <button className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-colors flex-shrink-0">
+                            <FontAwesomeIcon 
+                              icon={expandedBet === bet.id ? faChevronUp : faChevronDown} 
+                              className="w-3 h-3"
+                            />
+                          </button>
                         </div>
                       </div>
                     </div>
 
-                    {/* Expanded Details */}
-                    {expandedBet === bet.id && bet.predictions.length > 0 && (
+                    {/* Expandable Details Section */}
+                    {expandedBet === bet.id && (
                       <div className="border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/30">
-                        <div className="p-6">
-                          <h4 className="flex items-center space-x-2 text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-6">
-                            <FontAwesomeIcon icon={faFlag} className="text-primary-600 w-3 h-3" />
-                            <span>{t('history.bet_details')}</span>
-                          </h4>
+                        {/* Detailed Stats Section */}
+                        <div className="p-4 grid grid-cols-3 gap-4 text-center border-b border-secondary-200 dark:border-secondary-700">
+                          <div>
+                            <div className="text-xs text-secondary-600 dark:text-secondary-400 mb-1">
+                              {t('history.entry_fee')}
+                            </div>
+                            <div className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
+                              <FormattedAmount amount={bet.amount} />
+                            </div>
+                          </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {bet.predictions.map((prediction) => (
-                              <div 
-                                key={prediction.gameId}
-                                className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                                  prediction.correct === true
-                                    ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10 shadow-emerald-100 dark:shadow-emerald-900/20'
-                                    : prediction.correct === false
-                                    ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 shadow-red-100 dark:shadow-red-900/20'
-                                    : 'border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 hover:shadow-lg'
-                                } shadow-lg`}
-                              >
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="flex items-center space-x-2 text-sm font-medium text-secondary-900 dark:text-secondary-100">
-                                      <TeamLogo teamName={prediction.homeTeamName} className="w-6 h-6" alt={prediction.homeTeamName} />
-                                      <span className="truncate max-w-16">{prediction.homeTeamName}</span>
-                                      <span className="text-secondary-500 mx-1">{t('admin.vs')}</span>
-                                      <span className="truncate max-w-16">{prediction.awayTeamName}</span>
-                                      <TeamLogo teamName={prediction.awayTeamName} className="w-6 h-6" alt={prediction.awayTeamName} />
-                                    </div>
+                                                     <div>
+                             <div className="text-xs text-secondary-600 dark:text-secondary-400 mb-1">
+                               {t('history.predictions_detail')}
+                             </div>
+                             <div className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
+                               {bet.betType === 'la_quiniela' 
+                                 ? t('history.predictions_count', { count: bet.totalPredictions })
+                                 : t('history.single_prediction')
+                               }
+                             </div>
+                           </div>
+
+                          <div>
+                            <div className="text-xs text-secondary-600 dark:text-secondary-400 mb-1">
+                              {t('history.performance_badge')}
+                            </div>
+                            <div className="flex justify-center">
+                              {(() => {
+                                const badge = getPerformanceBadge(bet.correctPredictions, bet.totalPredictions, bet.betType);
+                                return badge ? (
+                                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${badge.color}`}>
+                                    <FontAwesomeIcon icon={badge.icon} className="w-3 h-3" />
+                                    <span>{badge.text}</span>
                                   </div>
-                                  {prediction.correct !== undefined && (
-                                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                                      prediction.correct 
-                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
-                                        : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                                    }`}>
-                                      <span className="text-lg font-bold">
-                                        {prediction.correct ? '✓' : '✗'}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-secondary-600 dark:text-secondary-400">
-                                      {t('history.your_prediction')}:
-                                    </span>
-                                    <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                                      {getPredictionIcon(prediction.prediction)} {getPredictionText(prediction.prediction)}
-                                    </span>
-                                  </div>
-                                  
-                                  {prediction.result && (
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-secondary-600 dark:text-secondary-400">
-                                        {t('history.actual_result')}:
-                                      </span>
-                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">
-                                        {getPredictionIcon(prediction.result)} {getPredictionText(prediction.result)}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                                ) : (
+                                  <span className="text-xs text-secondary-500">-</span>
+                                );
+                              })()}
+                            </div>
                           </div>
                         </div>
+                        
+                        {/* Predictions Details */}
+                        {bet.predictions.length > 0 && (
+                          <div className="p-4">
+                            <h4 className="flex items-center gap-2 text-sm font-semibold text-secondary-900 dark:text-secondary-100 mb-3">
+                              <FontAwesomeIcon icon={faFlag} className="text-primary-600 w-3 h-3" />
+                              <span>{t('history.bet_details')}</span>
+                            </h4>
+                            
+                            <div className="space-y-3">
+                              {bet.predictions.map((prediction) => (
+                                <div 
+                                  key={prediction.gameId}
+                                  className={`p-3 rounded-lg border transition-all duration-200 ${
+                                    prediction.correct === true
+                                      ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10'
+                                      : prediction.correct === false
+                                      ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10'
+                                      : 'border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    {/* Teams */}
+                                    <div className="flex items-center gap-2 text-sm font-medium text-secondary-900 dark:text-secondary-100 flex-1 min-w-0">
+                                      <TeamLogo teamName={prediction.homeTeamName} className="w-5 h-5 flex-shrink-0" alt={prediction.homeTeamName} />
+                                      <span className="truncate max-w-[60px]">{prediction.homeTeamName}</span>
+                                      <span className="text-secondary-500 mx-1">{t('admin.vs')}</span>
+                                      <span className="truncate max-w-[60px]">{prediction.awayTeamName}</span>
+                                      <TeamLogo teamName={prediction.awayTeamName} className="w-5 h-5 flex-shrink-0" alt={prediction.awayTeamName} />
+                                    </div>
+                                    
+                                    {/* Result indicator */}
+                                    {prediction.correct !== undefined && (
+                                      <div className={`flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0 ${
+                                        prediction.correct 
+                                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
+                                          : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                                      }`}>
+                                        <span className="text-sm font-bold">
+                                          {prediction.correct ? '✓' : '✗'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Prediction vs Result */}
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-secondary-600 dark:text-secondary-400">
+                                        {t('history.your_prediction')}:
+                                      </span>
+                                      <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                                        {getPredictionIcon(prediction.prediction)} {getPredictionText(prediction.prediction)}
+                                      </span>
+                                    </div>
+                                    
+                                    {prediction.result && (
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-secondary-600 dark:text-secondary-400">
+                                          {t('history.actual_result')}:
+                                        </span>
+                                        <span className="font-medium text-secondary-900 dark:text-secondary-100">
+                                          {getPredictionIcon(prediction.result)} {getPredictionText(prediction.result)}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

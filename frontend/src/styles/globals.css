@@ -174,6 +174,22 @@ body {
   .hide-mobile {
     display: none !important;
   }
+  
+  /* Mobile-optimized history cards */
+  .history-mobile-card {
+    @apply rounded-xl shadow-md border border-secondary-200 dark:border-secondary-700 overflow-hidden;
+  }
+  
+  .history-mobile-header {
+    @apply p-4 cursor-pointer hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors;
+    min-height: 44px; /* Minimum touch target */
+  }
+  
+  .history-mobile-expand-btn {
+    @apply w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-colors flex-shrink-0;
+    min-width: 44px; /* Minimum touch target */
+    min-height: 44px;
+  }
 }
 
 @media (min-width: 769px) {
