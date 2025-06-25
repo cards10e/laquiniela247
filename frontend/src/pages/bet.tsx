@@ -1226,17 +1226,17 @@ export default function BetPage() {
                         </span>
                         <span className="font-bold text-success-600 dark:text-success-400">
                           {(() => {
-                            // 🎯 PHASE 1: For Single Bets tab with current week focus
-                            // Only count games available for current betting, not historical bets
+                            // 🎯 FIXED: Count BOTH existing bets AND new predictions for complete summary
                             if (showCurrentWeekOnly) {
-                              // Count current selections for available games only
-                              const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
-                              return currentWeekPredictions;
+                              // Count existing bets + new predictions for current week
+                              const existingBets = effectiveGamesWithBets.length;
+                              const newPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
+                              return existingBets + newPredictions;
                             } else {
                               // Legacy behavior: use singleBetSummary which includes historical bets
                               return singleBetSummary.totalBets;
                             }
-                          })()} / {showCurrentWeekOnly ? gamesWithoutBets.length : filteredGames.length}
+                          })()} / {showCurrentWeekOnly ? (effectiveGamesWithBets.length + gamesWithoutBets.length) : filteredGames.length}
                         </span>
                       </div>
                     </div>
@@ -1466,12 +1466,12 @@ export default function BetPage() {
                         <span className="text-secondary-600 dark:text-secondary-400">{t('betting.total_predictions_made')}</span>
                         <span className="font-bold text-success-600 dark:text-success-400">
                           {(() => {
-                            // 🎯 PHASE 1: For La Quiniela (parlay) tab with current week focus
-                            // Only count games available for current betting, not historical bets
+                            // 🎯 FIXED: Count BOTH existing bets AND new predictions for complete summary
                             if (showCurrentWeekOnly) {
-                              // Count current selections for available games only (no historical bets)
-                              const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
-                              return currentWeekPredictions;
+                              // Count existing bets + new predictions for current week
+                              const existingBets = effectiveGamesWithBets.length;
+                              const newPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
+                              return existingBets + newPredictions;
                             } else {
                               // Legacy behavior: count total games with predictions (including historical)
                               const totalPredictions = filteredGames.filter(game => 
@@ -1479,7 +1479,7 @@ export default function BetPage() {
                               ).length;
                               return totalPredictions;
                             }
-                          })()} / {showCurrentWeekOnly ? gamesWithoutBets.length : filteredGames.length}
+                          })()} / {showCurrentWeekOnly ? (effectiveGamesWithBets.length + gamesWithoutBets.length) : filteredGames.length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
