@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/context/I18nContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { AdminRestrictedRoute } from '@/components/auth/AdminRestrictedRoute';
 import TeamLogo from '@/components/TeamLogo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCrown, faMedal, faAward } from '@fortawesome/free-solid-svg-icons';
@@ -307,7 +308,8 @@ export default function DashboardPage() {
   return (
     <Layout title={t('dashboard.title')}>
       <ProtectedRoute>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminRestrictedRoute>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Header */}
           <div className="mb-8">
             <h1 className="page-title">
@@ -461,6 +463,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        </AdminRestrictedRoute>
       </ProtectedRoute>
     </Layout>
   );

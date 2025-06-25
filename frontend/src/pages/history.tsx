@@ -4,6 +4,7 @@ import { useI18n } from '@/context/I18nContext';
 import { useCurrency, Currency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { AdminRestrictedRoute } from '@/components/auth/AdminRestrictedRoute';
 import TeamLogo from '@/components/TeamLogo';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -605,12 +606,14 @@ export default function HistoryPage() {
     return (
       <Layout title={t('history.title')}>
         <ProtectedRoute>
-          <div className="flex items-center justify-center min-h-96">
-            <div className="flex items-center space-x-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <span className="text-lg text-secondary-600 dark:text-secondary-400">{t('common.loading')}</span>
+          <AdminRestrictedRoute>
+            <div className="flex items-center justify-center min-h-96">
+              <div className="flex items-center space-x-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <span className="text-lg text-secondary-600 dark:text-secondary-400">{t('common.loading')}</span>
+              </div>
             </div>
-          </div>
+          </AdminRestrictedRoute>
         </ProtectedRoute>
       </Layout>
     );
@@ -619,7 +622,8 @@ export default function HistoryPage() {
   return (
     <Layout title={t('history.title')}>
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800">
+        <AdminRestrictedRoute>
+          <div className="min-h-screen bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Page Header */}
             <div className="mb-8">
@@ -897,6 +901,7 @@ export default function HistoryPage() {
             )}
           </div>
         </div>
+        </AdminRestrictedRoute>
       </ProtectedRoute>
     </Layout>
   );

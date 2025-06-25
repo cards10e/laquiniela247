@@ -27,16 +27,14 @@ export function Header({ minimal = false }: HeaderProps) {
   let navItems = [];
   
   if (isAdmin) {
-    // Admin users: Admin panel first, then full navigation
+    // Admin users: Admin-focused navigation only (no dashboard/history)
     navItems = [
       { key: 'admin', href: '/admin', label: t('navigation.admin_panel') },
       { key: 'games', href: '/bet', label: t('navigation.games') },
-      { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
-      { key: 'history', href: '/history', label: t('navigation.history') },
       { key: 'profile', href: '/profile', label: t('navigation.profile') },
     ];
   } else {
-    // All regular users (including demo): Games first, then dashboard
+    // All regular users (including demo): Full navigation access
     navItems = [
       { key: 'games', href: '/bet', label: t('navigation.games') },
       { key: 'dashboard', href: '/dashboard', label: t('navigation.dashboard') },
