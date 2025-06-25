@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.49] - 2025-06-24
+### 🔧 CRITICAL BUG FIX: Betting Summary Calculation Error
+- **FIXED: Betting Summary Not Reflecting Actual Bets**: Resolved critical UX issue where betting summaries showed "0 predictions" despite users having placed bets
+  - **Root Cause**: Summary calculation logic only counted `gamesWithoutBets` (games available for new bets) and ignored `effectiveGamesWithBets` (games with existing bets)
+  - **Impact**: Both Single Bets and La Quiniela tabs were showing incorrect prediction counts in summary sidebars
+  - **Examples**: Production showing "0/3" instead of "3/3", Localhost showing "0/8" instead of "2/8"
+  - **Solution**: Modified calculation to count both existing bets AND new predictions for complete summary
+
+### 🔧 Technical Implementation & Safety
+- **Microsoft-Level Fix Applied**:
+  ```typescript
+  // Before (Broken Logic)
+  const currentWeekPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
+  
+  // After (Fixed Logic)
+  const existingBets = effectiveGamesWithBets.length;
+  const newPredictions = gamesWithoutBets.filter(game => predictions[game.id]).length;
+  return existingBets + newPredictions;
+  ```
+
+- **Consistent Fix Across Both Betting Modes**:
+  - **Single Bets Tab**: Now correctly displays existing bets + new predictions in summary
+  - **La Quiniela Tab**: Now correctly displays existing bets + new predictions in summary
+  - **Denominator Fix**: Updated total count to `(effectiveGamesWithBets.length + gamesWithoutBets.length)` for accurate ratios
+
+### 🎯 User Experience Impact
+- **Eliminated Confusion**: Users can now see their actual betting progress in summary sidebars
+- **Consistent Display**: Summary calculations now match the detailed bet listings shown in main content
+- **Production Parity**: Fix works identically in both development and production environments
+- **Zero Breaking Changes**: All existing functionality preserved while fixing calculation bug
+
+### 🛡️ Quality Assurance & Validation
+- **TypeScript Build**: Passes without errors or warnings
+- **Minimal Code Changes**: Only modified calculation logic, no architectural changes
+- **Backward Compatible**: Legacy behavior maintained for non-current week views
+- **Safety First**: Extensive testing confirmed no regressions or side effects
+
+### Fixed
+- Betting summary sidebars showing "0 predictions" when users had actually placed bets
+- Inconsistent prediction counts between detailed bet display and summary calculations
+- User confusion about actual betting progress due to incorrect summary display
+- Production and development environment displaying different summary behaviors
+
+### Enhanced
+- Accurate betting progress display in both Single Bets and La Quiniela summary sidebars
+- Consistent calculation logic across all betting modes and environments
+- Complete visibility of both existing bets and new predictions in summary counts
+- Improved user confidence in betting interface accuracy and reliability
+
 ## [2.0.48] - 2025-06-24
 ### 🎨 Mobile UX Enhancement: History Page Mobile-First Design Optimization
 - **ENHANCED: Mobile History Card Interface**: Complete redesign of history cards with mobile-first approach for optimal touch experience
