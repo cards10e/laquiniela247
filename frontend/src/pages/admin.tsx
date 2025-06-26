@@ -159,18 +159,15 @@ export default function AdminPage() {
 
   // 🛡️ SECURITY: Use security monitoring hook with automatic cleanup
   const securityMonitoring = useSecurityMonitoring({
-    // In development, use longer intervals to avoid API spam
-    interval: process.env.NODE_ENV === 'development' 
-      ? Math.max(securitySettings.monitoringInterval * 60 * 1000, 5 * 60 * 1000) // Min 5 minutes in dev
-      : securitySettings.monitoringInterval * 60 * 1000, // Normal interval in production
-    enabled: securitySettings.alertsEnabled,
+    // Disable security monitoring entirely in development to avoid console spam
+    interval: securitySettings.monitoringInterval * 60 * 1000,
+    enabled: process.env.NODE_ENV === 'production' && securitySettings.alertsEnabled,
     onMetricsUpdate: (metrics) => {
       // Update our security data when metrics are updated
       setLastSecurityCheck(metrics.lastUpdate);
       
-      // Manually trigger exchange rate security check to integrate with existing logic
-      // Only in production or when specifically enabled
-      if (process.env.NODE_ENV === 'production' || securitySettings.criticalAlertsEnabled) {
+      // Only trigger exchange rate checks in production
+      if (process.env.NODE_ENV === 'production') {
         fetchSecurityStatus();
       }
     },
@@ -200,7 +197,13 @@ export default function AdminPage() {
   useEffect(() => {
     fetchAdminData();
     fetchTeams();
-    fetchSecurityStatus(); // Initial security check
+    
+    // Only do initial security check in production to avoid development console spam
+    if (process.env.NODE_ENV === 'production') {
+      fetchSecurityStatus();
+    } else {
+      console.log('🛡️ Security monitoring disabled in development mode');
+    }
   }, []);
 
   // 🛡️ SECURITY: Exchange rate monitoring functions
@@ -250,6 +253,13 @@ export default function AdminPage() {
   };
 
   const handleRefreshSecurity = async () => {
+    if (process.env.NODE_ENV === 'development') {
+      toast('⚠️ Security monitoring disabled in development mode', {
+        duration: 3000,
+        style: { background: '#fef3c7', color: '#92400e' }
+      });
+      return;
+    }
     await fetchSecurityStatus();
     toast.success('Security status refreshed');
   };
