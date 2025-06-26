@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useAuthInterceptors } from '../hooks/useAuthInterceptors';
 
 console.log('[Auth Debug] AuthContext.tsx loaded');
 
@@ -56,64 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   });
 
-  useEffect(() => {
-    console.log('[Auth Debug] Registering axios interceptors');
-    console.log('[Auth Debug] API URL:', process.env.NEXT_PUBLIC_API_URL);
-    
-    // Add request interceptor
-    const requestInterceptor = axiosInstance.interceptors.request.use(
-      (config) => {
-        const token = Cookies.get('auth_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        console.log('[Auth Debug] auth_token cookie:', token);
-        console.log('[Auth Debug] Request URL:', config.url);
-        console.log('[Auth Debug] Request Headers:', config.headers);
-        return config;
-      },
-      (error) => {
-        console.error('[Auth Debug] Request error:', error);
-        return Promise.reject(error);
-      }
-    );
-
-    // Add response interceptor to handle token refresh
-    const responseInterceptor = axiosInstance.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        if (error.response?.status === 401) {
-          // Token expired, try to refresh
-          const refreshToken = Cookies.get('refresh_token');
-          if (refreshToken) {
-            try {
-              const response = await axiosInstance.post('/auth/refresh', { refreshToken });
-              const { token } = response.data;
-              Cookies.set('auth_token', token, { expires: 7 });
-              // Retry the original request
-              error.config.headers.Authorization = `Bearer ${token}`;
-              return axiosInstance.request(error.config);
-            } catch (refreshError) {
-              // Refresh failed, logout user
-              Cookies.remove('auth_token');
-              Cookies.remove('refresh_token');
-              window.location.href = '/login';
-            }
-          } else {
-            // No refresh token, redirect to login
-            window.location.href = '/login';
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    // Cleanup interceptors on unmount
-    return () => {
-      axiosInstance.interceptors.request.eject(requestInterceptor);
-      axiosInstance.interceptors.response.eject(responseInterceptor);
-    };
-  }, [axiosInstance]);
+  // 🛡️ CRITICAL SAFETY FIX: Use custom hook for interceptor management
+  // This prevents memory leaks from unregistered interceptors
+  useAuthInterceptors(axiosInstance);
 
   const isAuthenticated = !!user;
 
