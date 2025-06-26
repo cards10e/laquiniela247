@@ -38,8 +38,6 @@ export const useSecurityMonitoring = (options: UseSecurityMonitoringOptions = {}
 
   const performSecurityCheck = useCallback(async () => {
     try {
-      console.log('[Security Monitor] Performing security check...');
-      
       // Simulate security metrics collection
       // In a real implementation, this would make API calls to collect metrics
       const newMetrics: SecurityMetrics = {
@@ -68,10 +66,7 @@ export const useSecurityMonitoring = (options: UseSecurityMonitoringOptions = {}
       // Notify about metrics update
       onMetricsUpdate?.(newMetrics);
 
-      console.log('[Security Monitor] Check completed:', newMetrics);
-
     } catch (error) {
-      console.error('[Security Monitor] Error during security check:', error);
       onSecurityAlert?.('MONITORING_ERROR', error);
     }
   }, [onMetricsUpdate, onSecurityAlert]);
@@ -79,20 +74,15 @@ export const useSecurityMonitoring = (options: UseSecurityMonitoringOptions = {}
   const startMonitoring = useCallback(() => {
     if (!enabled) return;
 
-    console.log('[Security Monitor] Starting security monitoring...');
-    
     // Perform initial check
     performSecurityCheck();
 
     // Set up interval for periodic checks
     intervalRef.current = setInterval(performSecurityCheck, interval);
-    
-    console.log(`[Security Monitor] Monitoring active with ${interval}ms interval`);
   }, [enabled, interval, performSecurityCheck]);
 
   const stopMonitoring = useCallback(() => {
     if (intervalRef.current) {
-      console.log('[Security Monitor] Stopping security monitoring...');
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
@@ -114,7 +104,6 @@ export const useSecurityMonitoring = (options: UseSecurityMonitoringOptions = {}
   // Additional cleanup on unmount
   useEffect(() => {
     return () => {
-      console.log('[Security Monitor] Component unmounting - performing final cleanup');
       stopMonitoring();
     };
   }, [stopMonitoring]);

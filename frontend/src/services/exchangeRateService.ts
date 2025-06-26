@@ -41,8 +41,12 @@ class ExchangeRateService {
     'MXN/USDT': { min: 15.0, max: 25.0 }, // Derived from USD rates
   };
 
-  private readonly providers = [
-    {
+  // Dynamic provider getter to handle missing API keys properly
+  private getProviders() {
+    const providers = [];
+    
+    // Always include the free provider
+    providers.push({
       name: 'exchangerate-api',
       url: 'https://api.exchangerate-api.com/v4/latest/USD',
       weight: 1.0,
@@ -52,37 +56,46 @@ class ExchangeRateService {
         rates: data.rates,
         source: 'exchangerate-api'
       })
-    },
-    // Only include Fixer.io if API key is available
-    ...(process.env.NEXT_PUBLIC_FIXER_API_KEY ? [{
-      name: 'fixer',
-      url: `https://api.fixer.io/latest?access_key=${process.env.NEXT_PUBLIC_FIXER_API_KEY}&base=USD`,
-      weight: 1.0,
-      transform: (data: any) => ({
-        base: data.base,
-        timestamp: Date.now(),
-        rates: data.rates,
-        source: 'fixer'
-      })
-    }] : []),
-    // 🛡️ SECURITY: Additional backup sources for consensus
-    // Only include CoinAPI if API key is available
-    ...(process.env.NEXT_PUBLIC_COINAPI_KEY ? [{
-      name: 'coinapi',
-      url: 'https://rest.coinapi.io/v1/exchangerate/USD',
-      weight: 0.8,
-      headers: { 'X-CoinAPI-Key': process.env.NEXT_PUBLIC_COINAPI_KEY },
-      transform: (data: any) => ({
-        base: 'USD',
-        timestamp: Date.now(),
-        rates: data.rates?.reduce((acc: any, rate: any) => {
-          acc[rate.asset_id_quote] = rate.rate;
-          return acc;
-        }, { USD: 1 }) || { USD: 1, MXN: 17.5, USDT: 1.001 },
-        source: 'coinapi'
-      })
-    }] : [])
-  ];
+    });
+
+    // Only include Fixer.io if API key is available and not empty
+    const fixerKey = process.env.NEXT_PUBLIC_FIXER_API_KEY;
+    if (fixerKey && fixerKey !== 'your_fixer_api_key_here' && fixerKey.length > 10) {
+      providers.push({
+        name: 'fixer',
+        url: `https://api.fixer.io/latest?access_key=${fixerKey}&base=USD`,
+        weight: 1.0,
+        transform: (data: any) => ({
+          base: data.base,
+          timestamp: Date.now(),
+          rates: data.rates,
+          source: 'fixer'
+        })
+      });
+    }
+
+    // Only include CoinAPI if API key is available and not empty
+    const coinApiKey = process.env.NEXT_PUBLIC_COINAPI_KEY;
+    if (coinApiKey && coinApiKey !== 'your_coinapi_key_here' && coinApiKey.length > 10) {
+      providers.push({
+        name: 'coinapi',
+        url: 'https://rest.coinapi.io/v1/exchangerate/USD',
+        weight: 0.8,
+        headers: { 'X-CoinAPI-Key': coinApiKey },
+        transform: (data: any) => ({
+          base: 'USD',
+          timestamp: Date.now(),
+          rates: data.rates?.reduce((acc: any, rate: any) => {
+            acc[rate.asset_id_quote] = rate.rate;
+            return acc;
+          }, { USD: 1 }) || { USD: 1, MXN: 17.5, USDT: 1.001 },
+          source: 'coinapi'
+        })
+      });
+    }
+
+    return providers;
+  }
 
   // 🛡️ SECURITY: Conservative fallback rates with timestamp for staleness detection
   private readonly fallbackRates = {
@@ -176,16 +189,12 @@ class ExchangeRateService {
     }
 
     // 2. Fetch from multiple providers for consensus
-    const ratePromises = this.providers.map(async (provider) => {
+    const providers = this.getProviders();
+    const ratePromises = providers.map(async (provider) => {
       try {
         return await this.fetchFromProvider(provider);
       } catch (error) {
-        // Reduce console spam in development when API keys are missing
-        if (process.env.NODE_ENV === 'development' && error instanceof Error && error.message.includes('401')) {
-          console.warn(`⚠️ Provider ${provider.name} skipped (API key required)`);
-        } else {
-          console.warn(`Provider ${provider.name} failed:`, error);
-        }
+        // Silently fail and let fallback handle it
         return null;
       }
     });
@@ -224,21 +233,16 @@ class ExchangeRateService {
 
       if (mxnValid && usdtValid) {
         this.updateCache(cacheKey, consensusRates);
-        console.log(`✅ Consensus rates validated: MXN=${consensusRates.rates.MXN}, USDT=${consensusRates.rates.USDT}`);
         return consensusRates;
-      } else {
-        console.error('🚨 Consensus rates failed boundary validation, using fallback');
       }
     }
 
-    // 4. Use stale cache if available and validated
+    // 4. Use stale cache if available
     if (cached && this.isStale(cached)) {
-      console.warn('Using stale exchange rates (validated)');
       return cached.data;
     }
 
-    // 5. 🛡️ SECURITY: Use secure fallback rates
-    console.error('🚨 All exchange rate providers failed validation, using secure fallback');
+    // 5. Use secure fallback rates silently
     return this.fallbackRates;
   }
 
@@ -259,12 +263,6 @@ class ExchangeRateService {
       });
 
       if (!response.ok) {
-        // Don't spam console with 401 errors in development when API keys are missing
-        if (response.status === 401 && process.env.NODE_ENV === 'development') {
-          console.warn(`⚠️ API key missing for ${provider.name} (development mode)`);
-        } else {
-          console.error(`❌ Provider ${provider.name} failed: HTTP ${response.status}: ${response.statusText}`);
-        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -362,10 +360,9 @@ class ExchangeRateService {
   startBackgroundRefresh(): NodeJS.Timeout {
     return setInterval(async () => {
       try {
-        const rates = await this.getExchangeRates();
-        console.log(`✅ Background refresh completed: ${rates.source} (consensus: ${rates.consensusScore || 0})`);
+        await this.getExchangeRates();
       } catch (error) {
-        console.warn('Background refresh failed:', error);
+        // Silent background refresh
       }
     }, this.CACHE_TTL);
   }

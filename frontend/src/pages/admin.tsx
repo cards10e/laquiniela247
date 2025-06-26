@@ -188,8 +188,8 @@ export default function AdminPage() {
             border: '1px solid #fbbf24'
           }
         });
-      } else if (alertType === 'MONITORING_ERROR') {
-        console.error('[Admin Security] Monitoring error:', details);
+             } else if (alertType === 'MONITORING_ERROR') {
+        // Silent error handling
       }
     }
   });
@@ -198,11 +198,9 @@ export default function AdminPage() {
     fetchAdminData();
     fetchTeams();
     
-    // Only do initial security check in production to avoid development console spam
+    // Only do initial security check in production
     if (process.env.NODE_ENV === 'production') {
       fetchSecurityStatus();
-    } else {
-      console.log('🛡️ Security monitoring disabled in development mode');
     }
   }, []);
 
@@ -245,7 +243,6 @@ export default function AdminPage() {
       setSecurityData(security);
       setLastSecurityCheck(new Date());
     } catch (error) {
-      console.error('Security status check failed:', error);
       toast.error('Failed to check exchange rate security status');
     } finally {
       setSecurityLoading(false);
