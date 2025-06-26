@@ -198,9 +198,27 @@ export default function AdminPage() {
     fetchAdminData();
     fetchTeams();
     
-    // Only do initial security check in production
+    // In development, set mock security data; in production, fetch real data
     if (process.env.NODE_ENV === 'production') {
       fetchSecurityStatus();
+    } else {
+      // Set mock security data for development
+      setSecurityData({
+        securityStatus: 'SECURE',
+        rates: {
+          base: 'USD',
+          timestamp: Date.now(),
+          rates: { USD: 1, MXN: 17.5, USDT: 1.001 },
+          source: 'development-mock',
+          consensusScore: 1
+        },
+        validation: {
+          MXN: { isValid: true, consensusRate: 17.5, deviationPercentage: 0, sources: ['mock'] },
+          USDT: { isValid: true, consensusRate: 1.001, deviationPercentage: 0, sources: ['mock'] }
+        }
+      });
+      setLastSecurityCheck(new Date());
+      setSecurityLoading(false);
     }
   }, []);
 
