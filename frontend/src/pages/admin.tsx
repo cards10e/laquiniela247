@@ -10,6 +10,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import TeamLogo from '@/components/TeamLogo';
 import React from 'react';
 import { exchangeRateService } from '@/services/exchangeRateService';
+import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 
 interface User {
   id: number;
@@ -144,7 +145,6 @@ export default function AdminPage() {
     criticalAlertsEnabled: true,
     warningAlertsEnabled: true
   });
-  const [securityInterval, setSecurityInterval] = useState<NodeJS.Timeout | null>(null);
 
   const [axiosInstance] = useState(() => {
     return axios.create({
@@ -157,42 +157,44 @@ export default function AdminPage() {
     });
   });
 
+  // 🛡️ SECURITY: Use security monitoring hook with automatic cleanup
+  const securityMonitoring = useSecurityMonitoring({
+    interval: securitySettings.monitoringInterval * 60 * 1000, // Convert minutes to milliseconds
+    enabled: securitySettings.alertsEnabled,
+    onMetricsUpdate: (metrics) => {
+      // Update our security data when metrics are updated
+      setLastSecurityCheck(metrics.lastUpdate);
+      
+      // Manually trigger exchange rate security check to integrate with existing logic
+      fetchSecurityStatus();
+    },
+    onSecurityAlert: (alertType, details) => {
+      // Handle security alerts based on type
+      if (alertType === 'HIGH_SUSPICIOUS_REQUESTS' && securitySettings.criticalAlertsEnabled) {
+        toast.error(`🚨 HIGH SUSPICIOUS REQUESTS: ${details.count} detected (threshold: ${details.threshold})`, {
+          duration: 10000,
+          position: 'top-center'
+        });
+      } else if (alertType === 'HIGH_FAILED_LOGINS' && securitySettings.warningAlertsEnabled) {
+        toast('⚠️ HIGH FAILED LOGINS: ' + details.count + ' detected', {
+          duration: 8000,
+          position: 'top-center',
+          style: {
+            background: '#fef3c7',
+            color: '#92400e',
+            border: '1px solid #fbbf24'
+          }
+        });
+      } else if (alertType === 'MONITORING_ERROR') {
+        console.error('[Admin Security] Monitoring error:', details);
+      }
+    }
+  });
+
   useEffect(() => {
     fetchAdminData();
     fetchTeams();
     fetchSecurityStatus(); // Initial security check
-  }, []);
-
-  // 🛡️ SECURITY: Real-time monitoring setup with configurable intervals
-  useEffect(() => {
-    if (securitySettings.alertsEnabled && securitySettings.monitoringInterval > 0) {
-      // Clear existing interval
-      if (securityInterval) {
-        clearInterval(securityInterval);
-      }
-
-      // Set new interval based on admin configuration (minutes to milliseconds)
-      const interval = setInterval(() => {
-        fetchSecurityStatus();
-      }, securitySettings.monitoringInterval * 60 * 1000);
-
-      setSecurityInterval(interval);
-
-      return () => {
-        if (interval) {
-          clearInterval(interval);
-        }
-      };
-    }
-  }, [securitySettings.monitoringInterval, securitySettings.alertsEnabled]);
-
-  // 🛡️ SECURITY: Cleanup interval on unmount
-  useEffect(() => {
-    return () => {
-      if (securityInterval) {
-        clearInterval(securityInterval);
-      }
-    };
   }, []);
 
   // 🛡️ SECURITY: Exchange rate monitoring functions
@@ -249,6 +251,7 @@ export default function AdminPage() {
   const handleUpdateSecuritySettings = (newSettings: Partial<SecuritySettings>) => {
     setSecuritySettings(prev => ({ ...prev, ...newSettings }));
     toast.success('Security monitoring settings updated');
+    // Note: The useSecurityMonitoring hook will automatically react to settings changes
   };
 
   // Removed automatic refresh - users can manually refresh if needed
