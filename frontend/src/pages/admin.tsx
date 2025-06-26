@@ -159,14 +159,20 @@ export default function AdminPage() {
 
   // 🛡️ SECURITY: Use security monitoring hook with automatic cleanup
   const securityMonitoring = useSecurityMonitoring({
-    interval: securitySettings.monitoringInterval * 60 * 1000, // Convert minutes to milliseconds
+    // In development, use longer intervals to avoid API spam
+    interval: process.env.NODE_ENV === 'development' 
+      ? Math.max(securitySettings.monitoringInterval * 60 * 1000, 5 * 60 * 1000) // Min 5 minutes in dev
+      : securitySettings.monitoringInterval * 60 * 1000, // Normal interval in production
     enabled: securitySettings.alertsEnabled,
     onMetricsUpdate: (metrics) => {
       // Update our security data when metrics are updated
       setLastSecurityCheck(metrics.lastUpdate);
       
       // Manually trigger exchange rate security check to integrate with existing logic
-      fetchSecurityStatus();
+      // Only in production or when specifically enabled
+      if (process.env.NODE_ENV === 'production' || securitySettings.criticalAlertsEnabled) {
+        fetchSecurityStatus();
+      }
     },
     onSecurityAlert: (alertType, details) => {
       // Handle security alerts based on type

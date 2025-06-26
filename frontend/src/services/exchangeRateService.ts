@@ -53,7 +53,8 @@ class ExchangeRateService {
         source: 'exchangerate-api'
       })
     },
-    {
+    // Only include Fixer.io if API key is available
+    ...(process.env.NEXT_PUBLIC_FIXER_API_KEY ? [{
       name: 'fixer',
       url: `https://api.fixer.io/latest?access_key=${process.env.NEXT_PUBLIC_FIXER_API_KEY}&base=USD`,
       weight: 1.0,
@@ -63,9 +64,10 @@ class ExchangeRateService {
         rates: data.rates,
         source: 'fixer'
       })
-    },
+    }] : []),
     // 🛡️ SECURITY: Additional backup sources for consensus
-    {
+    // Only include CoinAPI if API key is available
+    ...(process.env.NEXT_PUBLIC_COINAPI_KEY ? [{
       name: 'coinapi',
       url: 'https://rest.coinapi.io/v1/exchangerate/USD',
       weight: 0.8,
@@ -79,7 +81,7 @@ class ExchangeRateService {
         }, { USD: 1 }) || { USD: 1, MXN: 17.5, USDT: 1.001 },
         source: 'coinapi'
       })
-    }
+    }] : [])
   ];
 
   // 🛡️ SECURITY: Conservative fallback rates with timestamp for staleness detection
@@ -178,7 +180,12 @@ class ExchangeRateService {
       try {
         return await this.fetchFromProvider(provider);
       } catch (error) {
-        console.warn(`Provider ${provider.name} failed:`, error);
+        // Reduce console spam in development when API keys are missing
+        if (process.env.NODE_ENV === 'development' && error instanceof Error && error.message.includes('401')) {
+          console.warn(`⚠️ Provider ${provider.name} skipped (API key required)`);
+        } else {
+          console.warn(`Provider ${provider.name} failed:`, error);
+        }
         return null;
       }
     });
@@ -252,6 +259,12 @@ class ExchangeRateService {
       });
 
       if (!response.ok) {
+        // Don't spam console with 401 errors in development when API keys are missing
+        if (response.status === 401 && process.env.NODE_ENV === 'development') {
+          console.warn(`⚠️ API key missing for ${provider.name} (development mode)`);
+        } else {
+          console.error(`❌ Provider ${provider.name} failed: HTTP ${response.status}: ${response.statusText}`);
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
