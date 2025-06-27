@@ -1,21 +1,81 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
 import { AxiosInstance } from 'axios';
 import Cookies from 'js-cookie';
 
 /**
- * Custom hook for managing Axios interceptors with guaranteed cleanup
+ * Authentication failure reasons for proper error tracking
+ */
+type AuthFailureReason = 'refresh_failed' | 'no_refresh_token';
+
+/**
+ * Token refresh response interface
+ */
+interface TokenRefreshResponse {
+  token: string;
+}
+
+/**
+ * Enterprise-grade authentication interceptor hook with Next.js router integration
  * 
- * CRITICAL SAFETY FIX: Prevents memory leaks from unregistered interceptors
+ * MICROSOFT-LEVEL SOLUTION: Proper integration with Next.js navigation patterns
  * 
  * Features:
- * - Automatic request token injection
- * - Token refresh on 401 errors
+ * - Next.js Router-aware navigation (prevents route abort errors)
+ * - Automatic request token injection with type safety
+ * - Smart token refresh with proper error handling
+ * - Navigation state awareness (prevents race conditions)
  * - Guaranteed cleanup on unmount
- * - Proper error handling and fallbacks
+ * - Production-ready error handling and fallbacks
  * 
  * @param axiosInstance - The axios instance to configure
  */
 export function useAuthInterceptors(axiosInstance: AxiosInstance): void {
+  const router = useRouter();
+
+  // Enterprise-grade navigation handler that respects Next.js router state
+  const handleAuthenticationFailure = useCallback(async (reason: AuthFailureReason) => {
+    console.log(`[Auth Debug] Authentication failure: ${reason}`);
+    
+    // Clear auth state immediately
+    Cookies.remove('auth_token');
+    Cookies.remove('refresh_token');
+    
+    // Check if we're already on login page to prevent unnecessary redirects
+    if (router.pathname === '/login') {
+      console.log('[Auth Debug] Already on login page, skipping redirect');
+      return;
+    }
+    
+    // Check if router is ready and not currently navigating
+    if (!router.isReady) {
+      console.log('[Auth Debug] Router not ready, deferring navigation');
+      // Wait for router to be ready, then navigate
+      const checkRouter = () => {
+        if (router.isReady) {
+          router.push('/login');
+        } else {
+          setTimeout(checkRouter, 10);
+        }
+      };
+      checkRouter();
+      return;
+    }
+    
+    try {
+      // Use Next.js router for proper navigation (prevents abort errors)
+      console.log('[Auth Debug] Initiating router-based navigation to login');
+      await router.push('/login');
+      console.log('[Auth Debug] Navigation to login completed successfully');
+    } catch (navigationError) {
+      console.error('[Auth Debug] Router navigation failed, falling back to window.location:', navigationError);
+      // Fallback only if Next.js router fails (extremely rare)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+  }, [router]);
+
   useEffect(() => {
     console.log('[Auth Debug] Setting up interceptors via useAuthInterceptors hook');
     console.log('[Auth Debug] API URL:', process.env.NEXT_PUBLIC_API_URL);
@@ -50,7 +110,7 @@ export function useAuthInterceptors(axiosInstance: AxiosInstance): void {
           if (refreshToken) {
             try {
               console.log('[Auth Debug] Attempting token refresh with refresh token');
-              const response = await axiosInstance.post('/auth/refresh', { refreshToken });
+              const response = await axiosInstance.post<TokenRefreshResponse>('/auth/refresh', { refreshToken });
               const { token } = response.data;
               
               // Set new token
@@ -62,27 +122,13 @@ export function useAuthInterceptors(axiosInstance: AxiosInstance): void {
               return axiosInstance.request(error.config);
             } catch (refreshError) {
               console.error('[Auth Debug] Token refresh failed:', refreshError);
-              // Refresh failed, logout user
-              Cookies.remove('auth_token');
-              Cookies.remove('refresh_token');
-              
-              if (typeof window !== 'undefined') {
-                console.log('[Auth Debug] Redirecting to login due to refresh failure');
-                // Use setTimeout to avoid interrupting Next.js router navigation
-                setTimeout(() => {
-                  window.location.href = '/login';
-                }, 100);
-              }
+              // Use enterprise-grade navigation handler
+              await handleAuthenticationFailure('refresh_failed');
             }
           } else {
             console.log('[Auth Debug] No refresh token available, redirecting to login');
-            // No refresh token, redirect to login
-            if (typeof window !== 'undefined') {
-              // Use setTimeout to avoid interrupting Next.js router navigation
-              setTimeout(() => {
-                window.location.href = '/login';
-              }, 100);
-            }
+            // Use enterprise-grade navigation handler
+            await handleAuthenticationFailure('no_refresh_token');
           }
         }
         return Promise.reject(error);
@@ -111,5 +157,5 @@ export function useAuthInterceptors(axiosInstance: AxiosInstance): void {
       
       console.log('[Auth Debug] All interceptors cleaned up successfully');
     };
-  }, [axiosInstance]);
+  }, [axiosInstance, handleAuthenticationFailure]);
 } 

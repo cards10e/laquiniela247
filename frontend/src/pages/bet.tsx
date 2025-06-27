@@ -4,7 +4,6 @@ import { useI18n } from '@/context/I18nContext';
 import { useDemo } from '@/context/DemoContext';
 import { useCurrency, Currency } from '@/context/CurrencyContext';
 import { Layout } from '@/components/layout/Layout';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { CurrencySelector } from '@/components/ui/CurrencySelector';
 import TeamLogo from '@/components/TeamLogo';
 import { toast } from 'react-hot-toast';
@@ -246,7 +245,7 @@ const calculateLegacySummary = (context: BetCalculationContext): LegacyCalculati
 
 
 export default function BetPage() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { t } = useI18n();
   const { isDemoUser } = useDemo();
   const { formatAmount, getCurrencySymbol } = useCurrency();
@@ -589,11 +588,9 @@ export default function BetPage() {
   if (loading) {
     return (
       <Layout title={t('betting.place_bet')}>
-        <ProtectedRoute>
-          <div className="flex items-center justify-center min-h-96">
-            <div className="spinner"></div>
-          </div>
-        </ProtectedRoute>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="spinner"></div>
+        </div>
       </Layout>
     );
   }
@@ -602,8 +599,7 @@ export default function BetPage() {
   if (isAdmin) {
     return (
       <Layout title={t('admin.scheduled_games')}>
-        <ProtectedRoute>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
               <h1 className="page-title">
                 {t('admin.scheduled_games')}
@@ -695,7 +691,6 @@ export default function BetPage() {
               </div>
             </div>
           </div>
-        </ProtectedRoute>
       </Layout>
     );
   }
@@ -703,8 +698,7 @@ export default function BetPage() {
   if (!currentWeek || currentWeek.status.toLowerCase() !== 'open') {
     return (
       <Layout title={t('bet_page.title')}>
-        <ProtectedRoute>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="card text-center py-12">
               <div className="text-secondary-400 dark:text-secondary-500 text-4xl mb-4">⏰</div>
               <h2 className="subsection-title">
@@ -715,16 +709,27 @@ export default function BetPage() {
               </p>
             </div>
           </div>
-        </ProtectedRoute>
       </Layout>
     );
   }
 
   // Render debug logs removed to prevent console spam
 
+  // Handle authentication directly instead of using ProtectedRoute
+  // This prevents navigation conflicts during initial page load
+  if (!isAuthenticated && !authLoading) {
+    // Don't render anything, let the auth system handle navigation
+    return (
+      <Layout title={t('bet_page.title')}>
+        <div className="min-h-screen flex items-center justify-center bg-secondary-50 dark:bg-secondary-900">
+          <div className="spinner"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout title={t('bet_page.title')}>
-      <ProtectedRoute>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Title */}
           <div className="mb-8">
@@ -1360,7 +1365,6 @@ export default function BetPage() {
             </div>
           )}
         </div>
-      </ProtectedRoute>
     </Layout>
   );
 }

@@ -81,14 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(normalizedUser);
     } catch (error) {
       console.error('Failed to fetch user:', error);
+      // Clear auth state - let auth interceptors handle navigation
       Cookies.remove('auth_token');
       Cookies.remove('refresh_token');
-      if (typeof window !== 'undefined') {
-        console.log('[Auth Debug] Removed auth_token and refresh_token due to failed fetchUser. Redirecting to /login in 3 seconds...');
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 3000);
-      }
+      setUser(null);
+      // DO NOT manually redirect - auth interceptors will handle this properly
+      console.log('[Auth Debug] Auth tokens cleared, letting interceptors handle navigation');
     } finally {
       setLoading(false);
     }
@@ -190,13 +188,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       setLoading(false);
       
-      // Use router for navigation instead of window.location
+      // MINIMAL FIX: Navigate to login after successful logout
       if (typeof window !== 'undefined') {
-        // Small delay to ensure state is cleared
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 100);
+        window.location.href = '/login';
       }
+      console.log('[Auth Debug] Logout completed, redirecting to login');
     } catch (cleanupError) {
       console.error('Cleanup error during logout:', cleanupError);
       // Force redirect even if cleanup fails

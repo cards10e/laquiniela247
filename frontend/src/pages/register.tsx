@@ -23,10 +23,15 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect if already authenticated
+  // Handle authenticated users without navigation conflicts
   if (isAuthenticated) {
-    router.replace('/bet');
-    return null;
+    return (
+      <Layout title={t('auth.register')} description={t('auth.register_description')} minimal>
+        <div className="min-h-screen flex items-center justify-center bg-secondary-50 dark:bg-secondary-900">
+          <div className="spinner"></div>
+        </div>
+      </Layout>
+    );
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

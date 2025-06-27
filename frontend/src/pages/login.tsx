@@ -21,17 +21,16 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !loading) {
-      if (user && user.role && user.role.toLowerCase() === 'admin') {
-        router.replace('/admin');
-      } else {
-        // All regular users (including demo) go to betting page first
-        router.replace('/bet');
-      }
-    }
-  }, [isAuthenticated, loading, router, user, isDemoUser]);
+  // Handle authenticated users - show loading state instead of navigation
+  if (isAuthenticated && !loading) {
+    return (
+      <Layout title={t('auth.login')} description={t('auth.login_description')} minimal>
+        <div className="min-h-screen flex items-center justify-center bg-secondary-50 dark:bg-secondary-900">
+          <div className="spinner"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
