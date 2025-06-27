@@ -9,34 +9,7 @@ import { CurrencySelector } from '@/components/ui/CurrencySelector';
 import TeamLogo from '@/components/TeamLogo';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-
-interface Game {
-  id: number;
-  homeTeamName: string;
-  awayTeamName: string;
-  homeTeamLogo?: string;
-  awayTeamLogo?: string;
-  gameDate: string;
-  status: 'scheduled' | 'live' | 'finished';
-  homeScore?: number;
-  awayScore?: number;
-  weekId?: number;
-  userBet?: {
-    prediction: PredictionType;
-    isCorrect: boolean | null;
-  };
-  bettingClosed?: boolean;
-  bettingDeadline?: string;
-  weekStatus?: string;
-}
-
-interface Week {
-  id: number;
-  weekNumber: number;
-  status: 'upcoming' | 'open' | 'closed' | 'completed';
-  bettingDeadline: string;
-  canBet?: boolean; // Optional field for betting capability
-}
+import { useGameData, type Game, type Week, type BetStatus } from '@/hooks/useGameData';
 
 type PredictionType = 'home' | 'away' | 'draw';
 
@@ -93,33 +66,48 @@ function FormattedAmount({ amount, originalCurrency, className }: FormattedAmoun
 }
 
 // Utility function to get current week games only
-const getAllRelevantGames = (games: Game[]): Game[] => {
+const getAllRelevantGames = (games: Game[], currentWeek?: Week | null): Game[] => {
   if (!games || games.length === 0) {
     return [];
   }
   
-  // CRITICAL FIX: Show ALL games that are either:
-  // 1. Available for betting (deadline not passed) - SHOW FIRST
-  // 2. Have existing user bets (regardless of deadline) - SHOW AFTER
+  // 🎯 CORRECT BUSINESS LOGIC:
+  // 1. Current games (deadline not passed): Show betting options
+  // 2. Games with placed bets: Show for up to 1 week past deadline (historical view)
+  // 3. Games with NO bets + deadline passed: Hide completely
   const now = new Date();
+  const oneWeekInMs = 7 * 24 * 60 * 60 * 1000; // 1 week in milliseconds
   
   const gamesAvailableForBetting: Game[] = [];
   const gamesWithExistingBets: Game[] = [];
   
   games.forEach(game => {
     const hasExistingBet = game.userBet && game.userBet.prediction;
-    const canStillBet = game.bettingDeadline && new Date(game.bettingDeadline) > now;
+    const deadlineNotPassed = game.bettingDeadline && new Date(game.bettingDeadline) > now;
     
-    // Game filter debug removed
-    
-    // Prioritize current betting opportunities
-    if (canStillBet) {
-      gamesAvailableForBetting.push(game);
+    // Calculate if we're within 1 week past deadline for showing historical bets
+    let withinHistoricalWindow = true;
+    if (game.bettingDeadline) {
+      const deadline = new Date(game.bettingDeadline);
+      const timeSinceDeadline = now.getTime() - deadline.getTime();
+      withinHistoricalWindow = timeSinceDeadline <= oneWeekInMs;
     }
-    // Then show existing bets (but avoid duplicates if game is in both categories)
-    else if (hasExistingBet) {
+    
+    // 🔍 DEBUG: Log game details for troubleshooting
+    console.log(`Game ${game.id} (Week ${game.weekId}): deadline=${game.bettingDeadline}, deadlineNotPassed=${deadlineNotPassed}, hasExistingBet=${hasExistingBet}, withinHistoricalWindow=${withinHistoricalWindow}`);
+    
+    if (deadlineNotPassed) {
+      // Deadline not passed - show betting options (unless user already bet)
+      if (!hasExistingBet) {
+        gamesAvailableForBetting.push(game);
+      } else {
+        gamesWithExistingBets.push(game); // User already bet, show historical view
+      }
+    } else if (hasExistingBet && withinHistoricalWindow) {
+      // Deadline passed BUT user has bets AND within 1 week - show historical view
       gamesWithExistingBets.push(game);
     }
+    // Else: Deadline passed + no bets (OR beyond 1 week) = hide completely
   });
   
   // Sort each category by week number (ascending = earliest weeks first)
@@ -127,10 +115,14 @@ const getAllRelevantGames = (games: Game[]): Game[] => {
   gamesAvailableForBetting.sort(sortByWeek);
   gamesWithExistingBets.sort(sortByWeek);
   
-  // Combine: current betting week first, then previous weeks with bets
+  // Combine: games available for betting first, then games with existing bets
   const relevantGames = [...gamesAvailableForBetting, ...gamesWithExistingBets];
   
-  // Debug logs removed to prevent console spam
+  console.log(`Current week:`, currentWeek);
+  console.log(`Total games from backend:`, games.length);
+  console.log(`Games available for betting:`, gamesAvailableForBetting.length);
+  console.log(`Games with existing bets (within 1 week):`, gamesWithExistingBets.length);
+  console.log(`Games hidden (no bets + deadline passed):`, games.length - relevantGames.length);
   
   return relevantGames;
 };
@@ -144,12 +136,7 @@ interface SingleBetSummary {
   potentialWinnings: number;
 }
 
-interface BetStatus {
-  canBet: boolean;
-  hasPlacedAllBets: boolean;
-  placedBetsCount: number;
-  totalGamesCount: number;
-}
+
 
 interface BetCalculationContext {
   tab: BetMode;
@@ -256,59 +243,16 @@ const calculateLegacySummary = (context: BetCalculationContext): LegacyCalculati
 };
 
 // Add interfaces for API responses
-interface AdminGameResponse {
-  id: number;
-  homeTeam?: { name: string; logoUrl?: string };
-  awayTeam?: { name: string; logoUrl?: string };
-  matchDate: string;
-  status?: string;
-  weekNumber?: number;
-  week?: { weekNumber: number };
-  homeScore?: number;
-  awayScore?: number;
-}
 
-interface BettingDataResponse {
-  games: Array<{
-    id: number;
-    homeTeam?: { name: string; logoUrl?: string };
-    awayTeam?: { name: string; logoUrl?: string };
-    matchDate: string;
-    status?: string;
-    homeScore?: number;
-    awayScore?: number;
-    userBet?: {
-      prediction: string;
-      isCorrect: boolean | null;
-    };
-    weekNumber: number;
-    bettingDeadline?: string;
-  }>;
-  week: {
-    id: number;
-    weekNumber: number;
-    status: string;
-    bettingDeadline: string;
-    canBet?: boolean;
-  };
-  betStatus: BetStatus;
-  canBet: boolean;
-}
-
-interface ApiErrorResponse {
-  error: string;
-}
 
 export default function BetPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { isDemoUser } = useDemo();
   const { formatAmount, getCurrencySymbol } = useCurrency();
-  const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
-  const [games, setGames] = useState<Game[]>([]);
+  
   const [predictions, setPredictions] = useState<Record<number, PredictionType>>({});
   const [betAmount, setBetAmount] = useState<number>(50);
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [tab, setTab] = useState<BetMode>('single');
   const [singleBetAmounts, setSingleBetAmounts] = useState<Record<number, number>>({});
@@ -319,8 +263,6 @@ export default function BetPage() {
     totalAmount: 0,
     potentialWinnings: 0
   });
-  // Add state to store betStatus from API
-  const [betStatus, setBetStatus] = useState<BetStatus | null>(null);
 
   // 🎯 PHASE 1: Current week focus feature flag
   const [showCurrentWeekOnly] = useState<boolean>(true);
@@ -332,172 +274,50 @@ export default function BetPage() {
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
-  // Ref to prevent duplicate API calls
-  const isLoadingRef = useRef<boolean>(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // 🚀 NEW: Use custom hook for data fetching with automatic cleanup
+  const {
+    games,
+    currentWeek,
+    betStatus,
+    loading,
+    error: gameDataError,
+    refetch: refetchGameData,
+    cancel: cancelGameData
+  } = useGameData({
+    isAdmin,
+    tab,
+    user
+  });
 
   // Apply relevant games filtering (only for regular users, not admins)
-  // Backend already handles all user role and bet type filtering correctly
-  // No additional frontend filtering needed - just use the games as returned by API
+  // 🚨 BUG FIX: Pass currentWeek to prevent showing open betting for previous weeks
   const filteredGames = useMemo(() => {
-    return games; // Backend handles: user role, bet type, deadlines, existing bets
-  }, [games]);
-  
-  // Define fetch functions before useEffect that uses them
-  const fetchAdminGamesData = useCallback(async (): Promise<void> => {
-    if (isLoadingRef.current) return; // Prevent duplicate calls
-    
-    try {
-      isLoadingRef.current = true;
-      setLoading(true);
-      const response = await axios.get<{ games: AdminGameResponse[] }>('/api/admin/games');
-      const adminGames: Game[] = response.data.games.map((game: AdminGameResponse): Game => ({
-        id: game.id,
-        homeTeamName: game.homeTeam?.name || 'TBD',
-        awayTeamName: game.awayTeam?.name || 'TBD',
-        homeTeamLogo: game.homeTeam?.logoUrl,
-        awayTeamLogo: game.awayTeam?.logoUrl,
-        gameDate: game.matchDate,
-        status: (game.status?.toLowerCase() as Game['status']) || 'scheduled',
-        weekId: game.weekNumber || game.week?.weekNumber,
-        homeScore: game.homeScore,
-        awayScore: game.awayScore,
-      }));
-      setGames(adminGames);
-    } catch (error) {
-      console.error('Failed to fetch admin games data:', error);
-      setGames([]);
-    } finally {
-      setLoading(false);
-      isLoadingRef.current = false;
-    }
-  }, []); // No dependencies needed for admin data fetch
-
-  const fetchBettingData = useCallback(async (): Promise<void> => {
-    if (isLoadingRef.current) {
-      return; // Prevent duplicate calls
-    }
-    
-    // Set loading before abort controller to prevent race conditions
-    isLoadingRef.current = true;
-    setLoading(true);
-    
-    // Cancel any pending request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController();
-    
-    try {
-      // Fetch all open weeks and their games from the updated endpoint
-      // Pass betType parameter to filter bets by single/parlay
-      const url = `/api/games/current-week${tab ? `?betType=${tab}` : ''}`;
-      const gamesRes = await axios.get<BettingDataResponse>(url, {
-        signal: abortControllerRef.current.signal
-      });
-      const gamesData = gamesRes.data;
-      
-      // Bet debug logs removed
-      
-      if (gamesData && gamesData.games) {
-        // Map backend games to frontend shape with defensive checks
-        const mappedGames: Game[] = (gamesData.games || []).map((game): Game | null => {
-          if (!game.homeTeam || !game.awayTeam) {
-            console.warn('[Bet Debug] Skipping game with missing team:', game);
-            return null;
-          }
-          
-          return {
-            id: game.id,
-            homeTeamName: game.homeTeam?.name || '',
-            awayTeamName: game.awayTeam?.name || '',
-            homeTeamLogo: game.homeTeam?.logoUrl || '',
-            awayTeamLogo: game.awayTeam?.logoUrl || '',
-            gameDate: game.matchDate || '',
-            status: (game.status?.toLowerCase() as Game['status']) || 'scheduled',
-            homeScore: game.homeScore,
-            awayScore: game.awayScore,
-            userBet: game.userBet ? {
-              prediction: game.userBet.prediction.toLowerCase() as PredictionType,
-              isCorrect: game.userBet.isCorrect
-            } : undefined,
-            weekId: game.weekNumber,
-            bettingClosed: false, // Handled by backend filtering now
-            bettingDeadline: game.bettingDeadline, // CRITICAL FIX: Use game's individual deadline from API
-            weekStatus: 'open' // All games from this endpoint are from open weeks
-          };
-        }).filter((game): game is Game => game !== null);
-        
-        // CRITICAL FIX: Don't filter here - let getAllRelevantGames() handle filtering
-        // The API already returns all relevant games with existing bets included
-        
-        setGames(mappedGames);
-        
-        // Populate predictions state from existing userBet data
-        const existingPredictions: Record<number, PredictionType> = {};
-        mappedGames.forEach((game: Game) => {
-          if (game.userBet && game.userBet.prediction) {
-            existingPredictions[game.id] = game.userBet.prediction.toLowerCase() as PredictionType;
-          }
-        });
-        setPredictions(existingPredictions);
-        // Bet debug logs removed
-      }
-      
-      // Set the primary week from the response
-      if (gamesData && gamesData.week) {
-        setCurrentWeek({
-          ...gamesData.week,
-          status: (gamesData.week.status as Week['status']) || 'closed', // Type cast API status
-          canBet: gamesData.canBet || false
-        });
-      }
-      
-      // Store betStatus from API response
-      if (gamesData && gamesData.betStatus) {
-        setBetStatus(gamesData.betStatus);
-        // BetStatus debug removed
-      }
-    } catch (error) {
-      // Don't handle AbortError - it's expected when cancelling requests
-      if (error instanceof Error && error.name === 'AbortError') {
-        return;
-      }
-      
-      console.error('Failed to fetch betting data:', error);
-      setGames([]);
-      setCurrentWeek(null);
-      setBetStatus(null);
-    } finally {
-      setLoading(false);
-      isLoadingRef.current = false;
-    }
-  }, [tab]); // Dependencies: tab affects the API call
-
-  // useEffect for fetching data - wait for user to be loaded
-  useEffect(() => {
-    // Don't make API calls until user object is loaded
-    if (!user) {
-      return;
-    }
-    
     if (isAdmin) {
-      fetchAdminGamesData();
-    } else {
-      fetchBettingData();
+      return games; // Admin sees all games without week filtering
     }
-  }, [user, isAdmin, tab]); // Include user in dependencies to wait for it to load
-
-  // Cleanup effect to abort any pending requests on unmount
+    return getAllRelevantGames(games, currentWeek);
+  }, [games, currentWeek, isAdmin]);
+  
+  // 🚀 REPLACED: Complex data fetching logic now handled by useGameData hook
+  // Populate predictions state from existing userBet data when games change
   useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+    if (games && games.length > 0) {
+      const existingPredictions: Record<number, PredictionType> = {};
+      games.forEach((game: Game) => {
+        if (game.userBet && game.userBet.prediction) {
+          existingPredictions[game.id] = game.userBet.prediction.toLowerCase() as PredictionType;
+        }
+      });
+      setPredictions(existingPredictions);
+    }
+  }, [games]); // Re-populate predictions when games data changes
+
+  // Handle data loading errors
+  useEffect(() => {
+    if (gameDataError) {
+      toast.error(`Failed to load game data: ${gameDataError}`);
+    }
+  }, [gameDataError]);
 
   const handlePredictionChange = useCallback((gameId: number, prediction: PredictionType): void => {
     setPredictions(prev => ({
@@ -646,20 +466,8 @@ export default function BetPage() {
       await axios.post('/api/bets', { gameId, prediction: prediction.toUpperCase(), amount });
       toast.success(t('betting.bet_placed'));
       
-      // 🚀 OPTIMISTIC UPDATE: Immediately update local state without server round-trip
-      setGames((prevGames) => 
-        prevGames.map((game) => 
-          game.id === gameId 
-            ? { 
-                ...game, 
-                userBet: { 
-                  prediction: prediction, 
-                  isCorrect: null 
-                } 
-              }
-            : game
-        )
-      );
+      // 🚀 REPLACED: Use hook's refetch instead of manual state updates
+      await refetchGameData();
       
       // Clear the prediction from UI
       setPredictions((prev) => {
@@ -704,21 +512,8 @@ export default function BetPage() {
       await axios.post('/api/bets/multi', betData);
       toast.success(t('betting.bet_placed'));
       
-      // 🚀 OPTIMISTIC UPDATE: Immediately update local state for all games in parlay
-      setGames((prevGames) => 
-        filteredGames.map((game) => {
-          const gamePrediction = predictions[game.id];
-          return gamePrediction 
-            ? { 
-                ...game, 
-                userBet: { 
-                  prediction: gamePrediction, 
-                  isCorrect: null 
-                } 
-              }
-            : game;
-        })
-      );
+      // 🚀 REPLACED: Use hook's refetch instead of manual state updates
+      await refetchGameData();
       
       setPredictions({});
       setBetAmount(50);
