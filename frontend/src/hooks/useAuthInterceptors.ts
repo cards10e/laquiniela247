@@ -68,14 +68,20 @@ export function useAuthInterceptors(axiosInstance: AxiosInstance): void {
               
               if (typeof window !== 'undefined') {
                 console.log('[Auth Debug] Redirecting to login due to refresh failure');
-                window.location.href = '/login';
+                // Use setTimeout to avoid interrupting Next.js router navigation
+                setTimeout(() => {
+                  window.location.href = '/login';
+                }, 100);
               }
             }
           } else {
             console.log('[Auth Debug] No refresh token available, redirecting to login');
             // No refresh token, redirect to login
             if (typeof window !== 'undefined') {
-              window.location.href = '/login';
+              // Use setTimeout to avoid interrupting Next.js router navigation
+              setTimeout(() => {
+                window.location.href = '/login';
+              }, 100);
             }
           }
         }
