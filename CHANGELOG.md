@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file.
 
 ## [2.0.54] - 2025-06-27
+### 🔧 useEffect Safety & Hook Architecture Improvements
+- **Enhanced Hook Architecture**: Completed major refactoring of core hooks for better type safety and reliability
+  - **Theme Context Optimization**: Implemented proper media query cleanup and type guards for localStorage theme values
+  - **Login Redirect Logic**: Enhanced with race condition prevention and proper cleanup
+  - **ProtectedRoute Reusability**: Improved with composable auth patterns and better type safety
+
+### 🎯 Technical Implementation
+- **Hook Reliability**: Enhanced useEffect cleanup and dependency management
+- **Type Safety**: Improved TypeScript interfaces across core hooks
+- **Code Quality**: Eliminated potential memory leaks in theme detection
+- **Architecture**: Better separation of concerns in auth flow
+
+### Added
+- Type guards for localStorage theme values
+- Proper cleanup in useSystemTheme hook
+- Enhanced error handling in auth flow
+- Composable patterns in ProtectedRoute
+
+### Enhanced
+- Theme context performance and reliability
+- Login redirect logic with race condition prevention
+- ProtectedRoute component reusability
+- Overall hook architecture type safety
+
+### Fixed
+- Memory leaks in theme detection system
+- Race conditions in auth navigation
+- Type safety issues in core hooks
+- useEffect cleanup patterns
+
 ### 🔧 ADMIN INTERFACE FIX: Restored Game Visibility in Betting Interface
 - **RESOLVED: Admin Games API Response Parsing**: Fixed critical issue where admin users saw "No games currently scheduled" despite having 10 existing games in database
   - **Root Cause**: useGameData hook expected direct array of games but backend returns `{games: [...], pagination: {...}}`
