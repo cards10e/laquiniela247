@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useLocalStorage, isValidTheme } from '../hooks/useLocalStorage';
 
 type Theme = 'light' | 'dark' | 'auto';
 
@@ -11,21 +12,9 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('auto');
+  // Use type-safe localStorage hook with validation
+  const [theme, setTheme] = useLocalStorage<Theme>('lq247_theme', 'auto', isValidTheme);
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
-
-  // Load theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('lq247_theme') as Theme;
-    if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
-      setTheme(savedTheme);
-    }
-  }, []);
-
-  // Save theme to localStorage when changed
-  useEffect(() => {
-    localStorage.setItem('lq247_theme', theme);
-  }, [theme]);
 
   // Update effective theme based on theme setting and system preference
   useEffect(() => {
