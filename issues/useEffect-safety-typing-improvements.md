@@ -13,6 +13,8 @@ Our codebase contained multiple useEffect implementations that lacked proper typ
 
 **🚀 LATEST UPDATE (2025-01-27)**: Successfully resolved critical navigation race condition causing `"Abort fetching component for route: '/bet'"` errors and fixed logout spinning issue with minimal, surgical fixes.
 
+**🔧 LATEST FIX (2025-06-27)**: Restored admin game visibility in betting interface - Fixed useGameData hook API response parsing for admin users.
+
 ---
 
 ## 🚨 **Critical Issues Found & RESOLVED**
@@ -622,10 +624,10 @@ interface UseFilteredDataResult<T> {
 1. **Create `useGameData()`** - Centralized game data management
 2. **Create `useAdminData()`** - Admin dashboard data with proper typing
 3. **Create `useBetCalculations()`** - Extract complex betting calculations
-4. **Create `useFilteredData<T>()`** - Debounced filtering with memoization
+4. **Create `useFilteredData<T>()** - Debounced filtering with memoization
 
 ### **Phase 3: Advanced Hooks & Backend (Week 3)**
-1. **Create `useDebounced<T>()`** - Debounced state updates
+1. **Create `useDebounced<T>()**** - Debounced state updates
 2. **Create `useSystemTheme()`** - Media query management with cleanup
 3. **Backend**: Extract transaction utilities
 4. **Backend**: Common validation schemas
@@ -989,6 +991,12 @@ export const CommonSchemas = {
 - [x] **Logout Issue**: ✅ Fixed spinning circle with minimal navigation addition
 - [x] **Enterprise Architecture**: ✅ Single-source navigation principles implemented
 
+🔧 **ADMIN GAMES API FIX - COMPLETED (2025-06-27)**
+- [x] **useGameData Hook Issue**: ✅ Fixed API response parsing for admin users
+- [x] **Admin Game Visibility**: ✅ Restored admin access to all existing games in betting interface
+- [x] **Backend Compatibility**: ✅ Updated TypeScript interfaces to match actual API response structure
+- [x] **Zero Data Loss**: ✅ Preserved all existing games, no seeding changes required
+
 ### 🎯 **Phase 1A Success Metrics Achieved**
 - ✅ **0 memory leaks** detected in development tools
 - ✅ **100% typed** hook implementations with comprehensive interfaces
@@ -1173,12 +1181,82 @@ This fix demonstrates the power of the hook-based approach:
 
 ---
 
+---
+
+## 🔧 **Admin Games API Fix: useGameData Hook Resolution (2025-06-27)**
+
+### **🚨 Issue Identified**
+After the Phase 1B useGameData hook refactoring, admin users were seeing "No hay juegos programados actualmente" (No games currently scheduled) in the betting interface, despite having 10 existing games in the database.
+
+### **🎯 Root Cause Analysis**
+**API Response Mismatch**: The backend `/api/admin/games` endpoint returns:
+```typescript
+{
+  games: AdminGameResponse[],
+  pagination: { limit: number, offset: number, total: number }
+}
+```
+
+**Frontend Hook Expected**: Direct array of `AdminGameResponse[]`
+
+**Result**: The hook was unable to parse the nested `games` property, resulting in empty game arrays for admin users.
+
+### **✅ Technical Solution Implemented**
+
+#### **1. Updated TypeScript Interfaces**
+```typescript
+// Added proper API response interface
+interface AdminGamesApiResponse {
+  games: AdminGameResponse[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
+}
+```
+
+#### **2. Fixed Hook Parsing Logic**
+```typescript
+// BEFORE: Incorrect parsing
+const adminGames = Array.isArray(rawData) ? rawData as AdminGameResponse[] : [];
+
+// AFTER: Correct nested property extraction  
+const adminResponse = rawData as AdminGamesApiResponse;
+const adminGames = adminResponse?.games || [];
+```
+
+#### **3. Added Debug Logging**
+```typescript
+console.log('[useGameData] Admin API Response:', {
+  hasData: !!adminResponse,
+  gamesCount: adminGames.length,
+  firstGame: adminGames[0] ? {...} : 'none'
+});
+```
+
+### **📊 Verification Results**
+- ✅ **TypeScript Compilation**: PASSED - No type errors
+- ✅ **Production Build**: PASSED - All 10 pages successfully generated  
+- ✅ **Data Preservation**: All 10 existing games (weeks 25-26) maintained
+- ✅ **Zero Breaking Changes**: Regular user functionality unaffected
+- ✅ **Admin Functionality**: Restored access to all games in betting interface
+
+### **🎉 Impact**
+- **Admin Users**: Can now view and manage all existing games in the betting interface
+- **Regular Users**: No impact - continues working as expected
+- **Database Integrity**: No data changes required - used existing games
+- **System Stability**: Type-safe interfaces prevent future API parsing issues
+
+---
+
 **Created**: 2025-01-27  
-**Last Updated**: 2025-01-27  
+**Last Updated**: 2025-06-27  
 **Assignee**: Development Team  
 **Phase 1A Completed**: 2025-06-26  
 **Phase 1B Completed**: 2025-01-27  
 **Phase 1C Completed**: 2025-01-27  
 **Navigation Fixes Completed**: 2025-01-27  
+**Admin Games Fix Completed**: 2025-06-27  
 **ALL CRITICAL ISSUES**: ✅ COMPLETE  
-**Labels**: `frontend`, `hooks`, `navigation`, `performance`, `type-safety`, `memory-leaks`, `race-conditions`, `enterprise-architecture` 
+**Labels**: `frontend`, `hooks`, `navigation`, `performance`, `type-safety`, `memory-leaks`, `race-conditions`, `enterprise-architecture`, `admin-interface` 

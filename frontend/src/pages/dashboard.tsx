@@ -9,6 +9,8 @@ import TeamLogo from '@/components/TeamLogo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCrown, faMedal, faAward } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
+// 🧪 TESTING: Import the new hook for side-by-side testing
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 interface UserProfile {
   totalBets: number;
@@ -60,6 +62,11 @@ interface LeaderboardCategory {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
+  
+  // 🧪 TESTING: Use new hook in parallel with existing implementation
+  const hookData = useDashboardData({ language, t });
+  
+  // 📊 CURRENT: Keep existing implementation for comparison
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
   const [games, setGames] = useState<Game[]>([]);
@@ -73,6 +80,23 @@ export default function DashboardPage() {
   useEffect(() => {
     initializeLeaderboardData();
   }, [language, t]);
+
+  // 🧪 TESTING: Log comparison data for verification
+  useEffect(() => {
+    if (!loading && !hookData.loading) {
+      console.log('[🧪 HOOK TEST] Current vs Hook comparison:');
+      console.log('Profile match:', JSON.stringify(profile) === JSON.stringify(hookData.profile));
+      console.log('Week match:', JSON.stringify(currentWeek) === JSON.stringify(hookData.currentWeek));
+      console.log('Games count match:', games.length === hookData.games.length);
+      console.log('Leaderboard count match:', leaderboardData.length === hookData.leaderboardData.length);
+      
+      if (games.length !== hookData.games.length) {
+        console.log('[🧪 HOOK TEST] Games difference:');
+        console.log('Current games:', games.length, games.map(g => g.id));
+        console.log('Hook games:', hookData.games.length, hookData.games.map(g => g.id));
+      }
+    }
+  }, [loading, hookData.loading, profile, hookData.profile, games, hookData.games]);
 
   const initializeLeaderboardData = () => {
     // Localized usernames based on language

@@ -37,7 +37,7 @@ export interface BetStatus {
   totalGamesCount: number;
 }
 
-// API Response Types
+// API Response Types  
 interface AdminGameResponse {
   id: number;
   homeTeam?: { name: string; logoUrl?: string };
@@ -48,6 +48,15 @@ interface AdminGameResponse {
   week?: { weekNumber: number };
   homeScore?: number;
   awayScore?: number;
+}
+
+interface AdminGamesApiResponse {
+  games: AdminGameResponse[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
 }
 
 interface BettingDataResponse {
@@ -116,7 +125,7 @@ export function useGameData(options: UseGameDataOptions): UseGameDataResult {
     error,
     refetch,
     cancel
-  } = useApiRequest<AdminGameResponse[] | BettingDataResponse>(
+  } = useApiRequest<AdminGamesApiResponse | BettingDataResponse>(
     urlGenerator,
     {
       dependencies: [user, isAdmin, tab],
@@ -135,8 +144,22 @@ export function useGameData(options: UseGameDataOptions): UseGameDataResult {
     }
 
     if (isAdmin) {
-      // Handle admin games response
-      const adminGames = Array.isArray(rawData) ? rawData as AdminGameResponse[] : [];
+      // Handle admin games response - extract games from the response object
+      const adminResponse = rawData as AdminGamesApiResponse;
+      const adminGames = adminResponse?.games || [];
+      
+      // 🔍 DEBUG: Log admin games parsing
+      console.log('[useGameData] Admin API Response:', {
+        hasData: !!adminResponse,
+        gamesCount: adminGames.length,
+        firstGame: adminGames[0] ? {
+          id: adminGames[0].id,
+          homeTeam: adminGames[0].homeTeam?.name,
+          awayTeam: adminGames[0].awayTeam?.name,
+          week: adminGames[0].weekNumber
+        } : 'none'
+      });
+      
       const games: Game[] = adminGames.map((game: AdminGameResponse): Game => ({
         id: game.id,
         homeTeamName: game.homeTeam?.name || 'TBD',

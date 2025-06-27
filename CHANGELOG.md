@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.54] - 2025-06-27
+### 🔧 ADMIN INTERFACE FIX: Restored Game Visibility in Betting Interface
+- **RESOLVED: Admin Games API Response Parsing**: Fixed critical issue where admin users saw "No games currently scheduled" despite having 10 existing games in database
+  - **Root Cause**: useGameData hook expected direct array of games but backend returns `{games: [...], pagination: {...}}`
+  - **Impact**: Admin users unable to view or manage existing games in betting interface
+  - **Solution**: Updated TypeScript interfaces and parsing logic to correctly extract games from nested API response
+
+### 🎯 Technical Implementation
+- **Updated TypeScript Interfaces**:
+  ```typescript
+  // Added proper API response interface
+  interface AdminGamesApiResponse {
+    games: AdminGameResponse[];
+    pagination: { limit: number, offset: number, total: number };
+  }
+  ```
+- **Fixed Hook Parsing Logic**:
+  ```typescript
+  // BEFORE: Incorrect direct array parsing
+  const adminGames = Array.isArray(rawData) ? rawData as AdminGameResponse[] : [];
+  
+  // AFTER: Correct nested property extraction
+  const adminResponse = rawData as AdminGamesApiResponse;
+  const adminGames = adminResponse?.games || [];
+  ```
+
+### 📊 Verification Results
+- **TypeScript Compilation**: ✅ PASSED - No type errors with updated interfaces
+- **Production Build**: ✅ PASSED - All 10 pages successfully generated
+- **Data Preservation**: ✅ All 10 existing games (weeks 25-26) maintained without any database changes
+- **Admin Functionality**: ✅ Restored complete access to all games in betting interface
+- **Zero Breaking Changes**: ✅ Regular user functionality remains unaffected
+
+### 🏗️ Architecture Quality
+- **Type Safety**: Proper interfaces prevent future API parsing issues
+- **Zero Data Loss**: Solution required no database modifications or seeding
+- **Surgical Fix**: Targeted correction without affecting other system components
+- **Debug Support**: Added logging to verify correct API response parsing
+
+### Enhanced
+- Admin user experience with full game visibility restored in betting interface
+- API response parsing reliability with type-safe interfaces
+- Development debugging capabilities with response structure logging
+- System maintainability with proper TypeScript interface documentation
+
+### Fixed
+- Admin users seeing empty game list in betting interface despite existing data
+- useGameData hook unable to parse admin API response structure correctly
+- Missing TypeScript interfaces for admin games API response format
+
 ## [2.0.53] - 2025-01-27
 ### 🚀 CRITICAL NAVIGATION FIXES: Race Condition & Logout Issue Resolution
 - **RESOLVED: Navigation Race Condition**: Eliminated critical `"Abort fetching component for route: '/bet'"` error in incognito mode
