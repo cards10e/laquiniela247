@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocalStorage, isValidTheme } from '../hooks/useLocalStorage';
+import { useSystemTheme } from '../hooks/useSystemTheme';
 
 type Theme = 'light' | 'dark' | 'auto';
 
@@ -15,27 +16,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Use type-safe localStorage hook with validation
   const [theme, setTheme] = useLocalStorage<Theme>('lq247_theme', 'auto', isValidTheme);
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
+  
+  // Use system theme detection hook
+  const { systemTheme } = useSystemTheme();
 
   // Update effective theme based on theme setting and system preference
   useEffect(() => {
-    const updateEffectiveTheme = () => {
-      if (theme === 'auto') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setEffectiveTheme(prefersDark ? 'dark' : 'light');
-      } else {
-        setEffectiveTheme(theme);
-      }
-    };
-
-    updateEffectiveTheme();
-
-    // Listen for system theme changes when in auto mode
     if (theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', updateEffectiveTheme);
-      return () => mediaQuery.removeEventListener('change', updateEffectiveTheme);
+      setEffectiveTheme(systemTheme);
+    } else {
+      setEffectiveTheme(theme);
     }
-  }, [theme]);
+  }, [theme, systemTheme]);
 
   // Apply theme class to document
   useEffect(() => {
