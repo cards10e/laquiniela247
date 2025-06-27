@@ -10,7 +10,13 @@ export function useLocalStorage<T>(
   validator?: (value: any) => value is T
 ): [T, (value: T) => void, () => void] {
   // Initialize state with value from localStorage or default
+  // SSR compatibility: Check if localStorage is available (browser environment)
   const [storedValue, setStoredValue] = useState<T>(() => {
+    // Return default value during SSR (server-side rendering)
+    if (typeof window === 'undefined') {
+      return defaultValue;
+    }
+
     try {
       const item = localStorage.getItem(key);
       if (item === null) return defaultValue;
@@ -34,7 +40,10 @@ export function useLocalStorage<T>(
   const setValue = useCallback((value: T) => {
     try {
       setStoredValue(value);
-      localStorage.setItem(key, JSON.stringify(value));
+      // Only access localStorage in browser environment
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
     } catch (error) {
       console.error(`Failed to set localStorage key "${key}":`, error);
     }
@@ -44,7 +53,10 @@ export function useLocalStorage<T>(
   const removeValue = useCallback(() => {
     try {
       setStoredValue(defaultValue);
-      localStorage.removeItem(key);
+      // Only access localStorage in browser environment
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(key);
+      }
     } catch (error) {
       console.error(`Failed to remove localStorage key "${key}":`, error);
     }
