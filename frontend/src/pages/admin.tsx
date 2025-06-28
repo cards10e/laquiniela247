@@ -774,6 +774,14 @@ export default function AdminPage() {
                 </h2>
               </div>
             )}
+            
+            {activeTab === 'security' && (
+              <div className="mb-8">
+                <h2 className="section-title">
+                  🛡️ {t('admin.security_monitoring')}
+                </h2>
+              </div>
+            )}
 
             {/* Tab Navigation */}
             <div className="mb-8">
