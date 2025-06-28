@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.55] - 2025-06-28
+### 🚀 PERFORMANCE OPTIMIZATION: History Page Filter Performance Enhancement
+- **RESOLVED: History Page Filter Performance**: Eliminated expensive filtering operations causing UI lag during filter changes
+  - **Root Cause**: Filter logic ran immediately on every change via useEffect without debouncing or memoization
+  - **Impact**: Poor user experience with laggy filtering, especially with large betting history datasets
+  - **Solution**: Implemented debounced filtering with useMemo optimization for responsive user experience
+
+### 🎯 Technical Implementation Excellence
+- **Created `useFilteredBets()` Hook**: Comprehensive filtering solution with enterprise-grade optimization
+  ```typescript
+  // Performance-optimized filtering with debouncing and memoization
+  const { filteredBets, isFiltering } = useFilteredBets(bets, statusFilter, betTypeFilter);
+  ```
+- **Debounced Filter Changes**: 300ms delay prevents excessive CPU usage during rapid filter changes
+- **useMemo Optimization**: Expensive filtering operations now cached and only recalculated when dependencies change
+- **Memory Leak Prevention**: Proper timeout cleanup in debounce logic ensures no resource leaks
+
+### 📊 Performance Improvements Delivered
+- **User Experience**: Responsive filtering without lag or delay during rapid filter changes
+- **CPU Optimization**: Eliminated excessive filtering operations that blocked UI thread
+- **Code Quality**: Clean separation of concerns with reusable filtering hook
+- **Memory Safety**: Automatic cleanup prevents timeout memory leaks
+
+### 🔧 Implementation Results
+- **Code Reduction**: Removed 20+ lines of problematic useEffect/filterBets logic
+- **Zero Breaking Changes**: Maintained exact same filtering logic and functionality
+- **Type Safety**: Full TypeScript coverage for filtering operations
+- **Build Verification**: All 10 pages compile successfully with optimized filtering
+
+### Added
+- `useFilteredBets()` hook with debouncing and memoization
+- Performance optimization for large betting history datasets
+- Optional `isFiltering` state for enhanced UI feedback
+- Proper timeout cleanup for memory leak prevention
+
+### Enhanced
+- History page filtering performance with debounced operations
+- User experience with responsive filter interactions
+- Code maintainability with reusable filtering hook
+- Overall system performance with optimized data operations
+
+### Fixed
+- Laggy filtering during rapid filter changes in history page
+- Excessive CPU usage from unoptimized filtering operations
+- Missing memoization for expensive data transformation
+- Memory leaks from unmanaged setTimeout operations
+
 ## [2.0.54] - 2025-06-27
 ### 🔧 useEffect Safety & Hook Architecture Improvements
 - **Enhanced Hook Architecture**: Completed major refactoring of core hooks for better type safety and reliability

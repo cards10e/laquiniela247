@@ -6,6 +6,7 @@ import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminRestrictedRoute } from '@/components/auth/AdminRestrictedRoute';
 import TeamLogo from '@/components/TeamLogo';
+import { useFilteredBets, BetHistory, FilterType, BetTypeFilter } from '@/hooks/useFilteredBets';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -19,29 +20,7 @@ import {
   faLightbulb
 } from '@fortawesome/free-solid-svg-icons';
 
-interface BetHistory {
-  id: number;
-  betType: 'la_quiniela' | 'single_bet';
-  weekNumber?: number;
-  gameId?: number;
-  amount: number;
-  status: 'pending' | 'won' | 'lost' | 'partial';
-  correctPredictions: number;
-  totalPredictions: number;
-  winnings: number;
-  date: string;
-  predictions: {
-    gameId: number;
-    homeTeamName: string;
-    awayTeamName: string;
-    prediction: 'home' | 'away' | 'draw';
-    result?: 'home' | 'away' | 'draw';
-    correct?: boolean;
-  }[];
-}
-
-type FilterType = 'all' | 'won' | 'lost' | 'pending';
-type BetTypeFilter = 'all_types' | 'la_quiniela' | 'single_bets';
+// BetHistory, FilterType, and BetTypeFilter interfaces moved to useFilteredBets hook
 
 interface FormattedAmountProps {
   amount: number;
@@ -95,19 +74,17 @@ export default function HistoryPage() {
   const { t } = useI18n();
   const { formatAmount } = useCurrency();
   const [bets, setBets] = useState<BetHistory[]>([]);
-  const [filteredBets, setFilteredBets] = useState<BetHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<FilterType>('all');
   const [betTypeFilter, setBetTypeFilter] = useState<BetTypeFilter>('all_types');
   const [expandedBet, setExpandedBet] = useState<number | null>(null);
 
+  // Use optimized filtering hook with debouncing and memoization
+  const { filteredBets, isFiltering } = useFilteredBets(bets, statusFilter, betTypeFilter);
+
   useEffect(() => {
     fetchBettingHistory();
   }, []);
-
-  useEffect(() => {
-    filterBets();
-  }, [bets, statusFilter, betTypeFilter]);
 
   const fetchBettingHistory = async () => {
     try {
@@ -501,23 +478,7 @@ export default function HistoryPage() {
     }
   };
 
-  const filterBets = () => {
-    let filtered = bets;
-
-    // Filter by bet type
-    if (betTypeFilter !== 'all_types') {
-      filtered = filtered.filter(bet => 
-        betTypeFilter === 'la_quiniela' ? bet.betType === 'la_quiniela' : bet.betType === 'single_bet'
-      );
-    }
-
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(bet => bet.status === statusFilter);
-    }
-
-    setFilteredBets(filtered);
-  };
+  // filterBets function removed - now handled by useFilteredBets hook with optimization
 
   const formatPercentage = (correct: number, total: number) => {
     if (total === 0) return '0%';
