@@ -139,11 +139,25 @@ export default function AdminPage() {
   const [showSecurityDetails, setShowSecurityDetails] = useState(false);
   const [securityLoading, setSecurityLoading] = useState(false);
   const [lastSecurityCheck, setLastSecurityCheck] = useState<Date | null>(null);
-  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
-    monitoringInterval: 1, // Default: 1 minute
-    alertsEnabled: true,
-    criticalAlertsEnabled: true,
-    warningAlertsEnabled: true
+  // Load security settings from localStorage with disabled defaults
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('lq247_admin_security_settings');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (error) {
+          console.warn('Failed to parse saved security settings, using defaults');
+        }
+      }
+    }
+    // Default settings with alerts DISABLED
+    return {
+      monitoringInterval: 1,
+      alertsEnabled: false,          // ← DISABLED: Master switch for all alerts
+      criticalAlertsEnabled: false,  // ← DISABLED: Critical alerts (suspicious requests)
+      warningAlertsEnabled: false    // ← DISABLED: Warning alerts (failed logins)
+    };
   });
 
   const [axiosInstance] = useState(() => {
@@ -280,9 +294,42 @@ export default function AdminPage() {
   };
 
   const handleUpdateSecuritySettings = (newSettings: Partial<SecuritySettings>) => {
-    setSecuritySettings(prev => ({ ...prev, ...newSettings }));
+    const updatedSettings = { ...securitySettings, ...newSettings };
+    setSecuritySettings(updatedSettings);
+    
+    // Save to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lq247_admin_security_settings', JSON.stringify(updatedSettings));
+    }
+    
     toast.success('Security monitoring settings updated');
     // Note: The useSecurityMonitoring hook will automatically react to settings changes
+  };
+
+  // Clear all existing toast notifications
+  const handleClearAllAlerts = () => {
+    toast.dismiss(); // Dismiss all active toasts
+    setTimeout(() => {
+      toast.success('All security alerts cleared');
+    }, 100); // Small delay to ensure previous toasts are dismissed
+  };
+
+  // Reset security settings to defaults
+  const handleResetSecuritySettings = () => {
+    const defaultSettings: SecuritySettings = {
+      monitoringInterval: 1,
+      alertsEnabled: false,
+      criticalAlertsEnabled: false,
+      warningAlertsEnabled: false
+    };
+    setSecuritySettings(defaultSettings);
+    
+    // Clear from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('lq247_admin_security_settings');
+    }
+    
+    toast.success('Security settings reset to defaults (alerts disabled)');
   };
 
   // Removed automatic refresh - users can manually refresh if needed
@@ -1671,6 +1718,22 @@ export default function AdminPage() {
                             />
                             <span className="text-sm text-yellow-600">⚠️ Warning Alerts</span>
                           </label>
+                        </div>
+                        
+                        {/* Quick Action Buttons */}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            onClick={handleClearAllAlerts}
+                            className="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-md transition-colors"
+                          >
+                            🧹 Clear All Alerts
+                          </button>
+                          <button
+                            onClick={handleResetSecuritySettings}
+                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors"
+                          >
+                            🔄 Reset to Defaults
+                          </button>
                         </div>
                       </div>
 

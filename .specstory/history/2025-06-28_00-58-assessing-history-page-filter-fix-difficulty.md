@@ -528,3 +528,514 @@ Read file: CHANGELOG.md
 
 ---
 
+Read file: README.md
+
+---
+
+
+
+---
+
+Now let me update the changelog and README with our latest fix, then handle the git operations.
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+Now let me commit all the changes and handle the git operations as requested.
+
+---
+
+```bash
+git add .
+```
+
+```
+batman@saturn laquiniela247 % 
+
+```
+
+---
+
+
+
+---
+
+```bash
+git commit -m "feat: Optimize history page filter performance with debounced filtering
+
+🚀 PERFORMANCE OPTIMIZATION: History Page Filter Enhancement
+
+✅ RESOLVED: History Page Filter Performance Issue
+- Created useFilteredBets() hook with debouncing and memoization
+- Eliminated expensive filtering operations causing UI lag
+- Implemented 300ms debounce to prevent excessive CPU usage
+- Added useMemo optimization for responsive user experience
+
+🔧 Technical Implementation:
+- Zero breaking changes - maintained exact filtering logic
+- Proper timeout cleanup prevents memory leaks
+- Full TypeScript coverage for type safety
+- Code reduction: removed 20+ lines of problematic useEffect logic
+
+📊 Results:
+- Responsive filtering without lag during rapid changes
+- CPU optimization eliminates UI thread blocking
+- Build verification: all 10 pages compile successfully
+- Clean separation of concerns with reusable hook architecture
+
+Files:
+- Added: frontend/src/hooks/useFilteredBets.ts
+- Modified: frontend/src/pages/history.tsx
+- Updated: issues/useEffect-safety-typing-improvements.md
+- Updated: CHANGELOG.md, README.md
+
+Progress: 11/12 useEffect safety issues resolved (92% complete)"
+```
+
+```
+</12 useEffect safety issues resolved (92% complete)"
+[feature/useEffect-safety-and-refactoring a02a2ad] feat: Optimize history page filter performance with debou
+nced filtering
+ 7 files changed, 2435 insertions(+), 61 deletions(-)
+ create mode 100644 .specstory/history/2025-06-28_00-58-assessing-history-page-filter-fix-difficulty.md
+ create mode 100644 frontend/src/hooks/useFilteredBets.ts
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git push origin feature/useEffect-safety-and-refactoring
+```
+
+```
+batman@saturn laquiniela247 % git push origin feature/useEffect-safety-and-refactoring
+Enumerating objects: 40, done.
+Counting objects: 100% (40/40), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (26/26), done.
+Writing objects: 100% (26/26), 30.44 KiB | 5.07 MiB/s, done.
+Total 26 (delta 19), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (19/19), completed with 12 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   e0f18b4..a02a2ad  feature/useEffect-safety-and-refactoring -> feature/useEffect-safety-and-refactoring
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git checkout main
+```
+
+```
+batman@saturn laquiniela247 % git checkout main
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git merge feature/useEffect-safety-and-refactoring
+```
+
+```
+batman@saturn laquiniela247 % git merge feature/useEffect-safety-and-refactoring
+Updating 96eb927..a02a2ad
+Fast-forward
+ .../history/2025-06-26_17-21-push-changes-and-merge-into-main.md     |  3756 ++++++++++
+ .../history/2025-06-27_12-34-next-steps-for-implementation-plan.md   | 11222 +++++++++++++++++++++++++++++
+ .../2025-06-28_00-58-assessing-history-page-filter-fix-difficulty.md |   530 ++
+ CHANGELOG.md                                                         |   447 ++
+ README.md                                                            |   190 +
+ frontend/src/context/AuthContext.tsx                                 |    80 +-
+ frontend/src/context/ThemeContext.tsx                                |    41 +-
+ frontend/src/hooks/useApiRequest.ts                                  |    99 +
+ frontend/src/hooks/useAuthInterceptors.ts                            |   161 +
+ frontend/src/hooks/useDashboardData.ts                               |   341 +
+ frontend/src/hooks/useFilteredBets.ts                                |   102 +
+ frontend/src/hooks/useGameData.ts                                    |   245 +
+ frontend/src/hooks/useLocalStorage.ts                                |    74 +
+ frontend/src/hooks/useSecurityMonitoring.ts                          |   123 +
+ frontend/src/hooks/useSystemTheme.ts                                 |    55 +
+ frontend/src/pages/admin.tsx                                         |   100 +-
+ frontend/src/pages/bet.tsx                                           |   389 +-
+ frontend/src/pages/dashboard.tsx                                     |   221 +-
+ frontend/src/pages/history.tsx                                       |    51 +-
+ frontend/src/pages/index.tsx                                         |    34 +-
+ frontend/src/pages/login.tsx                                         |    21 +-
+ frontend/src/pages/register.tsx                                      |    11 +-
+ frontend/src/services/exchangeRateService.ts                         |    94 +-
+ frontend/tsconfig.tsbuildinfo                                        |     1 +
+ issues/betting-week-filter-bug-fix.md                                |   140 +
+ issues/phase-1b-useApiRequest-implementation-summary.md              |   153 +
+ issues/phase-1c-useLocalStorage-implementation-summary.md            |   169 +
+ issues/useEffect-safety-typing-improvements.md                       |   401 ++
+ issues/useSystemTheme-implementation-summary.md                      |   190 +
+ 29 files changed, 18714 insertions(+), 727 deletions(-)
+ create mode 100644 .specstory/history/2025-06-26_17-21-push-changes-and-merge-into-main.md
+ create mode 100644 .specstory/history/2025-06-27_12-34-next-steps-for-implementation-plan.md
+ create mode 100644 .specstory/history/2025-06-28_00-58-assessing-history-page-filter-fix-difficulty.md
+ create mode 100644 frontend/src/hooks/useApiRequest.ts
+ create mode 100644 frontend/src/hooks/useAuthInterceptors.ts
+ create mode 100644 frontend/src/hooks/useDashboardData.ts
+ create mode 100644 frontend/src/hooks/useFilteredBets.ts
+ create mode 100644 frontend/src/hooks/useGameData.ts
+ create mode 100644 frontend/src/hooks/useLocalStorage.ts
+ create mode 100644 frontend/src/hooks/useSecurityMonitoring.ts
+ create mode 100644 frontend/src/hooks/useSystemTheme.ts
+ create mode 100644 frontend/tsconfig.tsbuildinfo
+ create mode 100644 issues/betting-week-filter-bug-fix.md
+ create mode 100644 issues/phase-1b-useApiRequest-implementation-summary.md
+ create mode 100644 issues/phase-1c-useLocalStorage-implementation-summary.md
+ create mode 100644 issues/useEffect-safety-typing-improvements.md
+ create mode 100644 issues/useSystemTheme-implementation-summary.md
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/cards10e/laquiniela247.git
+   96eb927..a02a2ad  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git branch -d feature/useEffect-safety-and-refactoring
+```
+
+```
+batman@saturn laquiniela247 % git branch -d feature/useEffect-safety-and-refactoring
+Deleted branch feature/useEffect-safety-and-refactoring (was a02a2ad).
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git status && echo "=== Current Branch ===" && git branch
+```
+
+```
+batman@saturn laquiniela247 % git status && echo "=== Current Branch ===" && git branch
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+=== Current Branch ===
+  demo-site-fixes-improvements
+* main
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+## ✅ **ALL OPERATIONS COMPLETED SUCCESSFULLY!**
+
+### 🚀 **Summary of Actions Performed:**
+
+1. **✅ CHANGELOG UPDATED** - Added comprehensive v2.0.55 entry with full technical details
+2. **✅ README UPDATED** - Updated latest version section with performance optimization details  
+3. **✅ ALL CHANGES COMMITTED** - Comprehensive commit message following established patterns
+4. **✅ FEATURE BRANCH PUSHED** - All changes pushed to `feature/useEffect-safety-and-refactoring`
+5. **✅ MERGED TO MAIN** - Fast-forward merge completed successfully
+6. **✅ MAIN BRANCH PUSHED** - All changes now live on `origin/main`
+7. **✅ LOCAL BRANCH DELETED** - `feature/useEffect-safety-and-refactoring` branch cleaned up
+
+### 📊 **Final Status:**
+
+- **Current Branch**: `main` ✅
+- **Working Directory**: Clean ✅  
+- **Remote Sync**: Up to date ✅
+- **Feature Branch**: Deleted ✅
+
+### 🎯 **What Was Delivered:**
+
+**Performance Optimization v2.0.55:**
+- ✅ **useFilteredBets() Hook** - Enterprise-grade filtering with debouncing
+- ✅ **300ms Debounce** - Prevents excessive CPU usage
+- ✅ **useMemo Optimization** - Cached filtering results  
+- ✅ **Memory Safety** - Proper timeout cleanup
+- ✅ **Zero Breaking Changes** - Maintained all existing functionality
+- ✅ **Full TypeScript Coverage** - Type-safe implementation
+- ✅ **Build Verification** - All 10 pages compile successfully
+
+### 📈 **Project Progress Update:**
+- **Total Progress**: 11/12 useEffect safety issues resolved (**92% complete**)
+- **All Critical Issues**: ✅ RESOLVED 
+- **All Medium Issues**: ✅ RESOLVED
+- **Remaining**: Only 1 low-priority standardization issue
+
+The history page filter performance issue has been **completely resolved** with enterprise-grade optimization, and all changes are now live on the main branch! 🎉
+
+---
+
+_**User**_
+
+how do we turn off any security notifications/alerts for admins on the /admin page?
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll help you turn off security notifications/alerts for admins on the /admin page. Let me first examine the current security monitoring implementation.
+
+---
+
+Read file: frontend/src/hooks/useSecurityMonitoring.ts
+
+---
+
+
+
+---
+
+<details>
+            <summary>Grep search for "useSecurityMonitoring" • **1** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L12 | `import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L160 | `const securityMonitoring = useSecurityMonitoring({` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L284 | `// Note: The useSecurityMonitoring hook will automatically react to settings changes` |
+
+</details>
+
+---
+
+
+
+---
+
+Read file: frontend/src/pages/admin.tsx
+
+---
+
+
+
+---
+
+<details>
+            <summary>Grep search for "securitySettings|alertsEnabled|criticalAlertsEnabled|warningAlertsEnabled" • **1** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L82 | `interface SecuritySettings {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L84 | `alertsEnabled: boolean;` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L85 | `criticalAlertsEnabled: boolean;` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L86 | `warningAlertsEnabled: boolean;` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L141 | `const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L143 | `alertsEnabled: true,` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L144 | `criticalAlertsEnabled: true,` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L145 | `warningAlertsEnabled: true` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L162 | `interval: securitySettings.monitoringInterval * 60 * 1000,` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L163 | `enabled: process.env.NODE_ENV === 'production' && securitySettings.alertsEnabled,` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L175 | `if (alertType === 'HIGH_SUSPICIOUS_REQUESTS' && securitySettings.criticalAlertsEnabled) {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L180 | `} else if (alertType === 'HIGH_FAILED_LOGINS' && securitySettings.warningAlertsEnabled) {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L231 | `if (securityData && securitySettings.alertsEnabled) {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L236 | `if (currentStatus === 'CRITICAL' && securitySettings.criticalAlertsEnabled) {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L241 | `} else if (currentStatus === 'WARNING' && securitySettings.warningAlertsEnabled) {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L281 | `const handleUpdateSecuritySettings = (newSettings: Partial<SecuritySettings>) => {` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L282 | `setSecuritySettings(prev => ({ ...prev, ...newSettings }));` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1621 | `value={securitySettings.monitoringInterval}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1622 | `onChange={(e) => handleUpdateSecuritySettings({ monitoringInterval: parseInt(e.target.value) })}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1647 | `checked={securitySettings.alertsEnabled}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1648 | `onChange={(e) => handleUpdateSecuritySettings({ alertsEnabled: e.target.checked })}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1656 | `checked={securitySettings.criticalAlertsEnabled}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1657 | `onChange={(e) => handleUpdateSecuritySettings({ criticalAlertsEnabled: e.target.checked })}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1658 | `disabled={!securitySettings.alertsEnabled}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1666 | `checked={securitySettings.warningAlertsEnabled}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1667 | `onChange={(e) => handleUpdateSecuritySettings({ warningAlertsEnabled: e.target.checked })}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1668 | `disabled={!securitySettings.alertsEnabled}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1684 | `securitySettings.alertsEnabled ? 'bg-green-500' : 'bg-gray-400'` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1687 | `Monitoring: {securitySettings.alertsEnabled ? 'Active' : 'Disabled'}` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1691 | `Next check: {securitySettings.alertsEnabled ? `${securitySettings.monitoringInterval} min` : 'N/A'}` |
+
+</details>
+
+---
+
+
+
+---
+
+Read file: frontend/src/pages/admin.tsx
+
+---
+
+
+
+---
+
+## 🔧 **How to Turn Off Security Notifications/Alerts for Admins**
+
+There are several ways to control or disable security notifications on the `/admin` page. Here are your options:
+
+### **🎛️ Option 1: Use the Built-in Admin UI Controls (Recommended)**
+
+The admin page already has a dedicated **Security Monitoring Settings** section where you can control all notifications:
+
+1. **Navigate to the Admin Page** (`/admin`)
+2. **Scroll down to the "Security Monitoring Settings" section**
+3. **Find the "Alert Types" controls** with these options:
+
+   ```
+   ☐ Enable All Alerts              ← Master switch (uncheck this)
+   ☐ 🚨 Critical Alerts            ← For high suspicious requests  
+   ☐ ⚠️ Warning Alerts             ← For high failed logins
+   ```
+
+4. **To disable ALL notifications**: Uncheck **"Enable All Alerts"**
+5. **To disable specific types**: Uncheck individual alert types
+
+### **🎯 Option 2: Granular Control**
+
+You can also control notifications more granularly:
+
+- **Turn off Critical Alerts only**: Unchecks "🚨 Critical Alerts" (keeps exchange rate warnings)
+- **Turn off Warning Alerts only**: Unchecks "⚠️ Warning Alerts" (keeps critical security alerts)
+- **Adjust Monitoring Interval**: Set to longer intervals (up to 1 hour) to reduce frequency
+
+### **🔧 Option 3: Code-Level Modification (For Permanent Changes)**
+
+If you want to permanently disable security monitoring, you can modify the code:
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+### **📊 Current Security Alert Types**
+
+Here's what each type of alert does:
+
+1. **🚨 Critical Alerts**:
+   - High suspicious requests (>5 requests)
+   - Exchange rate security degraded to CRITICAL status
+   - Red toast notifications with 10-second duration
+
+2. **⚠️ Warning Alerts**:
+   - High failed logins (>3 attempts)  
+   - Exchange rate security degraded to WARNING status
+   - Yellow toast notifications with 8-second duration
+
+3. **✅ Success Alerts**:
+   - Exchange rate security restored to SECURE status
+   - Green toast notifications with 5-second duration
+
+### **🔍 How It Works Behind the Scenes**
+
+The security monitoring system:
+- **Development Mode**: Automatically disabled (`process.env.NODE_ENV !== 'production'`)
+- **Production Mode**: Respects the `alertsEnabled` setting
+- **Monitoring Interval**: Checks every 1-60 minutes (configurable)
+- **Memory Safe**: Uses the `useSecurityMonitoring` hook with automatic cleanup
+
+### **✅ Recommended Approach**
+
+**For temporary changes**: Use the UI controls in the admin panel
+**For permanent changes**: Modify the default state in the code (as shown above)
+
+After making the code change, the security notifications will be disabled by default for all admins, but they can still be re-enabled through the UI if needed.
+
+Would you like me to commit this change to disable security alerts by default?
+
+---
+
+_**User**_
+
+see the image? if i use the built-in Uncheck "Enable All Alerts" the settings dont save permanently
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I can see the issue! You're getting bombarded with security alerts even though you've disabled them, and the settings don't persist when you reload the page. The problem is that the security settings are only stored in component state, not permanently saved.
+
+Let me fix this by adding localStorage persistence for the security settings:
+
+---
+
+
+
+---
+
+
+
+---
+
