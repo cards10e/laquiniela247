@@ -1642,16 +1642,6 @@ export default function AdminPage() {
             {/* 🛡️ SECURITY TAB: Dedicated Security Monitoring Tab */}
             {activeTab === 'security' && (
               <div className="space-y-8">
-                {/* Header */}
-                <div className="mb-8">
-                  <h2 className="section-title">
-                    🛡️ {t('admin.security_monitoring')}
-                  </h2>
-                                      <p className="mt-2 text-secondary-600 dark:text-secondary-400">
-                      {t('admin.security_monitoring_description')}
-                    </p>
-                </div>
-
                 {/* Security Settings Card */}
                 <div className="card">
                   <div className="card-header">
