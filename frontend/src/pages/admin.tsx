@@ -1724,13 +1724,13 @@ export default function AdminPage() {
                         <div className="mt-4 flex flex-wrap gap-2">
                           <button
                             onClick={handleClearAllAlerts}
-                            className="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-md transition-colors"
+                            className="btn-outline text-xs"
                           >
                             🧹 Clear All Alerts
                           </button>
                           <button
                             onClick={handleResetSecuritySettings}
-                            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors"
+                            className="btn-outline text-xs"
                           >
                             🔄 Reset to Defaults
                           </button>

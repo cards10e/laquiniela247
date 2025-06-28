@@ -1039,3 +1039,287 @@ Let me fix this by adding localStorage persistence for the security settings:
 
 ---
 
+
+
+---
+
+
+
+---
+
+Now let me add a "Clear All Alerts" button to immediately dismiss those existing notifications and also create a utility to reset the localStorage if needed:
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+<details>
+            <summary>Grep search for "import.*toast" • **1** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L5 | `import { toast } from 'react-hot-toast';` |
+
+</details>
+
+---
+
+
+
+---
+
+
+
+---
+
+
+
+---
+
+```bash
+cd frontend && npm run build
+```
+
+```
+batman@saturn laquiniela247 % cd frontend && npm run build
+
+> laquiniela247-frontend@2.0.47 build
+> next build
+
+  ▲ Next.js 14.2.29
+  - Environments: .env.local, .env.production
+  - Experiments (use with caution):
+    · optimizeCss
+
+ ✓ Linting and checking validity of types    
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+ ✓ Collecting page data    
+   Generating static pages (0/10)  [=   ]Inlined 5.13 kB (9% of original 52.74 kB) of _next/static/css/33d7a
+eb156d34937.css.
+Time 98.679458
+Inlined 2.21 kB (4% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 123.941625
+Inlined 9.10 kB (17% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 121.128458
+Inlined 4.36 kB (8% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 118.43125
+Inlined 4.38 kB (8% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 127.571833
+Inlined 4.38 kB (8% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 113.082834
+Inlined 1.84 kB (3% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 30.913084
+Inlined 1.84 kB (3% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 36.155625
+Inlined 4.38 kB (8% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 129.525708
+Inlined 4.38 kB (8% of original 52.74 kB) of _next/static/css/33d7aeb156d34937.css.
+Time 21.148709
+ ✓ Generating static pages (10/10)
+ ✓ Collecting build traces    
+ ✓ Finalizing page optimization    
+
+Route (pages)                              Size     First Load JS
+┌ ○ /                                      508 B           124 kB
+├   /_app                                  0 B             123 kB
+├ ○ /404                                   181 B           123 kB
+├ ○ /admin                                 16.6 kB         145 kB
+├ ○ /bet                                   6.69 kB         135 kB
+├ ○ /dashboard                             5.08 kB         152 kB
+├ ○ /history (308 ms)                      4.48 kB         154 kB
+├ ○ /login                                 3.06 kB         129 kB
+├ ○ /profile                               4.05 kB         130 kB
+└ ○ /register                              3.42 kB         129 kB
++ First Load JS shared by all              131 kB
+  ├ chunks/framework-14efab3c3d1ed63b.js   44.8 kB
+  ├ chunks/main-568eaabdf560e375.js        38.4 kB
+  ├ chunks/pages/_app-8790a0358dbc2ed7.js  39.1 kB
+  └ other shared chunks (total)            8.78 kB
+
+○  (Static)  prerendered as static content
+
+batman@saturn frontend %
+```
+
+---
+
+
+
+---
+
+```bash
+cd .. && git add . && git commit -m "fix: Persist security monitoring settings and add alert management controls
+
+🔧 SECURITY SETTINGS PERSISTENCE FIX
+
+✅ RESOLVED: Security settings now persist across page reloads
+- Added localStorage persistence for security monitoring settings 
+- Settings are automatically saved when changed via UI
+- Default state now has all alerts DISABLED
+
+🛠️ ALERT MANAGEMENT IMPROVEMENTS:
+- Added 'Clear All Alerts' button to dismiss existing notifications
+- Added 'Reset to Defaults' button to restore disabled alert settings
+- Fixed toast.dismiss() implementation for react-hot-toast
+- Added small delay to prevent toast conflict
+
+🎯 User Experience:
+- Security settings now save permanently when unchecked
+- Quick action buttons for immediate alert management
+- Clean localStorage handling with fallback defaults
+- Settings persist across browser sessions
+
+Files modified:
+- frontend/src/pages/admin.tsx: Added localStorage persistence and alert controls
+
+Result: Admins can now permanently disable security notifications without them reappearing on page reload"
+```
+
+```
+<tifications without them reappearing on page reload"
+[main 83cd945] fix: Persist security monitoring settings and add alert management controls
+ 2 files changed, 580 insertions(+), 6 deletions(-)
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+```bash
+git push origin main
+```
+
+```
+batman@saturn laquiniela247 % git push origin main
+Enumerating objects: 17, done.
+Counting objects: 100% (17/17), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (9/9), done.
+Writing objects: 100% (9/9), 10.55 KiB | 5.27 MiB/s, done.
+Total 9 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+To https://github.com/cards10e/laquiniela247.git
+   a02a2ad..83cd945  main -> main
+batman@saturn laquiniela247 %
+```
+
+---
+
+
+
+---
+
+## ✅ **SECURITY ALERTS FIXED - Settings Now Persist Permanently!**
+
+I've completely fixed the issue you were experiencing. Here's what was wrong and what I've implemented:
+
+### **🔍 Problem Analysis**
+- **Settings weren't persisting**: Security settings were only stored in component state, so they reset on every page reload
+- **Alerts kept appearing**: Even when you unchecked "Enable All Alerts", the settings didn't save
+- **No way to clear existing alerts**: Multiple toast notifications were accumulating
+
+### **🛠️ Solutions Implemented**
+
+#### **1. ✅ PERSISTENT SETTINGS**
+- **localStorage Integration**: Security settings now automatically save to browser storage
+- **Auto-load on Page Load**: Settings restore exactly as you left them
+- **Fallback Defaults**: New installations default to **alerts DISABLED**
+
+#### **2. ✅ QUICK ACTION BUTTONS**
+Added two new buttons in the Security Monitoring section:
+- **🧹 Clear All Alerts**: Instantly dismisses all current toast notifications
+- **🔄 Reset to Defaults**: Resets all settings to disabled state
+
+#### **3. ✅ IMPROVED UX**
+- **Immediate Feedback**: Settings save instantly when changed
+- **Visual Confirmation**: Toast notification confirms when settings are updated
+- **Clean State Management**: Proper localStorage handling with error fallbacks
+
+### **🎯 How to Use It Now**
+
+1. **Go to `/admin` page**
+2. **Scroll to "Security Monitoring Settings"**
+3. **Uncheck "Enable All Alerts"** 
+4. **Settings are now PERMANENTLY saved** ✅
+5. **Click "🧹 Clear All Alerts"** to dismiss existing notifications
+6. **Reload the page** - settings will stay disabled!
+
+### **📊 Technical Details**
+- **Storage Key**: `lq247_admin_security_settings`
+- **Default State**: All alerts disabled
+- **Persistence**: Automatic localStorage save/load
+- **Error Handling**: Graceful fallback if localStorage fails
+
+### **🚀 Result**
+You can now:
+- ✅ **Permanently disable** security notifications
+- ✅ **Clear existing alerts** with one click  
+- ✅ **Reset to clean state** whenever needed
+- ✅ **Settings persist** across browser sessions and page reloads
+
+**The security alert spam is now completely under your control!** 🎉
+
+---
+
+_**User**_
+
+compare both images -- the security monitoring needs to match the theme and styling as the performance overview tab - pls make a minimal code change that wont break our code
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I can see the difference! The Security Monitoring section needs the same polished card styling as the Performance Overview. Let me make minimal changes to match the existing design system.
+
+---
+
+Read file: frontend/src/pages/admin.tsx
+
+---
+
+
+
+---
+
+<details>
+            <summary>Grep search for "btn-primary|btn-outline" • **1** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1300 | `<button type="submit" className="btn-primary">{t('admin.create_game')}</button>` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1496 | `className="btn btn-xs btn-primary"` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1780 | `className="btn-outline-sm"` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1898 | `className="btn-primary"` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1907 | `className="btn-outline"` |
+| `file:///Users/batman/laquiniela247/frontend/src/pages/admin.tsx` | L1922 | `className="btn-outline"` |
+
+</details>
+
+---
+
+
+
+---
+
